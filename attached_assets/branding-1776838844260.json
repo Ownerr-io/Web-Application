@@ -1,0 +1,138 @@
+{
+  "colorScheme": "light",
+  "fonts": [
+    {
+      "family": "Inconsolata",
+      "role": "monospace"
+    }
+  ],
+  "colors": {
+    "primary": "#E6EAFF",
+    "secondary": "#F9E6FF",
+    "accent": "#E6FFE8",
+    "background": "#F5F5F5",
+    "textPrimary": "#0A0A0A",
+    "link": "#E6FFE8"
+  },
+  "typography": {
+    "fontFamilies": {
+      "primary": "Inconsolata",
+      "heading": "Inconsolata"
+    },
+    "fontStacks": {
+      "heading": [
+        "Inconsolata"
+      ],
+      "body": [
+        "Inconsolata"
+      ],
+      "paragraph": [
+        "Inconsolata"
+      ]
+    },
+    "fontSizes": {
+      "h1": "48px",
+      "h2": "14px",
+      "body": "12px"
+    }
+  },
+  "spacing": {
+    "baseUnit": 8,
+    "borderRadius": "10px"
+  },
+  "components": {
+    "input": {
+      "background": "#FFFFFF",
+      "textColor": "#0A0A0A",
+      "borderColor": "#E5E5E5",
+      "borderRadius": "8px",
+      "borderRadiusCorners": {
+        "topLeft": "8px",
+        "topRight": "8px",
+        "bottomRight": "8px",
+        "bottomLeft": "8px"
+      },
+      "shadow": "rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0) 0px 0px 0px 0px, rgba(0, 0, 0, 0.05) 0px 1px 2px 0px"
+    },
+    "buttonPrimary": {
+      "background": "#E6FFE8",
+      "textColor": "#0A0A0A",
+      "borderColor": "#DFDFDF",
+      "borderRadius": "10px",
+      "borderRadiusCorners": {
+        "topLeft": "10px",
+        "topRight": "10px",
+        "bottomRight": "10px",
+        "bottomLeft": "10px"
+      },
+      "shadow": "none"
+    },
+    "buttonSecondary": {
+      "background": "#F5F5F5",
+      "textColor": "#0A0A0A",
+      "borderColor": "#E5E5E5",
+      "borderRadius": "10px",
+      "borderRadiusCorners": {
+        "topLeft": "10px",
+        "topRight": "10px",
+        "bottomRight": "10px",
+        "bottomLeft": "10px"
+      },
+      "shadow": "none"
+    }
+  },
+  "images": {
+    "favicon": "File saved at: attached_assets/favicon.ico",
+    "ogImage": "File saved at: attached_assets/ogImage.png"
+  },
+  "__llm_logo_reasoning": {
+    "selectedIndex": -1,
+    "reasoning": "No suitable brand logo was found in the header area. All candidates appear to be small icons related to different startups, not the main brand logo for TrustMRR.",
+    "confidence": 0.2,
+    "rejected": true,
+    "source": "llm"
+  },
+  "__llm_button_reasoning": {
+    "primary": {
+      "index": 12,
+      "text": "Master Claude CodeShip faster. Earn more. Master Claude Code.",
+      "reasoning": "Button #6 has a vibrant green background (#E6FFE8) and action-oriented text ('Master Claude CodeShip faster. Earn more. Master Claude Code.'), making it a strong candidate for the primary CTA."
+    },
+    "secondary": {
+      "index": 1,
+      "text": "Browse all startupson the marketplace",
+      "reasoning": "Button #1 has a light background (#F5F5F5) and serves as a secondary action ('Browse all startups on the marketplace'), which complements the primary CTA without competing visually."
+    },
+    "confidence": 0.9
+  },
+  "personality": {
+    "tone": "modern",
+    "energy": "medium",
+    "targetAudience": "startups and entrepreneurs"
+  },
+  "designSystem": {
+    "framework": "tailwind",
+    "componentLibrary": ""
+  },
+  "confidence": {
+    "buttons": 0.9,
+    "colors": 0.9,
+    "overall": 0.9
+  },
+  "__llm_metadata": {
+    "logoSelection": {
+      "llmCalled": true,
+      "llmSucceeded": true,
+      "finalSource": "llm",
+      "rawLogoSelection": {
+        "selectedLogoIndex": -1,
+        "selectedLogoReasoning": "No suitable brand logo was found in the header area. All candidates appear to be small icons related to different startups, not the main brand logo for TrustMRR.",
+        "confidence": 0.2
+      }
+    },
+    "buttonClassification": {
+      "llmCalled": true,
+      "llmSucceeded": true
+    }
+  }
+}
