@@ -15,6 +15,12 @@ import Game from "@/pages/game";
 import StartupDetail from "@/pages/startup-detail";
 import FounderProfile from "@/pages/founder-profile";
 
+import { applyTheme, getInitialTheme } from "@/components/ThemeToggle";
+
+if (typeof document !== 'undefined') {
+  applyTheme(getInitialTheme());
+}
+
 const queryClient = new QueryClient();
 
 function Router() {
