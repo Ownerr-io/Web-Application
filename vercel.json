@@ -1,7 +1,7 @@
 {
-   "outputDirectory": "artifacts/ownerr-web-app/dist",
-   "framework": "vite"
-}{
-   "outputDirectory": "artifacts/ownerr-web-app/dist",
-   "framework": "vite"
+  "buildCommand": "npm run build",
+  "installCommand": "npm install",
+  "outputDirectory": "artifacts/ownerr-web-app/dist",
+  "framework": "vite",
+  "root": "artifacts/ownerr-web-app"
 }

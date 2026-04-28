@@ -66,6 +66,11 @@ export type MockBiddingContextValue = {
     opts?: { sellerLabel?: string },
   ) => Promise<{ ok: true } | { ok: false; error: string }>;
   rejectBid: (listingId: string, bidId: string) => Promise<{ ok: true } | { ok: false; error: string }>;
+  updateBidStage: (
+    listingId: string,
+    bidId: string,
+    stage: Bid["relationshipStage"],
+  ) => Promise<{ ok: true } | { ok: false; error: string }>;
   approveDealStep: (
     listingId: string,
     opts?: { sellerLabel?: string },
@@ -176,6 +181,7 @@ export function MockBiddingProvider({ children }: { children: ReactNode }) {
         userId,
         amount,
         status: "ACTIVE",
+        relationshipStage: "interested",
         createdAt: new Date().toISOString(),
       };
       record.bids.push(bid);
@@ -290,6 +296,21 @@ export function MockBiddingProvider({ children }: { children: ReactNode }) {
     [persist],
   );
 
+  const updateBidStage = useCallback(
+    async (listingId: string, bidId: string, stage: Bid["relationshipStage"]) => {
+      const raw = await getMockListingBidRecordDB(listingId);
+      if (!raw) return { ok: false as const, error: "No bidding data." };
+      const record = structuredClone(raw);
+      const bid = record.bids.find((item) => item.id === bidId);
+      if (!bid) return { ok: false as const, error: "Bid not found." };
+      bid.relationshipStage = stage;
+      pushLog(record, `${bidderDisplayName(bid.userId)} moved to ${stage}.`);
+      await persist(record);
+      return { ok: true as const };
+    },
+    [persist],
+  );
+
   const resetListing = useCallback(
     async (listingId: string) => {
       const raw = await getMockListingBidRecordDB(listingId);
@@ -331,6 +352,7 @@ export function MockBiddingProvider({ children }: { children: ReactNode }) {
       placeBid,
       acceptBid,
       rejectBid,
+      updateBidStage,
       approveDealStep,
       resetListing,
       refresh,
@@ -344,6 +366,7 @@ export function MockBiddingProvider({ children }: { children: ReactNode }) {
       placeBid,
       acceptBid,
       rejectBid,
+      updateBidStage,
       approveDealStep,
       resetListing,
       refresh,

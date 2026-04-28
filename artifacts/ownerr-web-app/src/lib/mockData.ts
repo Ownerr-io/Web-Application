@@ -48,10 +48,22 @@ export interface Startup {
   lendScore: number;
   /** 0–100 — M&A / buyer attractiveness (ownerr). */
   acquisitionPower: number;
+  /** Revenue verified via payment provider (demo/mock). */
+  revenueVerified: boolean;
+  /** Which provider verified the revenue. */
+  revenueProvider: 'Stripe' | 'RevenueCat' | null;
+  /** Domain ownership verified (demo/mock). */
+  domainVerified: boolean;
+  /** Traffic verified via Google Analytics (demo/mock). */
+  trafficVerified: boolean;
+  /** Monthly visitors (demo/mock). */
+  trafficMonthlyVisitors: number | null;
+  /** Traffic trend direction (demo/mock). */
+  trafficTrend: 'up' | 'down' | 'flat' | null;
 }
 
 /** Seed rows before scores are merged (see `mockStartupsFromSeed`). */
-export type StartupSeed = Omit<Startup, 'businessScore' | 'lendScore' | 'acquisitionPower'>;
+export type StartupSeed = Omit<Startup, 'businessScore' | 'lendScore' | 'acquisitionPower' | 'revenueVerified' | 'revenueProvider' | 'domainVerified' | 'trafficVerified' | 'trafficMonthlyVisitors' | 'trafficTrend'> & Partial<Pick<Startup, 'revenueVerified' | 'revenueProvider' | 'domainVerified' | 'trafficVerified' | 'trafficMonthlyVisitors' | 'trafficTrend'>>;
 
 export interface Founder {
   handle: string;
@@ -129,7 +141,7 @@ const mockStartupsSeed: StartupSeed[] = [
 ];
 
 // add a few more random fillers
-for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 10; i++) {
   const mrr = Math.floor(Math.random() * 80000) + 5000;
   const isForSale = Math.random() > 0.5;
   const price = isForSale ? Math.round(mrr * 12 * (1 + Math.random() * 2)) : undefined;
@@ -150,6 +162,12 @@ for (let i = 0; i < 10; i++) {
     ttmProfit: isForSale ? mrr * 8 : undefined,
     customers: Math.floor(Math.random() * 5000) + 50,
     momGrowth: Math.round((Math.random() - 0.3) * 200) / 10,
+    revenueVerified: true,
+    revenueProvider: i % 2 === 0 ? 'Stripe' : 'RevenueCat',
+    domainVerified: true,
+    trafficVerified: i % 3 !== 0,
+    trafficMonthlyVisitors: Math.floor(Math.random() * 20000) + 500,
+    trafficTrend: Math.random() > 0.4 ? 'up' : 'flat',
   });
 }
 
@@ -177,6 +195,12 @@ function acquireRowToStartup(r: (typeof ACQUIRE_GRID_ROWS)[number]): Startup {
     businessScore: 0,
     lendScore: 0,
     acquisitionPower: 0,
+    revenueVerified: true,
+    revenueProvider: 'Stripe',
+    domainVerified: true,
+    trafficVerified: true,
+    trafficMonthlyVisitors: Math.max(500, Math.round(r.views * 3)),
+    trafficTrend: 'up',
   };
   return { ...base, ...computeStartupScores(base) };
 }
@@ -188,6 +212,12 @@ const mockStartupsFromSeed: Startup[] = mockStartupsSeed.map((s) => {
     businessScore: 0,
     lendScore: 0,
     acquisitionPower: 0,
+    revenueVerified: s.revenueVerified ?? true,
+    revenueProvider: s.revenueProvider ?? (s.slug.length % 2 === 0 ? 'Stripe' : 'RevenueCat'),
+    domainVerified: s.domainVerified ?? true,
+    trafficVerified: s.trafficVerified ?? (s.slug.length % 3 !== 0),
+    trafficMonthlyVisitors: s.trafficMonthlyVisitors ?? Math.max(200, Math.round(s.customers * 2.5)),
+    trafficTrend: s.trafficTrend ?? (s.momGrowth >= 0 ? 'up' : 'flat'),
   };
   return { ...base, ...computeStartupScores(base) };
 });

@@ -23,6 +23,12 @@ export interface StartupDetailRich {
   lastUpdated: string;
   visitUrl: string;
   dailyChart: StartupDetailDailyPoint[];
+  trafficMonthlyVisitors: number;
+  trafficTrend: 'up' | 'down' | 'flat';
+  trafficVerified: boolean;
+  domainVerified: boolean;
+  revenueVerified: boolean;
+  revenueProvider: string | null;
   insights: {
     valueProposition: string;
     problemSolved: string;
@@ -207,6 +213,12 @@ function buildDefaultDetail(startup: Startup, founder: Founder | undefined, lead
     lastUpdated,
     visitUrl,
     dailyChart,
+    trafficMonthlyVisitors: startup.trafficMonthlyVisitors ?? Math.max(200, Math.round(startup.customers * 2.5)),
+    trafficTrend: startup.trafficTrend ?? (startup.momGrowth >= 0 ? 'up' : 'flat'),
+    trafficVerified: startup.trafficVerified ?? false,
+    domainVerified: startup.domainVerified ?? false,
+    revenueVerified: startup.revenueVerified ?? false,
+    revenueProvider: startup.revenueProvider,
     insights: {
       valueProposition: startup.description,
       problemSolved: `${startup.name} addresses operational gaps for teams in ${startup.category.toLowerCase()}: faster workflows, clearer metrics, and less manual overhead.`,

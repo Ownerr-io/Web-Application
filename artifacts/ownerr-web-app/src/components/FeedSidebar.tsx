@@ -18,8 +18,7 @@ export function FeedSidebar() {
   const { openAddStartup } = useAddStartup();
 
   const rotation = useMemo<RotatingItem[]>(() => {
-    const forSale = mergeWithUserStartups(mockStartups).filter((s) => s.forSale && s.price != null);
-    const fromStartups = forSale.map((s) => ({ kind: 'startup' as const, startup: s }));
+    const fromStartups = mergeWithUserStartups(mockStartups).map((s) => ({ kind: 'startup' as const, startup: s }));
     return [...fromStartups, { kind: 'bonus' as const, deal: FEED_BONUS_DEAL }];
   }, []);
 
@@ -223,9 +222,7 @@ function FeedBonusDealCard() {
           <StartupLink slug={b.slug} className="block text-right text-sm font-bold leading-tight line-clamp-2">
             {b.name}
           </StartupLink>
-          <span className="mt-0.5 inline-block rounded border border-border bg-secondary px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-secondary-foreground">
-            FOR SALE
-          </span>
+
         </div>
       </div>
       <p className="mt-2 line-clamp-3 text-xs text-muted-foreground leading-relaxed">{b.description}</p>
@@ -276,11 +273,7 @@ function FeedDealFromStartup({ s }: { s: Startup }) {
           >
             {s.name}
           </Link>
-          {s.forSale && (
-            <span className="mt-0.5 inline-block rounded border border-border bg-secondary px-1.5 py-0.5 text-[8px] font-bold uppercase tracking-wide text-secondary-foreground">
-              FOR SALE
-            </span>
-          )}
+
         </div>
       </div>
       <p className="mt-2 line-clamp-3 text-xs text-muted-foreground leading-relaxed">{s.description}</p>

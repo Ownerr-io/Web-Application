@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
 import { mockStartups, mockFounders, leaderboardMetricValue } from '@/lib/mockData';
 import { mergeWithUserStartups, USER_STARTUPS_CHANGED_EVENT } from '@/lib/userStartups';
 import { StartupCard } from '@/components/StartupCard';
@@ -8,6 +8,7 @@ import { WhatsHappening } from '@/components/WhatsHappening';
 import { BottomSection } from '@/components/BottomSection';
 import { formatCurrency, founderAvatarUrl } from '@/lib/utils';
 import { ChevronDown, ChevronRight } from 'lucide-react';
+import { useMockSession } from '@/context/MockSessionContext';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -21,6 +22,8 @@ export default function Home() {
   const [userStartupsTick, setUserStartupsTick] = useState(0);
   const [metric, setMetric] = useState<'mrr' | 'arr'>('mrr');
   const [period, setPeriod] = useState<'all_time' | 'current'>('all_time');
+  const { isAuthenticated, openAuthDialog } = useMockSession();
+  const [, setLocation] = useLocation();
 
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -58,13 +61,13 @@ export default function Home() {
       <section className="min-w-0">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-bold sm:text-xl">Recently listed</h2>
-          <Link
-            href="/acquire"
+          <button
+            onClick={() => (isAuthenticated ? setLocation('/acquire') : openAuthDialog())}
             className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
           >
             View all
             <ChevronRight className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
-          </Link>
+          </button>
         </div>
         <div className="flex w-full min-w-0 overflow-x-auto pb-1 gap-3 snap-x snap-mandatory hide-scrollbar max-lg:-mx-4 max-lg:px-4">
           {recentlyListed.map(s => (
@@ -79,13 +82,13 @@ export default function Home() {
       <section className="min-w-0">
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-bold sm:text-xl">Best deals this week</h2>
-          <Link
-            href="/acquire"
+          <button
+            onClick={() => (isAuthenticated ? setLocation('/acquire') : openAuthDialog())}
             className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
           >
             View all
             <ChevronRight className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
-          </Link>
+          </button>
         </div>
         <div className="flex w-full min-w-0 overflow-x-auto pb-1 gap-3 snap-x snap-mandatory hide-scrollbar max-lg:-mx-4 max-lg:px-4">
           {bestDeals.map(s => (

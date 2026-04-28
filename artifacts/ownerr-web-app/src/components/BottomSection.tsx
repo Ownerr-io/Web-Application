@@ -2,6 +2,7 @@ import { Link } from 'wouter';
 import * as Icons from 'lucide-react';
 import { BROWSE_LABEL_TO_ACQUIRE_CATEGORY } from '@/lib/acquireBrowseCategoryMap';
 import { browseCategories } from '@/lib/mockData';
+import { useMockSession } from '@/context/MockSessionContext';
 import { useAddStartup } from '@/context/AddStartupContext';
 
 function getIcon(name: string) {
@@ -12,6 +13,7 @@ function getIcon(name: string) {
 
 export function BottomSection() {
   const { openAddStartup } = useAddStartup();
+  const { isAuthenticated, openAuthDialog } = useMockSession();
 
   return (
     <div className="border-t border-border pt-8">
@@ -31,7 +33,7 @@ export function BottomSection() {
           </div>
           <button
             type="button"
-            onClick={openAddStartup}
+            onClick={() => (isAuthenticated ? openAddStartup() : openAuthDialog())}
             className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-[10px] border border-border bg-card px-5 font-bold text-foreground transition-transform hover:-translate-y-0.5 sm:w-auto"
           >
             <Icons.Plus className="h-4 w-4 shrink-0" /> Add startup

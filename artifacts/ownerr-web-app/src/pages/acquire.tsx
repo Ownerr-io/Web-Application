@@ -1,14 +1,12 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useLocation, useSearch } from 'wouter';
-import { ChevronRight, Info, SlidersHorizontal } from 'lucide-react';
-import { mockStartups, type Category, Startup } from '@/lib/mockData';
-import { mergeWithUserStartups, USER_STARTUPS_CHANGED_EVENT } from '@/lib/userStartups';
-import { getUserStartupsDB } from '@/lib/db';
-import { ACQUIRE_GRID_ROWS, ACQUIRE_MARKETPLACE_TOTAL } from '@/lib/acquireMarketplaceData';
+import { Info } from 'lucide-react';
+import { useQuery } from '@tanstack/react-query';
+import { mockStartups, type Category } from '@/lib/mockData';
+import { ACQUIRE_GRID_ROWS } from '@/lib/acquireMarketplaceData';
 import { AcquireListingCard } from '@/components/AcquireListingCard';
 import { MockAcquireBidPanel } from '@/components/mock-bidding/MockAcquireBidPanel';
-import { FoundersSoldSection } from '@/components/FoundersSoldSection';
-import { useAddStartup } from '@/context/AddStartupContext';
+import { bestDealScore, fetchMarketplaceListings } from '@/lib/mockMarketplaceService';
 import {
   Select,
   SelectContent,
@@ -17,14 +15,9 @@ import {
   SelectValue,
 } from '@/components/ui/select';
 import { Button } from '@/components/ui/button';
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from '@/components/ui/dialog';
+import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { Skeleton } from '@/components/ui/skeleton';
 
 const acquireOrder = new Map(ACQUIRE_GRID_ROWS.map((r, i) => [r.slug, i]));
 
@@ -44,6 +37,10 @@ const FILTER_DISABLED =
   'h-9 w-full cursor-not-allowed rounded-md border border-border bg-muted/60 px-2 text-xs text-muted-foreground dark:border-[#2f3336] dark:bg-[#16181c]/40';
 const SELECT_ITEM =
   'cursor-pointer focus:bg-accent focus:text-accent-foreground dark:focus:bg-[#2f3336] dark:focus:text-white';
+const FILTER_ROW_BLOCK = 'w-[200px] max-w-full';
+const ACQUIRE_FILTERS_STORAGE_KEY = 'ownerr-acquire-filters-v1';
+const BUYER_FILTER_SELECT_TRIGGER =
+  'h-9 border-border bg-background font-mono text-xs text-foreground dark:border-[#2f3336] dark:bg-[#16181c] dark:text-white';
 
 const PAYMENT_PROVIDERS = [
   'Stripe',
@@ -71,7 +68,7 @@ const FILTER_CATEGORIES: (Category | 'All')[] = [
   'Crypto & Web3',
 ];
 
-type SortMode = 'best_deals' | 'revenue_desc' | 'price_asc';
+type SortMode = 'best_deals' | 'mrr_desc' | 'growth_desc' | 'traffic_desc' | 'newest' | 'price_asc';
 
 const FILTER_SET = new Set(FILTER_CATEGORIES as readonly (Category | 'All')[]);
 
@@ -137,6 +134,61 @@ function FilterMinMax({
   );
 }
 
+type RangeOption = { value: string; label: string; min: string; max: string };
+
+function rangeValueFromMinMax(min: string, max: string, options: RangeOption[]): string {
+  const hit = options.find((opt) => opt.min === min && opt.max === max);
+  return hit?.value ?? 'custom';
+}
+
+function RangeDropdown({
+  label,
+  min,
+  max,
+  options,
+  onMin,
+  onMax,
+}: {
+  label: string;
+  min: string;
+  max: string;
+  options: RangeOption[];
+  onMin: (v: string) => void;
+  onMax: (v: string) => void;
+}) {
+  const selected = rangeValueFromMinMax(min, max, options);
+  return (
+    <div className="min-w-0">
+      <label className={`mb-1 block ${FILTER_LABEL}`}>{label}</label>
+      <Select
+        value={selected}
+        onValueChange={(value) => {
+          const next = options.find((opt) => opt.value === value);
+          if (!next) return;
+          onMin(next.min);
+          onMax(next.max);
+        }}
+      >
+        <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className={FILTER_SELECT_CONTENT}>
+          {options.map((opt) => (
+            <SelectItem key={opt.value} value={opt.value} className={SELECT_ITEM}>
+              {opt.label}
+            </SelectItem>
+          ))}
+          {selected === 'custom' ? (
+            <SelectItem value="custom" className={SELECT_ITEM}>
+              Custom range
+            </SelectItem>
+          ) : null}
+        </SelectContent>
+      </Select>
+    </div>
+  );
+}
+
 type AcquireFiltersBodyProps = {
   /** When true, shows sort at top (mobile sheet). Desktop sidebar omits. */
   includeSort?: boolean;
@@ -160,6 +212,18 @@ type AcquireFiltersBodyProps = {
   askMax: string;
   setAskMin: (v: string) => void;
   setAskMax: (v: string) => void;
+  trafficMin: string;
+  trafficMax: string;
+  setTrafficMin: (v: string) => void;
+  setTrafficMax: (v: string) => void;
+  verifiedRevenueOnly: boolean;
+  setVerifiedRevenueOnly: (v: boolean) => void;
+  verifiedDomainOnly: boolean;
+  setVerifiedDomainOnly: (v: boolean) => void;
+  verifiedOnly: boolean;
+  setVerifiedOnly: (v: boolean) => void;
+  revenueProvider: string;
+  setRevenueProvider: (v: string) => void;
 };
 
 function AcquireMarketplaceFiltersBody({
@@ -184,6 +248,18 @@ function AcquireMarketplaceFiltersBody({
   askMax,
   setAskMin,
   setAskMax,
+  trafficMin,
+  trafficMax,
+  setTrafficMin,
+  setTrafficMax,
+  verifiedRevenueOnly,
+  setVerifiedRevenueOnly,
+  verifiedDomainOnly,
+  setVerifiedDomainOnly,
+  verifiedOnly,
+  setVerifiedOnly,
+  revenueProvider,
+  setRevenueProvider,
 }: AcquireFiltersBodyProps) {
   return (
     <>
@@ -198,19 +274,20 @@ function AcquireMarketplaceFiltersBody({
               <SelectItem value="best_deals" className={SELECT_ITEM}>
                 Best deals (default)
               </SelectItem>
-              <SelectItem value="revenue_desc" className={SELECT_ITEM}>
-                <span className="inline-flex items-center gap-1 font-mono">
-                  <span>Revenue (high</span>
-                  <ChevronRight className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
-                  <span>low)</span>
-                </span>
+              <SelectItem value="mrr_desc" className={SELECT_ITEM}>
+                MRR (high to low)
+              </SelectItem>
+              <SelectItem value="growth_desc" className={SELECT_ITEM}>
+                Growth (high to low)
+              </SelectItem>
+              <SelectItem value="traffic_desc" className={SELECT_ITEM}>
+                Traffic (high to low)
+              </SelectItem>
+              <SelectItem value="newest" className={SELECT_ITEM}>
+                Newest listings
               </SelectItem>
               <SelectItem value="price_asc" className={SELECT_ITEM}>
-                <span className="inline-flex items-center gap-1 font-mono">
-                  <span>Asking price (low</span>
-                  <ChevronRight className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
-                  <span>high)</span>
-                </span>
+                Asking price (low to high)
               </SelectItem>
             </SelectContent>
           </Select>
@@ -226,6 +303,21 @@ function AcquireMarketplaceFiltersBody({
           {FILTER_CATEGORIES.map((c) => (
             <SelectItem key={c} value={c} className={SELECT_ITEM}>
               {c}
+            </SelectItem>
+          ))}
+        </SelectContent>
+      </Select>
+
+      <label className={`mb-1 block ${FILTER_LABEL}`}>Revenue provider</label>
+      <Select value={revenueProvider} onValueChange={setRevenueProvider}>
+        <SelectTrigger className={FILTER_SELECT_TRIGGER_SPACED}>
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent className={FILTER_SELECT_CONTENT}>
+          <SelectItem value="all" className={SELECT_ITEM}>All providers</SelectItem>
+          {PAYMENT_PROVIDERS.map((provider) => (
+            <SelectItem key={provider} value={provider} className={SELECT_ITEM}>
+              {provider}
             </SelectItem>
           ))}
         </SelectContent>
@@ -256,6 +348,13 @@ function AcquireMarketplaceFiltersBody({
           onMin={setAskMin}
           onMax={setAskMax}
           prefix
+        />
+        <FilterMinMax
+          label="Traffic (visitors/mo)"
+          min={trafficMin}
+          max={trafficMax}
+          onMin={setTrafficMin}
+          onMax={setTrafficMax}
         />
       </div>
 
@@ -309,17 +408,49 @@ function AcquireMarketplaceFiltersBody({
           </SelectItem>
         </SelectContent>
       </Select>
+
+      <div className="mt-4 space-y-2">
+        <label className={`block ${FILTER_LABEL}`}>Verification</label>
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="filter-verified-only"
+            checked={verifiedOnly}
+            onCheckedChange={(v) => setVerifiedOnly(v === true)}
+          />
+          <label htmlFor="filter-verified-only" className="cursor-pointer text-xs font-medium text-foreground dark:text-white">
+            Fully verified only
+          </label>
+        </div>
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="filter-rev-verified"
+            checked={verifiedRevenueOnly}
+            onCheckedChange={(v) => setVerifiedRevenueOnly(v === true)}
+          />
+          <label htmlFor="filter-rev-verified" className="cursor-pointer text-xs font-medium text-foreground dark:text-white">
+            Verified revenue only
+          </label>
+        </div>
+        <div className="flex items-start gap-2">
+          <Checkbox
+            id="filter-domain-verified"
+            checked={verifiedDomainOnly}
+            onCheckedChange={(v) => setVerifiedDomainOnly(v === true)}
+          />
+          <label htmlFor="filter-domain-verified" className="cursor-pointer text-xs font-medium text-foreground dark:text-white">
+            Verified domain only
+          </label>
+        </div>
+      </div>
     </>
   );
 }
 
 export default function Acquire() {
   const wouterSearch = useSearch();
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const isBuyerPage = location.startsWith('/buyer/acquire');
   const [isMounted, setIsMounted] = useState(false);
-  const [userTick, setUserTick] = useState(0);
-  const [dbStartups, setDbStartups] = useState<Startup[]>([]);
-  const { openAddStartup } = useAddStartup();
 
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState<Category | 'All'>('All');
@@ -332,7 +463,16 @@ export default function Acquire() {
   const [growthMax, setGrowthMax] = useState('');
   const [askMin, setAskMin] = useState('');
   const [askMax, setAskMax] = useState('');
-  const [filterSheetOpen, setFilterSheetOpen] = useState(false);
+  const [trafficMin, setTrafficMin] = useState('');
+  const [trafficMax, setTrafficMax] = useState('');
+  const [verifiedRevenueOnly, setVerifiedRevenueOnly] = useState(false);
+  const [verifiedDomainOnly, setVerifiedDomainOnly] = useState(false);
+  const [verifiedOnly, setVerifiedOnly] = useState(false);
+  const [revenueProvider, setRevenueProvider] = useState('all');
+  const listingsQuery = useQuery({
+    queryKey: ['marketplace-listings'],
+    queryFn: () => fetchMarketplaceListings(mockStartups),
+  });
 
   useLayoutEffect(() => {
     setCategory(categoryFromQueryString(wouterSearch));
@@ -340,36 +480,55 @@ export default function Acquire() {
 
   useEffect(() => {
     setIsMounted(true);
-    getUserStartupsDB().then(setDbStartups);
+    try {
+      const raw = window.localStorage.getItem(ACQUIRE_FILTERS_STORAGE_KEY);
+      if (!raw) return;
+      const parsed = JSON.parse(raw) as Record<string, string | boolean>;
+      setSearch(String(parsed.search ?? ''));
+      setSort((parsed.sort as SortMode) ?? 'best_deals');
+      setRevMin(String(parsed.revMin ?? ''));
+      setRevMax(String(parsed.revMax ?? ''));
+      setMrrMin(String(parsed.mrrMin ?? ''));
+      setMrrMax(String(parsed.mrrMax ?? ''));
+      setGrowthMin(String(parsed.growthMin ?? ''));
+      setGrowthMax(String(parsed.growthMax ?? ''));
+      setAskMin(String(parsed.askMin ?? ''));
+      setAskMax(String(parsed.askMax ?? ''));
+      setTrafficMin(String(parsed.trafficMin ?? ''));
+      setTrafficMax(String(parsed.trafficMax ?? ''));
+      setVerifiedRevenueOnly(Boolean(parsed.verifiedRevenueOnly));
+      setVerifiedDomainOnly(Boolean(parsed.verifiedDomainOnly));
+      setVerifiedOnly(Boolean(parsed.verifiedOnly));
+      setRevenueProvider(String(parsed.revenueProvider ?? 'all'));
+    } catch {
+      // ignore bad persisted filter state
+    }
   }, []);
 
   useEffect(() => {
-    const b = () => {
-      setUserTick((t) => t + 1);
-      getUserStartupsDB().then(setDbStartups);
-    };
-    window.addEventListener(USER_STARTUPS_CHANGED_EVENT, b);
-    window.addEventListener('storage', b);
-    return () => {
-      window.removeEventListener(USER_STARTUPS_CHANGED_EVENT, b);
-      window.removeEventListener('storage', b);
-    };
-  }, []);
-
-  const merged = useMemo(() => {
-    const fromLocalStorage = mergeWithUserStartups(mockStartups);
-    const allStartups = [...fromLocalStorage];
-    const existingSlugs = new Set(fromLocalStorage.map(s => s.slug));
-
-    for (const dbStartup of dbStartups) {
-      if (!existingSlugs.has(dbStartup.slug)) {
-        allStartups.push(dbStartup);
-        existingSlugs.add(dbStartup.slug);
-      }
-    }
-    
-    return allStartups;
-  }, [userTick, dbStartups]);
+    if (!isMounted) return;
+    window.localStorage.setItem(
+      ACQUIRE_FILTERS_STORAGE_KEY,
+      JSON.stringify({
+        search,
+        sort,
+        revMin,
+        revMax,
+        mrrMin,
+        mrrMax,
+        growthMin,
+        growthMax,
+        askMin,
+        askMax,
+        trafficMin,
+        trafficMax,
+        verifiedRevenueOnly,
+        verifiedDomainOnly,
+        verifiedOnly,
+        revenueProvider,
+      }),
+    );
+  }, [isMounted, search, sort, revMin, revMax, mrrMin, mrrMax, growthMin, growthMax, askMin, askMax, trafficMin, trafficMax, verifiedRevenueOnly, verifiedDomainOnly, verifiedOnly, revenueProvider]);
 
   const filtered = useMemo(() => {
     const n = (s: string) => (s === '' ? null : Number(s.replace(/[^0-9.]/g, '')));
@@ -381,41 +540,57 @@ export default function Acquire() {
     const gMax = n(growthMax);
     const aMin = n(askMin);
     const aMax = n(askMax);
+    const tMin = n(trafficMin);
+    const tMax = n(trafficMax);
     const q = search.trim().toLowerCase();
 
-    let rows = merged.filter((s) => s.forSale);
+    let rows = (listingsQuery.data ?? []).filter((s) => s.forSale);
     if (category !== 'All') rows = rows.filter((s) => s.category === category);
     if (q)
       rows = rows.filter(
         (s) =>
           s.name.toLowerCase().includes(q) ||
           s.description.toLowerCase().includes(q) ||
-          s.category.toLowerCase().includes(q),
+          s.category.toLowerCase().includes(q) ||
+          s.nicheTags.some((tag) => tag.toLowerCase().includes(q)) ||
+          s.keywords.some((keyword) => keyword.includes(q)),
       );
     if (rMin != null) rows = rows.filter((s) => s.revenue >= rMin);
     if (rMax != null) rows = rows.filter((s) => s.revenue <= rMax);
     if (mMin != null) rows = rows.filter((s) => s.revenue >= mMin);
     if (mMax != null) rows = rows.filter((s) => s.revenue <= mMax);
     if (gMin != null)
-      rows = rows.filter((s) => (s.revenueGrowth30dPct ?? s.momGrowth) >= gMin);
+      rows = rows.filter((s) => (s.growthPct ?? s.revenueGrowth30dPct ?? s.momGrowth) >= gMin);
     if (gMax != null)
-      rows = rows.filter((s) => (s.revenueGrowth30dPct ?? s.momGrowth) <= gMax);
+      rows = rows.filter((s) => (s.growthPct ?? s.revenueGrowth30dPct ?? s.momGrowth) <= gMax);
     if (aMin != null) rows = rows.filter((s) => (s.price ?? 0) >= aMin);
     if (aMax != null) rows = rows.filter((s) => (s.price ?? 0) <= aMax);
+    if (tMin != null) rows = rows.filter((s) => (s.trafficMonthlyVisitors ?? 0) >= tMin);
+    if (tMax != null) rows = rows.filter((s) => (s.trafficMonthlyVisitors ?? 0) <= tMax);
+    if (revenueProvider !== 'all') rows = rows.filter((s) => s.revenueProvider === revenueProvider);
+    if (verifiedOnly) rows = rows.filter((s) => s.revenueVerified && s.domainVerified && s.trafficVerified);
+    if (verifiedRevenueOnly) rows = rows.filter((s) => s.revenueVerified);
+    if (verifiedDomainOnly) rows = rows.filter((s) => s.domainVerified);
 
     const scored = rows.map((r) => ({ r, ord: acquireOrder.get(r.slug) ?? 9999 }));
     scored.sort((a, b) => {
       const af = a.ord < 9999;
       const bf = b.ord < 9999;
-      if (af && bf) return a.ord - b.ord;
-      if (af !== bf) return af ? -1 : 1;
-      if (sort === 'revenue_desc') return b.r.revenue - a.r.revenue;
+      if (sort === 'best_deals') {
+        if (af && bf) return a.ord - b.ord;
+        if (af !== bf) return af ? -1 : 1;
+        return bestDealScore(b.r as never) - bestDealScore(a.r as never);
+      }
+      if (sort === 'mrr_desc') return b.r.revenue - a.r.revenue;
+      if (sort === 'growth_desc') return (b.r.growthPct ?? 0) - (a.r.growthPct ?? 0);
+      if (sort === 'traffic_desc') return (b.r.trafficMonthlyVisitors ?? 0) - (a.r.trafficMonthlyVisitors ?? 0);
+      if (sort === 'newest') return new Date(b.r.createdAt).getTime() - new Date(a.r.createdAt).getTime();
       if (sort === 'price_asc') return (a.r.price ?? 1e15) - (b.r.price ?? 1e15);
       return (a.r.multiple ?? 99) - (b.r.multiple ?? 99);
     });
     return scored.map((x) => x.r);
   }, [
-    merged,
+    listingsQuery.data,
     category,
     search,
     sort,
@@ -427,6 +602,12 @@ export default function Acquire() {
     growthMax,
     askMin,
     askMax,
+    trafficMin,
+    trafficMax,
+    verifiedRevenueOnly,
+    verifiedDomainOnly,
+    verifiedOnly,
+    revenueProvider,
   ]);
 
   const setCategoryWithUrl = (val: Category | 'All') => {
@@ -447,6 +628,12 @@ export default function Acquire() {
     setGrowthMax('');
     setAskMin('');
     setAskMax('');
+    setTrafficMin('');
+    setTrafficMax('');
+    setVerifiedRevenueOnly(false);
+    setVerifiedDomainOnly(false);
+    setVerifiedOnly(false);
+    setRevenueProvider('all');
   };
 
   const listingFocusSlug = useMemo(() => {
@@ -499,9 +686,14 @@ export default function Acquire() {
     if (mrrMin || mrrMax) n++;
     if (growthMin || growthMax) n++;
     if (askMin || askMax) n++;
+    if (trafficMin || trafficMax) n++;
     if (sort !== 'best_deals') n++;
+    if (verifiedRevenueOnly) n++;
+    if (verifiedDomainOnly) n++;
+    if (verifiedOnly) n++;
+    if (revenueProvider !== 'all') n++;
     return n;
-  }, [category, search, revMin, revMax, mrrMin, mrrMax, growthMin, growthMax, askMin, askMax, sort]);
+  }, [category, search, revMin, revMax, mrrMin, mrrMax, growthMin, growthMax, askMin, askMax, trafficMin, trafficMax, sort, verifiedRevenueOnly, verifiedDomainOnly, verifiedOnly, revenueProvider]);
 
   const filterBodyProps: Omit<AcquireFiltersBodyProps, 'includeSort'> = {
     sort,
@@ -524,189 +716,278 @@ export default function Acquire() {
     askMax,
     setAskMin,
     setAskMax,
+    trafficMin,
+    trafficMax,
+    setTrafficMin,
+    setTrafficMax,
+    verifiedRevenueOnly,
+    setVerifiedRevenueOnly,
+    verifiedDomainOnly,
+    setVerifiedDomainOnly,
+    verifiedOnly,
+    setVerifiedOnly,
+    revenueProvider,
+    setRevenueProvider,
   };
 
   if (!isMounted) return <div className="min-h-[500px]" />;
 
-  return (
-    <div className="flex flex-col gap-6 pb-16 sm:pb-20 lg:gap-12 lg:pb-24">
-      <header className="flex flex-col gap-4 sm:gap-5">
-        <h1 className="px-1 text-center font-mono text-2xl font-bold tracking-tight text-foreground sm:text-3xl md:text-4xl lg:text-5xl">
-          Acquire Profitable Startups
-        </h1>
-        <div className="mx-auto max-w-2xl text-center">
-          <p className="font-mono text-sm text-muted-foreground md:text-base">
-            Browse verified startups looking for a buyer. All revenue metrics are verified by these payment
-            providers:
-          </p>
-          <div className="mt-4 flex flex-wrap items-center justify-center gap-2">
-            {PAYMENT_PROVIDERS.map((x) => (
-              <span
-                key={x}
-                className="rounded-md border border-border bg-card px-2.5 py-1 font-mono text-[11px] font-bold text-foreground"
-              >
-                {x}
-              </span>
-            ))}
-          </div>
-        </div>
+  const revenue30dOptions: RangeOption[] = [
+    { value: 'any', label: 'Any revenue', min: '', max: '' },
+    { value: '0-5k', label: '$0 - $5k', min: '0', max: '5000' },
+    { value: '5k-10k', label: '$5k - $10k', min: '5000', max: '10000' },
+    { value: '10k-25k', label: '$10k - $25k', min: '10000', max: '25000' },
+    { value: '25k+', label: '$25k+', min: '25000', max: '' },
+  ];
+  const mrrOptions: RangeOption[] = [
+    { value: 'any', label: 'Any MRR', min: '', max: '' },
+    { value: '0-5k', label: '$0 - $5k', min: '0', max: '5000' },
+    { value: '5k-10k', label: '$5k - $10k', min: '5000', max: '10000' },
+    { value: '10k-25k', label: '$10k - $25k', min: '10000', max: '25000' },
+    { value: '25k+', label: '$25k+', min: '25000', max: '' },
+  ];
+  const growthOptions: RangeOption[] = [
+    { value: 'any', label: 'Any growth', min: '', max: '' },
+    { value: '0-10', label: '0% - 10%', min: '0', max: '10' },
+    { value: '10-25', label: '10% - 25%', min: '10', max: '25' },
+    { value: '25-50', label: '25% - 50%', min: '25', max: '50' },
+    { value: '50+', label: '50%+', min: '50', max: '' },
+  ];
+  const askingPriceOptions: RangeOption[] = [
+    { value: 'any', label: 'Any price', min: '', max: '' },
+    { value: '0-50k', label: '$0 - $50k', min: '0', max: '50000' },
+    { value: '50k-150k', label: '$50k - $150k', min: '50000', max: '150000' },
+    { value: '150k-500k', label: '$150k - $500k', min: '150000', max: '500000' },
+    { value: '500k+', label: '$500k+', min: '500000', max: '' },
+  ];
+  const trafficOptions: RangeOption[] = [
+    { value: 'any', label: 'Any traffic', min: '', max: '' },
+    { value: '0-5k', label: '0 - 5k/mo', min: '0', max: '5000' },
+    { value: '5k-20k', label: '5k - 20k/mo', min: '5000', max: '20000' },
+    { value: '20k-100k', label: '20k - 100k/mo', min: '20000', max: '100000' },
+    { value: '100k+', label: '100k+/mo', min: '100000', max: '' },
+  ];
 
-        <div className="mx-auto flex w-full max-w-3xl flex-col gap-3 sm:flex-row sm:items-center">
-          <input
-            type="search"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="SaaS over $10K/mo"
-            className="h-11 min-h-11 flex-1 rounded-[10px] border border-border bg-card px-3 font-mono text-sm text-foreground outline-none ring-offset-background placeholder:text-muted-foreground focus:ring-2 focus:ring-foreground/20 sm:h-12 sm:min-h-12 sm:px-4"
-          />
-          <Button
-            type="button"
-            onClick={openAddStartup}
-            className="h-11 min-h-11 shrink-0 rounded-[10px] px-5 font-mono font-bold sm:h-12 sm:min-h-12 sm:px-6"
-          >
-            Sell startup
+  const listingsContent = (
+    <div className="min-w-0 flex-1">
+      <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
+        <p className="font-mono text-sm font-bold text-muted-foreground">
+          {(listingsQuery.data?.filter((item) => item.forSale).length ?? 0).toLocaleString()} startups found
+        </p>
+        {activeFilterCount > 0 ? (
+          <p className="font-mono text-xs text-muted-foreground">{activeFilterCount} active filters</p>
+        ) : null}
+      </div>
+
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
+        {listingsQuery.isLoading
+          ? Array.from({ length: 6 }).map((_, index) => (
+            <div key={index} className="rounded-[14px] border border-border bg-card p-4">
+              <Skeleton className="h-6 w-1/3" />
+              <Skeleton className="mt-3 h-24 w-full" />
+              <Skeleton className="mt-3 h-16 w-full" />
+            </div>
+          ))
+          : filtered.map((s) => {
+            const isSpotlight = listingSpotlightSlug === s.slug;
+            return (
+              <div
+                key={s.slug}
+                id={`acquire-listing-${s.slug}`}
+                className={cn(
+                  'scroll-mt-28 overflow-visible rounded-2xl',
+                  isSpotlight && 'acquire-listing-spotlight',
+                )}
+              >
+                {isSpotlight ? (
+                  <p
+                    className="pointer-events-none absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-sky-500 px-2.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wide text-white shadow-md dark:bg-sky-400 dark:text-slate-950"
+                    aria-live="polite"
+                  >
+                    Your listing
+                  </p>
+                ) : null}
+                <AcquireListingCard startup={s} footer={<MockAcquireBidPanel startup={s} compact />} />
+              </div>
+            );
+          })}
+      </div>
+
+      {!listingsQuery.isLoading && filtered.length === 0 ? (
+        <div className="mt-8 rounded-[14px] border border-dashed border-border p-12 text-center font-mono">
+          <p className="text-muted-foreground">
+            {search.trim() ? `No startups match “${search.trim()}”.` : 'No startups match these filters.'}
+          </p>
+          <Button variant="outline" className="mt-4" onClick={clearFilters}>
+            Clear filters
           </Button>
         </div>
-      </header>
+      ) : null}
+    </div>
+  );
 
-      {/* Filters: desktop sidebar; mobile = single filter sheet */}
-      <div className="flex flex-col gap-5 lg:flex-row lg:items-stretch lg:gap-6">
-        <aside className="hidden w-full shrink-0 lg:block lg:w-[260px]">
-          <div className="lg:sticky lg:top-28 lg:z-10">
-            <div className="mb-4 flex h-10 items-center">
-              <h2 className="font-mono text-sm font-bold text-muted-foreground">Filters</h2>
-            </div>
-            <div className={FILTER_PANEL}>
-              <AcquireMarketplaceFiltersBody {...filterBodyProps} />
-            </div>
-          </div>
-        </aside>
+  return (
+    <div className="flex flex-col gap-6 pb-16 sm:pb-20 lg:gap-12 lg:pb-24">
+      {isBuyerPage ? (
+        <>
+          <section className={cn(FILTER_PANEL, 'max-h-none overflow-visible p-3')}>
+            <div className="flex items-end gap-2">
+              <div className="min-w-0 flex-1">
+                <label className={`mb-1 block ${FILTER_LABEL}`}>Sort</label>
+                <Select value={sort} onValueChange={(v) => setSort(v as SortMode)}>
+                  <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className={FILTER_SELECT_CONTENT}>
+                    <SelectItem value="best_deals" className={SELECT_ITEM}>Best deals (default)</SelectItem>
+                    <SelectItem value="mrr_desc" className={SELECT_ITEM}>MRR (high to low)</SelectItem>
+                    <SelectItem value="growth_desc" className={SELECT_ITEM}>Growth (high to low)</SelectItem>
+                    <SelectItem value="traffic_desc" className={SELECT_ITEM}>Traffic (high to low)</SelectItem>
+                    <SelectItem value="newest" className={SELECT_ITEM}>Newest listings</SelectItem>
+                    <SelectItem value="price_asc" className={SELECT_ITEM}>Asking price (low to high)</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
 
-        <div className="min-w-0 flex-1">
-          <div className="mb-3 flex min-w-0 items-center justify-between gap-2 lg:hidden">
-            <p className="min-w-0 truncate font-mono text-xs font-bold text-muted-foreground sm:text-sm">
-              {ACQUIRE_MARKETPLACE_TOTAL.toLocaleString()} startups found
-            </p>
-            <Dialog open={filterSheetOpen} onOpenChange={setFilterSheetOpen}>
-              <DialogTrigger asChild>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  className="h-10 shrink-0 gap-2 px-3 font-mono font-bold"
-                  aria-label="Open filters"
+              <div className="min-w-0 flex-1">
+                <label className={`mb-1 block ${FILTER_LABEL}`}>Categories</label>
+                <Select value={category} onValueChange={(v) => setCategoryWithUrl(v as Category | 'All')}>
+                  <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className={FILTER_SELECT_CONTENT}>
+                    {FILTER_CATEGORIES.map((c) => (
+                      <SelectItem key={c} value={c} className={SELECT_ITEM}>
+                        {c}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <label className={`mb-1 block ${FILTER_LABEL}`}>Revenue provider</label>
+                <Select value={revenueProvider} onValueChange={setRevenueProvider}>
+                  <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className={FILTER_SELECT_CONTENT}>
+                    <SelectItem value="all" className={SELECT_ITEM}>All providers</SelectItem>
+                    {PAYMENT_PROVIDERS.map((provider) => (
+                      <SelectItem key={provider} value={provider} className={SELECT_ITEM}>
+                        {provider}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <RangeDropdown
+                  label="Revenue (last 30 days)"
+                  min={revMin}
+                  max={revMax}
+                  options={revenue30dOptions}
+                  onMin={setRevMin}
+                  onMax={setRevMax}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <RangeDropdown label="MRR" min={mrrMin} max={mrrMax} options={mrrOptions} onMin={setMrrMin} onMax={setMrrMax} />
+              </div>
+              <div className="min-w-0 flex-1">
+                <RangeDropdown
+                  label="Growth (last 30 days)"
+                  min={growthMin}
+                  max={growthMax}
+                  options={growthOptions}
+                  onMin={setGrowthMin}
+                  onMax={setGrowthMax}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <RangeDropdown
+                  label="Asking Price"
+                  min={askMin}
+                  max={askMax}
+                  options={askingPriceOptions}
+                  onMin={setAskMin}
+                  onMax={setAskMax}
+                />
+              </div>
+              <div className="min-w-0 flex-1">
+                <RangeDropdown
+                  label="Traffic (visitors/mo)"
+                  min={trafficMin}
+                  max={trafficMax}
+                  options={trafficOptions}
+                  onMin={setTrafficMin}
+                  onMax={setTrafficMax}
+                />
+              </div>
+
+              <div className="min-w-0 flex-1">
+                <label className={`mb-1 block ${FILTER_LABEL}`}>Verification</label>
+                <Select
+                  value={
+                    verifiedOnly
+                      ? 'fully'
+                      : verifiedRevenueOnly
+                        ? 'revenue'
+                        : verifiedDomainOnly
+                          ? 'domain'
+                          : 'all'
+                  }
+                  onValueChange={(value) => {
+                    if (value === 'fully') {
+                      setVerifiedOnly(true);
+                      setVerifiedRevenueOnly(false);
+                      setVerifiedDomainOnly(false);
+                      return;
+                    }
+                    if (value === 'revenue') {
+                      setVerifiedOnly(false);
+                      setVerifiedRevenueOnly(true);
+                      setVerifiedDomainOnly(false);
+                      return;
+                    }
+                    if (value === 'domain') {
+                      setVerifiedOnly(false);
+                      setVerifiedRevenueOnly(false);
+                      setVerifiedDomainOnly(true);
+                      return;
+                    }
+                    setVerifiedOnly(false);
+                    setVerifiedRevenueOnly(false);
+                    setVerifiedDomainOnly(false);
+                  }}
                 >
-                  <SlidersHorizontal className="h-4 w-4 shrink-0" aria-hidden />
-                  <span>Filters</span>
-                  {activeFilterCount > 0 ? (
-                    <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-foreground px-1 text-[10px] font-black text-background">
-                      {activeFilterCount > 9 ? '9+' : activeFilterCount}
-                    </span>
-                  ) : null}
-                </Button>
-              </DialogTrigger>
-              <DialogContent
-                className="flex h-[min(92dvh,42rem)] w-[calc(100vw-1.25rem)] max-w-[24rem] flex-col gap-0 overflow-hidden p-0 sm:h-[min(90dvh,46rem)] sm:max-w-md"
-              >
-                <DialogHeader className="border-b border-border px-4 py-3 text-left">
-                  <DialogTitle className="font-mono text-base">Filters & sort</DialogTitle>
-                </DialogHeader>
-                <div className="min-h-0 flex-1 overflow-y-auto overscroll-contain px-4 py-4 pb-6 [scrollbar-gutter:stable]">
-                  <div className={cn(FILTER_PANEL, 'max-h-none overflow-visible border-0 bg-transparent p-0 dark:bg-transparent')}>
-                    <AcquireMarketplaceFiltersBody
-                      {...filterBodyProps}
-                      includeSort
-                    />
-                  </div>
-                </div>
-                <div className="flex flex-col gap-2 border-t border-border p-4">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full font-mono"
-                    onClick={() => {
-                      clearFilters();
-                      setFilterSheetOpen(false);
-                    }}
-                  >
-                    Clear filters
-                  </Button>
-                  <Button type="button" className="w-full font-mono font-bold" onClick={() => setFilterSheetOpen(false)}>
-                    Show results
-                  </Button>
-                </div>
-              </DialogContent>
-            </Dialog>
-          </div>
-
-          <div className="mb-4 hidden flex-col gap-3 lg:flex lg:flex-row lg:items-center lg:justify-between">
-            <p className="font-mono text-sm font-bold text-muted-foreground">
-              {ACQUIRE_MARKETPLACE_TOTAL.toLocaleString()} startups found
-            </p>
-            <Select value={sort} onValueChange={(v) => setSort(v as SortMode)}>
-              <SelectTrigger className="h-10 w-full border-border bg-card font-mono text-sm lg:w-[220px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="best_deals">Best deals (default)</SelectItem>
-                <SelectItem value="revenue_desc">
-                  <span className="inline-flex items-center gap-1 font-mono">
-                    <span>Revenue (high</span>
-                    <ChevronRight className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
-                    <span>low)</span>
-                  </span>
-                </SelectItem>
-                <SelectItem value="price_asc">
-                  <span className="inline-flex items-center gap-1 font-mono">
-                    <span>Asking price (low</span>
-                    <ChevronRight className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
-                    <span>high)</span>
-                  </span>
-                </SelectItem>
-              </SelectContent>
-            </Select>
-          </div>
-
-          <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
-            {filtered.map((s) => {
-              const isSpotlight = listingSpotlightSlug === s.slug;
-              return (
-                <div
-                  key={s.slug}
-                  id={`acquire-listing-${s.slug}`}
-                  className={cn(
-                    'scroll-mt-28 overflow-visible rounded-2xl',
-                    isSpotlight && 'acquire-listing-spotlight',
-                  )}
-                >
-                  {isSpotlight ? (
-                    <p
-                      className="pointer-events-none absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-sky-500 px-2.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wide text-white shadow-md dark:bg-sky-400 dark:text-slate-950"
-                      aria-live="polite"
-                    >
-                      Your listing
-                    </p>
-                  ) : null}
-                  <AcquireListingCard startup={s} footer={<MockAcquireBidPanel startup={s} compact />} />
-                </div>
-              );
-            })}
-          </div>
-
-          {filtered.length === 0 ? (
-            <div className="mt-8 rounded-[14px] border border-dashed border-border p-12 text-center font-mono">
-              <p className="text-muted-foreground">No startups match these filters.</p>
-              <Button variant="outline" className="mt-4" onClick={clearFilters}>
-                Clear filters
-              </Button>
+                  <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent className={FILTER_SELECT_CONTENT}>
+                    <SelectItem value="all" className={SELECT_ITEM}>All listings</SelectItem>
+                    <SelectItem value="fully" className={SELECT_ITEM}>Fully verified only</SelectItem>
+                    <SelectItem value="revenue" className={SELECT_ITEM}>Verified revenue only</SelectItem>
+                    <SelectItem value="domain" className={SELECT_ITEM}>Verified domain only</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
-          ) : null}
-
-          <div className="mt-12">
-            <FoundersSoldSection />
-          </div>
+          </section>
+          {listingsContent}
+        </>
+      ) : (
+        <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-8">
+          <aside className={cn(FILTER_PANEL, 'p-4 lg:mt-7')}>
+            <AcquireMarketplaceFiltersBody includeSort {...filterBodyProps} />
+            <Button type="button" variant="outline" className="mt-4 h-10 w-full font-mono" onClick={clearFilters}>
+              Clear filters
+            </Button>
+          </aside>
+          {listingsContent}
         </div>
-      </div>
+      )}
     </div>
   );
 }

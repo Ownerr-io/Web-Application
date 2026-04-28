@@ -1,4 +1,5 @@
-import { Link } from 'wouter';
+import { Link, useLocation } from 'wouter';
+import { useMockSession } from '@/context/MockSessionContext';
 import { Startup } from '@/lib/mockData';
 import { formatShortCurrency } from '@/lib/utils';
 import { StartupTripleScores } from '@/components/StartupTripleScores';
@@ -7,7 +8,7 @@ import { Button } from '@/components/ui/button';
 function CardBody({ startup, logoColor }: { startup: Startup; logoColor: string }) {
   return (
     <>
-      {startup.forSale && <span className="startup-listing-for-sale">For sale</span>}
+
 
       <div className="mb-4 flex items-center gap-3">
         <div
@@ -54,6 +55,8 @@ function CardBody({ startup, logoColor }: { startup: Startup; logoColor: string 
 export function StartupCard({ startup, showBidCta }: { startup: Startup; showBidCta?: boolean }) {
   const logoColor = startup.logoColor ?? '#E6EAFF';
   const bidHref = `/acquire?listing=${encodeURIComponent(startup.slug)}`;
+  const { isAuthenticated, openAuthDialog } = useMockSession();
+  const [, setLocation] = useLocation();
 
   if (showBidCta && startup.forSale) {
     return (
@@ -62,8 +65,19 @@ export function StartupCard({ startup, showBidCta }: { startup: Startup; showBid
           <CardBody startup={startup} logoColor={logoColor} />
         </Link>
         <div className="mt-3 border-t border-border/80 px-1 pb-1 pt-3">
-          <Button type="button" asChild size="sm" className="h-9 w-full font-bold">
-            <Link href={bidHref}>Bid</Link>
+          <Button
+            type="button"
+            size="sm"
+            className="h-9 w-full font-bold"
+            onClick={() => {
+              if (isAuthenticated) {
+                setLocation(bidHref);
+              } else {
+                openAuthDialog();
+              }
+            }}
+          >
+            Bid
           </Button>
         </div>
       </div>

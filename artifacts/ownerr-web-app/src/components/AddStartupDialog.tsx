@@ -2,8 +2,8 @@ import { useState } from 'react';
 import type { Category, Startup } from '@/lib/mockData';
 import { PASTEL_COLORS, generateMonthlyRevenue } from '@/lib/mockData';
 import { computeStartupScores } from '@/lib/startupScores';
-import { addUserStartup } from '@/lib/userStartups';
 import { addUserStartupDB } from '@/lib/db';
+import { buildMarketplaceListingFromStartup, upsertMarketplaceListing } from '@/lib/mockMarketplaceService';
 import {
   Dialog,
   DialogContent,
@@ -26,6 +26,7 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ExternalLink } from 'lucide-react';
+import { useMockSession } from '@/context/MockSessionContext';
 
 function slugify(name: string) {
   const base = name
@@ -57,6 +58,7 @@ type Props = {
 
 export function AddStartupDialog({ open, onOpenChange }: Props) {
   const { toast } = useToast();
+  const { currentUser, isFounder, isAuthenticated, openAuthDialog } = useMockSession();
   const [name, setName] = useState('');
   const [founderName, setFounderName] = useState('');
   const [username, setUsername] = useState('');
@@ -66,6 +68,10 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
   const [stripeKey, setStripeKey] = useState('');
   const [listForSale, setListForSale] = useState(false);
   const [askingPriceRaw, setAskingPriceRaw] = useState('');
+  const [revenueVerified, setRevenueVerified] = useState(false);
+  const [revenueProvider, setRevenueProvider] = useState<'Stripe' | 'RevenueCat'>('Stripe');
+  const [domainVerified, setDomainVerified] = useState(false);
+  const [trafficVerified, setTrafficVerified] = useState(false);
 
   function reset() {
     setName('');
@@ -77,9 +83,26 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
     setStripeKey('');
     setListForSale(false);
     setAskingPriceRaw('');
+    setRevenueVerified(false);
+    setRevenueProvider('Stripe');
+    setDomainVerified(false);
+    setTrafficVerified(false);
   }
 
   async function submit() {
+    if (!isAuthenticated || !currentUser) {
+      onOpenChange(false);
+      openAuthDialog();
+      return;
+    }
+    if (!isFounder) {
+      toast({
+        title: 'Founder mode required',
+        description: 'Switch to a founder persona to create or manage a listing.',
+        variant: 'destructive',
+      });
+      return;
+    }
     const trimmed = name.trim();
     if (!trimmed) {
       toast({ title: 'Name required', description: 'Enter a startup name.', variant: 'destructive' });
@@ -109,7 +132,7 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
     }
 
     const slug = slugify(trimmed);
-    const founderHandle = `user-${slug}`;
+    const founderHandle = currentUser.id;
     const peakMrr = Math.round(mrr * (1.08 + Math.random() * 0.12));
 
     const revenue = Math.round(mrr);
@@ -134,7 +157,7 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
       price,
       multiple,
       founderHandle,
-      founderDisplayName: founderName.trim() || 'Community founder',
+      founderDisplayName: founderName.trim() || currentUser.name,
       listingUsername: username.trim() || undefined,
       description: description.trim() || 'Added via ownerr.io',
       monthlyRevenueSeries: generateMonthlyRevenue(revenue),
@@ -143,11 +166,22 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
       customers: 0,
       momGrowth: 0,
       ttmProfit,
+      revenueVerified,
+      revenueProvider: revenueVerified ? revenueProvider : null,
+      domainVerified,
+      trafficVerified,
+      trafficMonthlyVisitors: trafficVerified ? Math.max(200, Math.round(Math.random() * 5000)) : null,
+      trafficTrend: trafficVerified ? (Math.random() > 0.3 ? 'up' : 'flat') : null,
       ...computeStartupScores(scoreInput),
     };
 
-    // addUserStartup(startup);
     await addUserStartupDB(startup);
+    await upsertMarketplaceListing(
+      buildMarketplaceListingFromStartup(startup, {
+        ownerUserId: currentUser.id,
+        createdAt: new Date().toISOString(),
+      }),
+    );
     if (stripeKey.trim()) {
       toast({
         title: 'Startup added',
@@ -180,6 +214,13 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
 
         <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden overscroll-y-contain px-4 sm:px-6">
           <div className="grid min-w-0 gap-5 pb-4 pr-0.5 sm:pr-1">
+            {!isFounder ? (
+              <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-100">
+                {!isAuthenticated
+                  ? 'Login to create a mock founder listing.'
+                  : 'Buyer accounts can browse and bid, but only founder accounts can create or edit listings in this mock.'}
+              </div>
+            ) : null}
             <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-4">
               <div className="flex items-start gap-3">
                 <div
@@ -307,6 +348,63 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
                 />
               </div>
             )}
+
+            <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-3">
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Verification</p>
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="as-rev-verified"
+                  checked={revenueVerified}
+                  onCheckedChange={(v) => setRevenueVerified(v === true)}
+                />
+                <div className="grid gap-1 leading-none">
+                  <Label htmlFor="as-rev-verified" className="font-bold cursor-pointer">
+                    Verify revenue
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Shows a verified revenue badge on your listing.</p>
+                </div>
+              </div>
+              {revenueVerified && (
+                <div className="grid min-w-0 gap-2 pl-7">
+                  <Label>Provider</Label>
+                  <Select value={revenueProvider} onValueChange={(v) => setRevenueProvider(v as 'Stripe' | 'RevenueCat')}>
+                    <SelectTrigger className="h-9">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="Stripe">Stripe</SelectItem>
+                      <SelectItem value="RevenueCat">RevenueCat</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              )}
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="as-domain-verified"
+                  checked={domainVerified}
+                  onCheckedChange={(v) => setDomainVerified(v === true)}
+                />
+                <div className="grid gap-1 leading-none">
+                  <Label htmlFor="as-domain-verified" className="font-bold cursor-pointer">
+                    Verify domain
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Shows a verified domain badge.</p>
+                </div>
+              </div>
+              <div className="flex items-start gap-3">
+                <Checkbox
+                  id="as-traffic-verified"
+                  checked={trafficVerified}
+                  onCheckedChange={(v) => setTrafficVerified(v === true)}
+                />
+                <div className="grid gap-1 leading-none">
+                  <Label htmlFor="as-traffic-verified" className="font-bold cursor-pointer">
+                    Verify traffic
+                  </Label>
+                  <p className="text-xs text-muted-foreground">Shows a verified traffic badge with mock visitor data.</p>
+                </div>
+              </div>
+            </div>
 
             <div className="grid min-w-0 gap-2">
               <Label>Category</Label>

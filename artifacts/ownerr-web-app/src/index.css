@@ -404,8 +404,28 @@
   animation-duration: 62s;
 }
 
+/* Desktop top growth ticker (below navbar) */
+@keyframes growth-ticker-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.growth-ticker-marquee {
+  display: flex;
+  width: max-content;
+  animation: growth-ticker-marquee 50s linear infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mobile-ribbon-marquee {
+    animation: none;
+  }
+  .growth-ticker-marquee {
     animation: none;
   }
 }

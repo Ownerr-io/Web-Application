@@ -6,12 +6,15 @@ import { mockStartups, Startup } from '@/lib/mockData';
 import { CLAIM_SPOTS_CLAIMED, CLAIM_SPOTS_TOTAL } from '@/lib/claimSpotsMockData';
 import { applyTheme, getInitialTheme, ThemeToggle } from './ThemeToggle';
 import { useAddStartup } from '@/context/AddStartupContext';
+import { useMockSession } from '@/context/MockSessionContext';
 import { AddStartupDialog } from '@/components/AddStartupDialog';
+import { AuthDialog } from '@/components/AuthDialog';
 import { HeaderStartupSearch } from '@/components/HeaderStartupSearch';
 import { AdvertiseDialog } from '@/components/AdvertiseDialog';
 import { SiteFooter } from '@/components/SiteFooter';
 import { PageBackRow } from '@/components/PageBackRow';
 import { MoreStartupsForSaleSection } from '@/components/MoreStartupsForSaleSection';
+import { StartupGrowthTicker } from '@/components/StartupGrowthTicker';
 import { Button } from '@/components/ui/button';
 import {
   Sheet,
@@ -41,9 +44,9 @@ const LAYOUT_CENTER_GUTTER =
   'min-w-0 w-full box-border lg:pl-[calc(170px+1.5rem)] lg:pr-[calc(170px+1.5rem)]';
 const LAYOUT_RAIL_ROW = 'flex w-full min-h-0 min-w-0 flex-1 gap-6';
 
-/** Below fixed header + same top inset as LAYOUT_SHELL `pt-4` in the scroll column (so rails line up with main content, not the navbar) */
+/** Below fixed header + banner + same top inset as LAYOUT_SHELL `pt-4` in the scroll column */
 const LAYOUT_FIXED_TOP_INSET =
-  'pt-[calc(env(safe-area-inset-top,0px)+3.5rem+1rem)]';
+  'pt-[calc(env(safe-area-inset-top,0px)+3.5rem+2.25rem+1rem)]';
 
 function sliceWrap<T>(items: T[], start: number, count: number): T[] {
   if (items.length === 0) return [];
@@ -339,6 +342,7 @@ function StartupRail({
 export function Layout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { addOpen, setAddOpen, openAddStartup } = useAddStartup();
+  const { currentUser, isAuthenticated, openAuthDialog, logout } = useMockSession();
   const [advertiseOpen, setAdvertiseOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [mobileScrollIdle, setMobileScrollIdle] = useState(true);
@@ -353,7 +357,11 @@ export function Layout({ children }: { children: React.ReactNode }) {
     applyTheme(getInitialTheme());
   }, []);
 
+  // V2: Disable layout for dashboard
+  const isDashboard = location.startsWith('/buyer') || location.startsWith('/seller');
+
   useEffect(() => {
+    if (isDashboard) return;
     const isMobileLayout = () => window.matchMedia('(max-width: 1023px)').matches;
     const clearTimer = () => {
       if (mobileScrollIdleTimerRef.current != null) {
@@ -382,14 +390,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
       window.removeEventListener('scrollend', onScrollEnd);
       clearTimer();
     };
-  }, []);
+  }, [isDashboard]);
 
   useLayoutEffect(() => {
+    if (isDashboard) return;
     window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
     document.documentElement.scrollTop = 0;
     document.body.scrollTop = 0;
     document.scrollingElement?.scrollTo(0, 0);
-  }, [location]);
+  }, [location, isDashboard]);
+
+  if (isDashboard) {
+    return <>{children}</>;
+  }
 
   return (
     <div className="min-h-screen bg-background text-foreground selection:bg-foreground selection:text-background">
@@ -428,6 +441,22 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   />
                   <span className="truncate text-base font-bold tracking-tight">ownerr.io</span>
                 </Link>
+              </div>
+              <div className="hidden shrink-0 items-center gap-2 lg:flex">
+                {isAuthenticated && currentUser ? (
+                  <>
+                    <div className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground">
+                      {currentUser.name}
+                    </div>
+                    <Button type="button" variant="ghost" size="sm" className="font-bold" onClick={logout}>
+                      Logout
+                    </Button>
+                  </>
+                ) : (
+                  <Button type="button" variant="outline" size="sm" className="font-bold" onClick={openAuthDialog}>
+                    Login
+                  </Button>
+                )}
               </div>
               <div className="shrink-0 lg:hidden">
                 <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
@@ -470,6 +499,25 @@ export function Layout({ children }: { children: React.ReactNode }) {
                       })}
                     </nav>
                     <div className="mt-6 border-t border-border pr-8 pt-4">
+                      {isAuthenticated && currentUser ? (
+                        <div className="mb-4 flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold">
+                          <span className="truncate">{currentUser.name}</span>
+                          <Button type="button" variant="ghost" size="sm" onClick={logout}>
+                            Logout
+                          </Button>
+                        </div>
+                      ) : (
+                        <Button
+                          type="button"
+                          className="mb-4 w-full"
+                          onClick={() => {
+                            setMobileNavOpen(false);
+                            openAuthDialog();
+                          }}
+                        >
+                          Login
+                        </Button>
+                      )}
                       <ThemeToggle className="flex w-full justify-center" />
                     </div>
                   </SheetContent>
@@ -480,14 +528,16 @@ export function Layout({ children }: { children: React.ReactNode }) {
         </div>
       </header>
 
+      <StartupGrowthTicker />
+
       {/* z-30: shell/gutter use pointer-events-none so fixed side rails (z-20) stay clickable; only
           <main> re-enables hits for center content (otherwise the wide shell would steal clicks over the rails). */}
       <div
         className={cn(
           'pointer-events-none relative z-30 box-border transition-[padding-top] duration-200 ease-out motion-reduce:transition-none',
-          mobileScrollIdle
-            ? 'pt-[calc(env(safe-area-inset-top,0px)+2.75rem+3.5rem)] lg:pt-[calc(env(safe-area-inset-top,0px)+3.5rem)]'
-            : 'pt-[calc(env(safe-area-inset-top,0px)+3.5rem)] lg:pt-[calc(env(safe-area-inset-top,0px)+3.5rem)]',
+            mobileScrollIdle
+            ? 'pt-[calc(env(safe-area-inset-top,0px)+2.75rem+3.5rem)] lg:pt-[calc(env(safe-area-inset-top,0px)+3.5rem+2.25rem)]'
+            : 'pt-[calc(env(safe-area-inset-top,0px)+3.5rem)] lg:pt-[calc(env(safe-area-inset-top,0px)+3.5rem+2.25rem)]',
         )}
       >
         <div
@@ -523,7 +573,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <HeaderStartupSearch className="min-w-0 w-full sm:flex-1" />
                   <button
                     type="button"
-                    onClick={openAddStartup}
+                    onClick={() => (isAuthenticated ? openAddStartup() : openAuthDialog())}
                     className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-[10px] border border-border bg-card px-5 font-bold text-foreground shadow-sm transition-transform hover:-translate-y-0.5 sm:w-auto sm:justify-center"
                   >
                     <Plus className="h-4 w-4 shrink-0" /> Add startup
@@ -638,6 +688,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </div>
 
       <AdvertiseDialog open={advertiseOpen} onOpenChange={setAdvertiseOpen} />
+      <AuthDialog />
     </div>
   );
 }

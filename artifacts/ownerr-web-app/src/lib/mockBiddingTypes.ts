@@ -1,4 +1,5 @@
 export type BidStatus = "ACTIVE" | "REJECTED" | "ACCEPTED";
+export type BidRelationshipStage = "interested" | "contacted" | "negotiating" | "closed";
 
 /**
  * Mock deal lifecycle. After a bid is accepted, `DEAL_CLOSING_FLOW` drives escrow → release.
@@ -20,6 +21,7 @@ export interface Bid {
   userId: string;
   amount: number;
   status: BidStatus;
+  relationshipStage: BidRelationshipStage;
   createdAt: string;
 }
 

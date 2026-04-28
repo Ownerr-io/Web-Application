@@ -1,5 +1,5 @@
 import { Link } from 'wouter';
-import { Eye, Heart } from 'lucide-react';
+import { Eye, Heart, BadgeCheck, Globe, BarChart3 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { Startup } from '@/lib/mockData';
 import { cn, formatShortCurrency } from '@/lib/utils';
@@ -7,6 +7,24 @@ import { StartupTripleScores } from '@/components/StartupTripleScores';
 
 const SCORE_STRIP_CLASS =
   'text-center [&>div:nth-child(2)]:border-l [&>div:nth-child(2)]:border-border/60 [&>div:nth-child(2)]:pl-1 [&>div:nth-child(3)]:border-l [&>div:nth-child(3)]:border-border/60 [&>div:nth-child(3)]:pl-1 dark:[&>div:nth-child(2)]:border-[#2f3336] dark:[&>div:nth-child(3)]:border-[#2f3336] sm:[&>div:nth-child(2)]:pl-2 sm:[&>div:nth-child(3)]:pl-2';
+
+function startupGrowthValue(startup: Startup): number | null {
+  const maybeGrowth = startup as Startup & { growthPct?: number };
+  return maybeGrowth.growthPct ?? startup.revenueGrowth30dPct ?? null;
+}
+
+function startupNicheTags(startup: Startup): string[] {
+  const maybeListing = startup as Startup & { nicheTags?: string[] };
+  return Array.isArray(maybeListing.nicheTags) ? maybeListing.nicheTags : [];
+}
+
+function startupTrust(startup: Startup): { score: number; label: string } {
+  const maybeListing = startup as Startup & { trustScore?: number; trustLabel?: string };
+  return {
+    score: maybeListing.trustScore ?? 0,
+    label: maybeListing.trustLabel ?? 'Low Trust',
+  };
+}
 
 function formatGrowthPct(n: number | null | undefined): string | null {
   if (n == null) return null;
@@ -38,8 +56,10 @@ function MetricCell({
 export function AcquireListingCard({ startup, footer }: { startup: Startup; footer?: ReactNode }) {
   const views = startup.listingViews ?? Math.round(startup.customers * 1.2);
   const favs = startup.listingFavorites ?? Math.round(views / 400);
-  const growth = formatGrowthPct(startup.revenueGrowth30dPct ?? null);
+  const growth = formatGrowthPct(startupGrowthValue(startup));
   const strike = startup.askingPriceStrike;
+  const nicheTags = startupNicheTags(startup);
+  const trust = startupTrust(startup);
 
   return (
     <div className="shine-effect flex h-full flex-col overflow-hidden rounded-[14px] border border-border bg-card text-card-foreground transition-colors hover:border-muted-foreground/30 dark:border-[#2f3336] dark:bg-[#121212] dark:text-white dark:hover:border-[#536471]">
@@ -69,6 +89,26 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                     <p className="mt-0.5 truncate font-mono text-[12px] text-muted-foreground dark:text-[#71767b]">
                       {startup.category}
                     </p>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {startup.revenueVerified ? (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/10 px-1.5 py-px text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
+                          <BadgeCheck className="h-2.5 w-2.5" />
+                          Verified {startup.revenueProvider ?? 'Revenue'}
+                        </span>
+                      ) : null}
+                      {startup.domainVerified ? (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-500/10 px-1.5 py-px text-[9px] font-bold text-blue-600 dark:text-blue-400">
+                          <Globe className="h-2.5 w-2.5" />
+                          Domain
+                        </span>
+                      ) : null}
+                      {startup.trafficVerified ? (
+                        <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/10 px-1.5 py-px text-[9px] font-bold text-amber-600 dark:text-amber-400">
+                          <BarChart3 className="h-2.5 w-2.5" />
+                          {('verification' in startup && (startup as Startup & { verification?: { traffic?: { sourceLabel?: string } } }).verification?.traffic?.sourceLabel) ?? 'Traffic'}
+                        </span>
+                      ) : null}
+                    </div>
                   </div>
                   <div className="flex shrink-0 flex-col items-end gap-0.5 text-[10px] tabular-nums text-muted-foreground dark:text-[#71767b]">
                     <span className="inline-flex items-center gap-0.5 font-mono font-bold">
@@ -129,11 +169,29 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
               fullScoreLabels
               className={SCORE_STRIP_CLASS}
             />
+            <div className="rounded-lg border border-border/80 bg-muted/20 px-3 py-2">
+              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+                <span>{trust.label}</span>
+                <span>{trust.score}/100</span>
+              </div>
+              <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
+                <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-sky-500" style={{ width: `${trust.score}%` }} />
+              </div>
+            </div>
           </div>
 
           <p className="line-clamp-2 shrink-0 font-mono text-[11px] leading-snug text-foreground/90 dark:text-[#e7e9ea]">
             {startup.description}
           </p>
+          {nicheTags.length > 0 ? (
+            <div className="flex flex-wrap gap-1">
+              {nicheTags.slice(0, 3).map((tag) => (
+                <span key={tag} className="rounded-full border border-border px-2 py-0.5 text-[9px] font-bold text-muted-foreground">
+                  {tag}
+                </span>
+              ))}
+            </div>
+          ) : null}
         </article>
       </Link>
       {footer ? (

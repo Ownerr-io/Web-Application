@@ -45,6 +45,10 @@ export function migrateListingBidRecord(record: MockListingBidRecord): MockListi
       out.deal = { ...out.deal, stage: next };
     }
   }
+  out.bids = out.bids.map((bid) => ({
+    ...bid,
+    relationshipStage: bid.relationshipStage ?? "interested",
+  }));
   return out;
 }
 

@@ -31,6 +31,8 @@ import {
 import { ScrollArea } from '@/components/ui/scroll-area';
 import type { Bid, DealStage } from '@/lib/mockBiddingTypes';
 import { useToast } from '@/hooks/use-toast';
+import { useMockSession } from '@/context/MockSessionContext';
+import { submitMarketplaceInterest } from '@/lib/mockMarketplaceService';
 import {
   Check,
   ChevronRight,
@@ -40,6 +42,7 @@ import {
   Landmark,
   Package,
   Search,
+  MessageCircle,
 } from 'lucide-react';
 
 function maxActiveBid(bids: Bid[]): number | null {
@@ -306,16 +309,16 @@ function DealPipelineStepper({ stage }: { stage: DealStage }) {
 
 export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; compact?: boolean }) {
   const { toast } = useToast();
+  const { currentUser, isBuyer, isAuthenticated, openAuthDialog } = useMockSession();
   const bidding = useMockBidding();
   const basePrice = listingBasePrice(startup);
-  const bidders = useMemo(() => getMockBidders(), []);
   const record = bidding.getRecord(startup.slug);
   const sellerLabel = startup.founderDisplayName ?? bidderDisplayName(startup.founderHandle);
+  const isOwner = !!currentUser && (startup.founderHandle === currentUser.id || ('ownerUserId' in startup && startup.ownerUserId === currentUser.id));
 
   const high = maxActiveBid(record.bids);
   const [placeOpen, setPlaceOpen] = useState(false);
   const [viewOpen, setViewOpen] = useState(false);
-  const [userId, setUserId] = useState(bidders[0]?.userId ?? '');
   const [amountStr, setAmountStr] = useState('');
   const [placeError, setPlaceError] = useState<string | null>(null);
   const [busy, setBusy] = useState(false);
@@ -340,17 +343,18 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
 
   async function submitBid() {
     setPlaceError(null);
-    const amount = Number(amountStr.replace(/[^0-9.]/g, ''));
-    if (!userId) {
-      setPlaceError('Select a bidder.');
+    if (!isAuthenticated || !currentUser) {
+      setPlaceOpen(false);
+      openAuthDialog();
       return;
     }
+    const amount = Number(amountStr.replace(/[^0-9.]/g, ''));
     if (!Number.isFinite(amount) || amount <= 0) {
       setPlaceError('Enter a valid bid amount.');
       return;
     }
     setBusy(true);
-    const res = await bidding.placeBid(startup.slug, userId, amount, basePrice);
+    const res = await bidding.placeBid(startup.slug, currentUser.id, amount, basePrice);
     setBusy(false);
     if (!res.ok) {
       setPlaceError(res.error);
@@ -358,6 +362,10 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
     }
     setAmountStr('');
     setPlaceOpen(false);
+    toast({
+      title: 'Bid saved',
+      description: 'Ownerr does not handle payments. If the founder responds, the deal continues off-platform.',
+    });
   }
 
   async function onAcceptBid(bidId: string) {
@@ -379,13 +387,17 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
         size="sm"
         variant="secondary"
         className={cn('font-bold', compact ? 'h-9 w-full' : 'h-8')}
-        disabled={!!(deal && dealBlocksNewBids(deal.stage))}
+        disabled={!!(deal && dealBlocksNewBids(deal.stage)) || (isAuthenticated && (!isBuyer || isOwner))}
         onClick={() => {
+          if (!isAuthenticated) {
+            openAuthDialog();
+            return;
+          }
           setPlaceError(null);
           setPlaceOpen(true);
         }}
       >
-        Place bid
+        {!isAuthenticated ? 'Login to bid' : isOwner ? 'Owner view' : isBuyer ? 'Place bid' : 'Buyer mode'}
       </Button>
       <Button
         type="button"
@@ -395,6 +407,42 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
         onClick={() => setViewOpen(true)}
       >
         View bids
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="ghost"
+        className={cn('font-bold', compact ? 'h-9 w-full' : 'h-8')}
+        disabled={isAuthenticated && (!isBuyer || isOwner)}
+        onClick={() =>
+          !isAuthenticated || !currentUser
+            ? openAuthDialog()
+            : void submitMarketplaceInterest({
+                listingId: startup.slug,
+                buyerUserId: currentUser.id,
+                buyerName: currentUser.name,
+                buyerRole: currentUser.role,
+                email: currentUser.email,
+                message: `Interested in ${startup.name}. Can you share more about revenue quality and the current growth trend?`,
+                offerAmount: null,
+              })
+                .then(() =>
+                  toast({
+                    title: 'Interest expressed',
+                    description: 'Ownerr does not handle payments. The founder can reply, but the deal moves off-platform.',
+                  }),
+                )
+                .catch((error) =>
+                  toast({
+                    title: 'Could not send interest',
+                    description: error instanceof Error ? error.message : 'Please try again.',
+                    variant: 'destructive',
+                  }),
+                )
+        }
+      >
+        <MessageCircle className="h-3.5 w-3.5 mr-1" />
+        {!isAuthenticated ? 'Login to contact' : isOwner ? 'Owner view' : isBuyer ? 'Express Interest' : 'Buyer mode'}
       </Button>
     </>
   );
@@ -418,7 +466,7 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
         <div className="flex flex-col gap-2.5 font-mono text-[11px]">
           <div className="min-w-0">
             <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground dark:text-[#71767b]">
-              Mock bids
+              Non-binding bids
             </div>
             <div className="mt-0.5 truncate text-sm font-bold tabular-nums text-foreground dark:text-white">
               {high != null ? (
@@ -451,7 +499,7 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div className="min-w-0">
               <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground dark:text-[#71767b]">
-                Mock bids
+                Non-binding bids
               </div>
               <div className="mt-0.5 text-sm font-bold tabular-nums text-foreground dark:text-white">
                 {high != null ? (
@@ -465,6 +513,9 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
               </div>
               <div className="text-[10px] text-muted-foreground dark:text-[#71767b]">
                 Floor {formatShortCurrency(basePrice)} · max 3 bidders · mock only
+              </div>
+              <div className="mt-1 text-[10px] text-muted-foreground dark:text-[#71767b]">
+                Ownerr does not handle payments. Deals happen off-platform.
               </div>
               <OwnershipTransferVisual
                 startup={startup}
@@ -486,25 +537,16 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
           <DialogHeader>
             <DialogTitle>Place bid · {startup.name}</DialogTitle>
             <DialogDescription>
-              Select an existing founder profile and an amount above {formatShortCurrency(minNext - 1)} (must exceed
-              current high / floor).
+              Bid as {currentUser?.name ?? 'your account'} above {formatShortCurrency(minNext - 1)}. Ownerr does not
+              handle payments; this is a mock off-platform introduction flow.
             </DialogDescription>
           </DialogHeader>
           <div className="grid gap-3 py-1">
             <div className="space-y-2">
-              <Label>Bidder</Label>
-              <Select value={userId} onValueChange={setUserId}>
-                <SelectTrigger>
-                  <SelectValue placeholder="Select user" />
-                </SelectTrigger>
-                <SelectContent>
-                  {bidders.map((b) => (
-                    <SelectItem key={b.userId} value={b.userId}>
-                      {b.name} (@{b.userId})
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              <Label>Buyer</Label>
+              <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm font-semibold">
+                {currentUser?.name ?? 'Login required'}
+              </div>
             </div>
             <div className="space-y-2">
               <Label htmlFor={`bid-amt-${startup.slug}`}>Amount (USD)</Label>
@@ -642,6 +684,9 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
                                 </div>
                                 <div className="mt-1 flex flex-wrap items-center justify-between gap-1 text-[10px] text-muted-foreground">
                                   <span className="uppercase">{b.status}</span>
+                                  <span className="rounded-full border border-border px-2 py-0.5 text-[9px] font-bold">
+                                    {b.relationshipStage}
+                                  </span>
                                   {b.status === 'ACTIVE' && !dealBlocksNewBids(deal?.stage ?? null) ? (
                                     <span className="flex gap-1">
                                       <Button
@@ -662,6 +707,22 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
                                       >
                                         Reject
                                       </Button>
+                                      {isOwner ? (
+                                        <Select
+                                          value={b.relationshipStage}
+                                          onValueChange={(value) => void bidding.updateBidStage(startup.slug, b.id, value as Bid['relationshipStage'])}
+                                        >
+                                          <SelectTrigger className="h-6 w-[118px] px-2 text-[10px]">
+                                            <SelectValue />
+                                          </SelectTrigger>
+                                          <SelectContent>
+                                            <SelectItem value="interested">Interested</SelectItem>
+                                            <SelectItem value="contacted">Contacted</SelectItem>
+                                            <SelectItem value="negotiating">Negotiating</SelectItem>
+                                            <SelectItem value="closed">Closed</SelectItem>
+                                          </SelectContent>
+                                        </Select>
+                                      ) : null}
                                     </span>
                                   ) : null}
                                 </div>

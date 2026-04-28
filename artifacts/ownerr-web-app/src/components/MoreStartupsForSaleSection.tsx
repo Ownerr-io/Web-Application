@@ -59,11 +59,7 @@ function MarketplaceSaleCard({ startup }: { startup: Startup }) {
         'dark:hover:border-[#536471]',
       )}
     >
-      {startup.forSale ? (
-        <span className="absolute right-2 top-2 z-[1] select-none text-[8px] font-bold uppercase tracking-wider text-amber-700 dark:text-[#e8b84a]">
-          For sale
-        </span>
-      ) : null}
+
 
       <div className="relative z-0 flex min-h-0 flex-1 flex-col pr-6">
         <div className="flex gap-3">
@@ -151,52 +147,5 @@ function MarketplaceSaleCard({ startup }: { startup: Startup }) {
 }
 
 export function MoreStartupsForSaleSection() {
-  const [tick, setTick] = useState(0);
-
-  useEffect(() => {
-    const bump = () => setTick((t) => t + 1);
-    window.addEventListener(USER_STARTUPS_CHANGED_EVENT, bump);
-    window.addEventListener('storage', bump);
-    return () => {
-      window.removeEventListener(USER_STARTUPS_CHANGED_EVENT, bump);
-      window.removeEventListener('storage', bump);
-    };
-  }, []);
-
-  const rows = useMemo(() => {
-    return mergeWithUserStartups(mockStartups)
-      .filter((s) => s.forSale)
-      .sort((a, b) => b.revenue - a.revenue)
-      .slice(0, 6);
-  }, [tick]);
-
-  if (rows.length === 0) return null;
-
-  return (
-    <section
-      className="mt-6 border-t border-border pt-6 sm:mt-8 sm:pt-7"
-      aria-labelledby="more-startups-for-sale-heading"
-    >
-      <div className="mb-5 flex flex-wrap items-end justify-between gap-2">
-        <h2
-          id="more-startups-for-sale-heading"
-          className="font-mono text-lg font-bold text-foreground sm:text-xl"
-        >
-          More startups for sale
-        </h2>
-        <Link
-          href="/acquire"
-          className="inline-flex items-center gap-0.5 text-sm font-bold text-muted-foreground transition-colors hover:text-foreground"
-        >
-          View marketplace
-          <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-80" aria-hidden />
-        </Link>
-      </div>
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        {rows.map((s) => (
-          <MarketplaceSaleCard key={s.slug} startup={s} />
-        ))}
-      </div>
-    </section>
-  );
+  return null;
 }
