@@ -49,7 +49,7 @@ export function FeedSidebar() {
           <div className="shrink-0 rounded-xl border border-border bg-card p-4 shadow-sm">
             <h3 className="text-sm font-bold">List your startup</h3>
             <p className="mt-1 text-xs text-muted-foreground leading-snug">
-              Share updates with the TrustMRR community.
+              Share updates with the Ownerr community.
             </p>
             <button
               type="button"

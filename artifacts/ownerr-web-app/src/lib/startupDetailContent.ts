@@ -228,8 +228,8 @@ function buildDefaultDetail(startup: Startup, founder: Founder | undefined, lead
       businessPills,
       userCountLabel: formatCompactUsers(startup.customers),
       additionalInfo: founder
-        ? `Verified founder listing on TrustMRR. ${founder.lookingForCofounder ? 'Open to strategic partners.' : ''}`
-        : 'Community-verified metrics on TrustMRR.',
+        ? `Verified founder listing on Ownerr. ${founder.lookingForCofounder ? 'Open to strategic partners.' : ''}`
+        : 'Community-verified metrics on Ownerr.',
       tags,
     },
     techStack,

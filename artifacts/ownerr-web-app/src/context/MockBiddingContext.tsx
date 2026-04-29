@@ -334,8 +334,8 @@ export function MockBiddingProvider({ children }: { children: ReactNode }) {
       pushLog(
         record,
         prior
-          ? `[ownerr.io] Bidding reset (prior pipeline: ${prior.stage}). All bids cleared.`
-          : "[ownerr.io] Bidding reset. All bids cleared.",
+          ? `[Ownerr] Bidding reset (prior pipeline: ${prior.stage}). All bids cleared.`
+          : "[Ownerr] Bidding reset. All bids cleared.",
       );
       await persist(record);
     },

@@ -439,7 +439,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                     width={32}
                     height={40}
                   />
-                  <span className="truncate text-base font-bold tracking-tight">ownerr.io</span>
+                  <span className="truncate text-base font-bold tracking-tight">Ownerr</span>
                 </Link>
               </div>
               <div className="hidden shrink-0 items-center gap-2 lg:flex">

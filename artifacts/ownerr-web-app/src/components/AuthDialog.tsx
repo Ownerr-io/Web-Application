@@ -82,7 +82,7 @@ export function AuthDialog() {
           ) : null}
           <div className="space-y-2">
             <Label htmlFor="auth-email">Email</Label>
-            <Input id="auth-email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@ownerr.io" />
+            <Input id="auth-email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@Ownerr" />
           </div>
           <div className="space-y-2">
             <Label htmlFor="auth-password">Password</Label>

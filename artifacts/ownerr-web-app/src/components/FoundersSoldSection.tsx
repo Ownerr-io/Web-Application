@@ -36,7 +36,7 @@ export function FoundersSoldSection() {
   return (
     <section className="min-w-0 border-t border-border pt-16 dark:border-[#2f3336]">
       <h2 className="mb-8 text-center font-mono text-2xl font-bold text-foreground md:text-3xl dark:text-white">
-        Founders who sold on ownerr.io
+        Founders who sold on Ownerr
       </h2>
       <div className="mx-auto grid grid-cols-1 gap-4 md:grid-cols-2">
         {FOUNDER_SOLD_POSTS.map((post) => (

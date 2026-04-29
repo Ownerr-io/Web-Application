@@ -211,7 +211,7 @@ export default function StartupDetail() {
       <div className="flex flex-col gap-6 pb-10">
         <nav className="flex flex-wrap items-center gap-1 font-mono text-sm text-muted-foreground">
           <Link href="/" className="hover:text-foreground">
-            Ownerr.io
+            Ownerr
           </Link>
           <ChevronRight className="h-4 w-4 opacity-50" />
           <span className="hover:text-foreground">
@@ -296,7 +296,7 @@ export default function StartupDetail() {
             </div>
             <div className="mt-2 text-2xl font-bold tabular-nums">{formatCurrency(detail.allTimeRevenue)}</div>
             <p className="mt-1 text-xs text-muted-foreground">
-              Ranked #{detail.leaderboardRank} on TrustMRR
+              Ranked #{detail.leaderboardRank} on Ownerr
             </p>
           </div>
           <div className="rounded-xl border border-border bg-card p-5 text-center">
@@ -440,7 +440,7 @@ export default function StartupDetail() {
     <div className="flex flex-col gap-4 pb-8 sm:gap-6 sm:pb-10">
       <nav className="flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
         <Link href="/" className="hover:text-foreground">
-          Ownerr.io
+          Ownerr
         </Link>
         <ChevronRight className="h-4 w-4 opacity-50" />
         <span className="hover:text-foreground">
@@ -527,7 +527,7 @@ export default function StartupDetail() {
           </div>
           <div className="mt-2 text-2xl font-bold tabular-nums">{formatCurrency(detail.allTimeRevenue)}</div>
           <p className="mt-1 text-xs text-muted-foreground">
-            Ranked #{detail.leaderboardRank} on TrustMRR
+            Ranked #{detail.leaderboardRank} on Ownerr
           </p>
         </div>
         <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">

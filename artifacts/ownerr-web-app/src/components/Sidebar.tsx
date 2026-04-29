@@ -38,7 +38,7 @@ export function DashboardSidebar() {
       <div className="p-4">
         <Link href="/" className="flex items-center gap-2 font-bold text-lg">
           <img src="/Ownerr Logo.svg" alt="Ownerr" className="h-6 w-6" />
-          <span>Ownerr.io</span>
+          <span>Ownerr</span>
         </Link>
       </div>
       <div className="flex-1 overflow-y-auto">

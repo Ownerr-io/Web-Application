@@ -77,7 +77,7 @@ export function approvalLogMessage(
 ): string {
   switch (toStage) {
     case "ESCROW_FUNDED":
-      return `[ownerr.io] Approved — Escrow funded (mock). Recorded: ${DEAL_STAGE_LABEL.ESCROW_FUNDED}.`;
+      return `[Ownerr] Approved — Escrow funded (mock). Recorded: ${DEAL_STAGE_LABEL.ESCROW_FUNDED}.`;
     case "DUE_DILIGENCE":
       return `[Buyer: ${buyerName}] Approved — Due diligence complete (mock). Recorded: ${DEAL_STAGE_LABEL.DUE_DILIGENCE}.`;
     case "CONTRACTS_SIGNED":
@@ -85,7 +85,7 @@ export function approvalLogMessage(
     case "ASSETS_TRANSFERRED":
       return `[Seller: ${sellerLabel}] Approved — Assets transferred (mock). Recorded: ${DEAL_STAGE_LABEL.ASSETS_TRANSFERRED}.`;
     case "PAYMENT_RELEASED":
-      return `[ownerr.io] Approved — Payment released to seller (mock). Recorded: ${DEAL_STAGE_LABEL.PAYMENT_RELEASED}. Deal closed.`;
+      return `[Ownerr] Approved — Payment released to seller (mock). Recorded: ${DEAL_STAGE_LABEL.PAYMENT_RELEASED}. Deal closed.`;
     default:
       return `Stage updated — ${DEAL_STAGE_LABEL[toStage]}`;
   }

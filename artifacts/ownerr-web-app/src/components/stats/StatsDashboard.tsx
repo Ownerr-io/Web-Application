@@ -330,7 +330,7 @@ export function StatsDashboard() {
             </ScatterChart>
           </ResponsiveContainer>
         </div>
-        <p className="mt-1 text-right font-mono text-[10px] text-muted-foreground">ownerr.io</p>
+        <p className="mt-1 text-right font-mono text-[10px] text-muted-foreground">Ownerr</p>
       </section>
 
       {/* 5 */}

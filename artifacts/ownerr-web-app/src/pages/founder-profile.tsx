@@ -144,7 +144,7 @@ export default function FounderProfile() {
       founder?.name ?? claimSpot?.name ?? 'Profile';
     try {
       if (navigator.share) {
-        await navigator.share({ title: `${title} · ownerr.io`, url: shareUrl });
+        await navigator.share({ title: `${title} · Ownerr`, url: shareUrl });
       } else {
         await navigator.clipboard.writeText(shareUrl);
         toast({ title: 'Link copied' });
@@ -177,7 +177,7 @@ export default function FounderProfile() {
                 href="/"
                 className="font-medium text-foreground/80 transition-colors hover:text-foreground"
               >
-                ownerr.io
+                Ownerr
               </Link>
               <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
               <Link href="/claim" className="transition-colors hover:text-foreground">
@@ -307,7 +307,7 @@ export default function FounderProfile() {
             href="/"
             className="font-medium text-foreground/80 transition-colors hover:text-foreground"
           >
-            ownerr.io
+            Ownerr
           </Link>
           <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
           <Link

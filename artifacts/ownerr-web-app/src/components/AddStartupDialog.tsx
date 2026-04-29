@@ -159,7 +159,7 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
       founderHandle,
       founderDisplayName: founderName.trim() || currentUser.name,
       listingUsername: username.trim() || undefined,
-      description: description.trim() || 'Added via ownerr.io',
+      description: description.trim() || 'Added via Ownerr',
       monthlyRevenueSeries: generateMonthlyRevenue(revenue),
       logoColor: PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)],
       foundedYear: new Date().getFullYear(),

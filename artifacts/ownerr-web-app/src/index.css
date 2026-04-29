@@ -103,7 +103,7 @@
   --destructive-border: rgba(0,0,0,0.08);
 }
 
-/* DARK MODE — TrustMRR-style: solid black page, charcoal surfaces */
+/* DARK MODE — Ownerr-style: solid black page, charcoal surfaces */
 .dark {
   --background: 0 0% 0%;
   --foreground: 0 0% 100%;
@@ -164,7 +164,7 @@
   @apply relative transition-all duration-200 hover:-translate-y-[2px] hover:shadow-md bg-card text-card-foreground border border-border rounded-[10px] overflow-hidden;
 }
 
-/* Marketplace listing: light uses theme tokens; dark keeps TrustMRR charcoal */
+/* Marketplace listing: light uses theme tokens; dark keeps Ownerr charcoal */
 .startup-listing-card {
   position: relative;
   background: hsl(var(--card));
@@ -271,7 +271,7 @@
   color: #b8b8b8;
 }
 
-/* Primary CTA — light button on black (TrustMRR search row) */
+/* Primary CTA — light button on black (Ownerr search row) */
 .btn-landing-primary {
   background: #e8e8e8;
   color: #0a0a0a;

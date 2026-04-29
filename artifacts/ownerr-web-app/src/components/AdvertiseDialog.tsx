@@ -15,21 +15,21 @@ const TESTIMONIALS = [
     company: 'GojiberryAI',
     seed: 'roman-goji',
     quote:
-      'ownerr.io brought me $3,200 in new MRR, 27 new clients, 81 trials, 20+ demo calls. Absolutely insane results, worth every penny.',
+      'Ownerr brought me $3,200 in new MRR, 27 new clients, 81 trials, 20+ demo calls. Absolutely insane results, worth every penny.',
   },
   {
     name: 'Yahia Bakour',
     company: 'Brand.dev',
     seed: 'yahia-brand',
     quote:
-      "Sponsoring ownerr.io turned out to be one of the best marketing decisions I've made in a while. Getting some really interesting customers out of it.",
+      "Sponsoring Ownerr turned out to be one of the best marketing decisions I've made in a while. Getting some really interesting customers out of it.",
   },
   {
     name: 'Ryan Vogel',
     company: 'Inbound Email',
     seed: 'ryan-inbound',
     quote:
-      'The ROI has been outstanding — tons of new signups, new trials booked. Over 60% of my traffic this week came from ownerr.io. Money well spent.',
+      'The ROI has been outstanding — tons of new signups, new trials booked. Over 60% of my traffic this week came from Ownerr. Money well spent.',
   },
   {
     name: 'Alexander Belogubov',
@@ -50,7 +50,7 @@ export function AdvertiseDialog({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="max-h-[min(90dvh,880px)] max-w-xl overflow-y-auto border-border bg-card p-6 text-card-foreground shadow-2xl sm:max-w-lg">
         <DialogHeader className="space-y-2 text-left">
-          <DialogTitle className="text-xl font-bold text-foreground">Advertise on ownerr.io</DialogTitle>
+          <DialogTitle className="text-xl font-bold text-foreground">Advertise on Ownerr</DialogTitle>
           <DialogDescription className="text-sm text-muted-foreground">
             Reach 120K+ entrepreneurs and founders every month
           </DialogDescription>
@@ -78,7 +78,7 @@ export function AdvertiseDialog({
           <h3 className="text-sm font-bold text-foreground">How it works</h3>
           <p className="text-sm leading-relaxed text-muted-foreground">
             Your startup appears in rotating sponsor slots on desktop sidebars and mobile banners across
-            all ownerr.io pages. Sponsors rotate every 10 seconds to ensure fair visibility among all
+            all Ownerr pages. Sponsors rotate every 10 seconds to ensure fair visibility among all
             advertisers.
           </p>
         </div>
@@ -96,7 +96,7 @@ export function AdvertiseDialog({
           className="h-11 w-full rounded-[10px] font-bold"
         >
           <a
-            href="mailto:advertise@ownerr.io?subject=ownerr.io%20sponsorship&body=Hi%2C%20I%27d%20like%20to%20advertise%20on%20ownerr.io."
+            href="mailto:advertise@Ownerr?subject=Ownerr%20sponsorship&body=Hi%2C%20I%27d%20like%20to%20advertise%20on%20Ownerr."
             target="_blank"
             rel="noopener noreferrer"
             className="inline-flex items-center justify-center gap-2"

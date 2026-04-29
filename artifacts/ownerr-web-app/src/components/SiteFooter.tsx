@@ -46,7 +46,7 @@ export function SiteFooter() {
       <div className="flex flex-col items-stretch justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
         <p className="text-center sm:text-left">
           Built with care by indie founders. Not affiliated with Stripe. © {new Date().getFullYear()}{' '}
-          ownerr.io
+          Ownerr
         </p>
         <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 sm:justify-end">
           <a href="#" className="hover:text-foreground">

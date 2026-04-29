@@ -17,7 +17,7 @@ const MARKETPLACE_LISTINGS_STORE = "marketplace-listings";
 const MARKETPLACE_INTEREST_STORE = "marketplace-interest";
 const AUTH_USERS_STORE = "auth-users";
 
-interface TrustmrrDB extends DBSchema {
+interface OwnerrDB extends DBSchema {
   "user-startups": {
     key: string;
     value: Startup;
@@ -48,11 +48,11 @@ interface TrustmrrDB extends DBSchema {
   };
 }
 
-let dbPromise: Promise<IDBPDatabase<TrustmrrDB>> | null = null;
+let dbPromise: Promise<IDBPDatabase<OwnerrDB>> | null = null; 
 
-function getDB(): Promise<IDBPDatabase<TrustmrrDB>> {
+function getDB(): Promise<IDBPDatabase<OwnerrDB>> { 
   if (!dbPromise) {
-    dbPromise = openDB<TrustmrrDB>(DB_NAME, DB_VERSION, {
+    dbPromise = openDB<OwnerrDB>(DB_NAME, DB_VERSION, {
       upgrade(db) {
         if (!db.objectStoreNames.contains(USER_STARTUP_STORE)) {
           const store = db.createObjectStore(USER_STARTUP_STORE, { keyPath: "slug" });

@@ -41,7 +41,7 @@ export default function Feed() {
   return (
     <div className="w-full min-w-0">
       <div className="mb-6 lg:mb-8">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">What&apos;s happening on Ownerr.io?</h1>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">What&apos;s happening on Ownerr?</h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Community updates, new listings, and founder milestones.
         </p>

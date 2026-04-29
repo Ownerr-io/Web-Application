@@ -23,7 +23,7 @@ const PRIMARY_USERS: AuthUser[] = [
   {
     id: "buyer-olivia",
     name: "Olivia Carter",
-    email: "olivia@ownerr.io",
+    email: "olivia@Ownerr",
     password: DEFAULT_PASSWORD,
     role: "buyer",
     avatarSeed: "olivia-carter-buyer",
@@ -32,7 +32,7 @@ const PRIMARY_USERS: AuthUser[] = [
   {
     id: "alicew",
     name: "Alice Wang",
-    email: "alice@ownerr.io",
+    email: "alice@Ownerr",
     password: DEFAULT_PASSWORD,
     role: "founder",
     avatarSeed: "alice-wang-founder",
