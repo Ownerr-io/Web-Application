@@ -63,6 +63,7 @@ export default function ClaimSpotsPage() {
   const [claimOpen, setClaimOpen] = useState(false);
   const [name, setName] = useState('');
   const [handle, setHandle] = useState('');
+  const [email, setEmail] = useState('');
   const [role, setRole] = useState<ClaimSpotRole>('founder');
   const [tagline, setTagline] = useState('');
   const [tablePage, setTablePage] = useState(1);
@@ -113,11 +114,12 @@ export default function ClaimSpotsPage() {
     e.preventDefault();
     const trimmedName = name.trim();
     const rawHandle = handle.trim().replace(/^@+/, '');
-    if (!trimmedName || !rawHandle) {
+    const trimmedEmail = email.trim();
+    if (!trimmedName || !rawHandle || !trimmedEmail) {
       toast({
         variant: 'destructive',
         title: 'Missing fields',
-        description: 'Add your name and a handle (e.g. janedoe).',
+        description: 'Add your name, a handle (e.g. janedoe), and an email.',
       });
       return;
     }
@@ -129,6 +131,7 @@ export default function ClaimSpotsPage() {
         name: trimmedName,
         handle: rawHandle,
         avatarUrl: founderAvatarUrl(rawHandle),
+        email: trimmedEmail,
         role,
         claimedAt: new Date().toISOString(),
         tagline: tagline.trim() || undefined,
@@ -137,6 +140,7 @@ export default function ClaimSpotsPage() {
       await refreshClaims();
       setName('');
       setHandle('');
+      setEmail('');
       setTagline('');
       setRole('founder');
       setClaimOpen(false);
@@ -225,6 +229,17 @@ export default function ClaimSpotsPage() {
                   onChange={(e) => setHandle(e.target.value)}
                   placeholder="alexr"
                   autoComplete="username"
+                  className="min-h-11 sm:min-h-10"
+                />
+              </div>
+              <div className="min-w-0 space-y-2 sm:col-span-2">
+                <Label htmlFor="claim-email">Email</Label>
+                <Input
+                  id="claim-email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="alex@example.com"
+                  autoComplete="email"
                   className="min-h-11 sm:min-h-10"
                 />
               </div>
@@ -325,6 +340,9 @@ export default function ClaimSpotsPage() {
                       <span className="font-mono text-xs text-muted-foreground">@{entry.handle}</span>
                     </div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-2">
+                      <span className="text-xs text-muted-foreground">{entry.email}</span>
+                    </div>
+                    <div className="mt-1.5 flex flex-wrap items-center gap-2">
                       <span
                         className={cn(
                           'inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
@@ -354,6 +372,7 @@ export default function ClaimSpotsPage() {
                 <TableHead className="w-14"> </TableHead>
                 <TableHead>Name</TableHead>
                 <TableHead>Handle</TableHead>
+                <TableHead>Email</TableHead>
                 <TableHead>Role</TableHead>
                 <TableHead>Claimed</TableHead>
                 <TableHead className="hidden lg:table-cell">Tagline</TableHead>
@@ -392,6 +411,9 @@ export default function ClaimSpotsPage() {
                   </TableCell>
                   <TableCell className="max-w-[8rem] truncate font-mono text-xs text-muted-foreground md:max-w-[10rem] lg:max-w-none">
                     @{entry.handle}
+                  </TableCell>
+                  <TableCell className="max-w-[8rem] truncate font-mono text-xs text-muted-foreground md:max-w-[10rem] lg:max-w-none">
+                    {entry.email}
                   </TableCell>
                   <TableCell>
                     <span

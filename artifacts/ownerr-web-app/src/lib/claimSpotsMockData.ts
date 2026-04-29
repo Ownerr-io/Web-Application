@@ -6,6 +6,7 @@ export interface ClaimSpotEntry {
   id: string;
   name: string;
   handle: string;
+  email: string;
   avatarUrl: string;
   role: ClaimSpotRole;
   claimedAt: string;
@@ -79,10 +80,12 @@ export function generateBaseClaimRoster(count: number = CLAIM_SPOTS_CLAIMED): Cl
     const handle = `roster-${String(i + 1).padStart(3, "0")}`;
     const role: ClaimSpotRole = i % 3 === 0 ? "investor" : "founder";
     const claimedAt = new Date(CLAIM_ROSTER_ANCHOR_MS - (i + 1) * 8 * 60 * 60 * 1000).toISOString();
+    const email = `${handle}@example.com`;
     out.push({
       id: `base-${i + 1}`,
       name,
       handle,
+      email,
       avatarUrl: founderAvatarUrl(handle),
       role,
       claimedAt,
