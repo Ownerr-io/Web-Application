@@ -53,33 +53,25 @@ function normalizeEmail(email: string): string {
   return email.trim().toLowerCase();
 }
 
-export async function ensureSeedAuthUsers(): Promise<AuthUser[]> {
-  const existing = await getAuthUsersDB();
-  const existingById = new Map(existing.map((user) => [user.id, user] as const));
-
-  // Keep previously created accounts, but always ensure primary buyer/founder
-  // accounts are available and up to date for quick sign-in.
+export async function ensureSeedAuthUsers(): Promise<void> {
+  // Overwrite primary user accounts to ensure they are always available and up to date.
+  // This prevents stale data and ensures demo logins are reliable.
+  console.log("[Auth] Seeding primary demo user accounts...");
   await Promise.all(
-    PRIMARY_USERS.map(async (seed) => {
-      const prior = existingById.get(seed.id);
-      const merged: AuthUser = prior
-        ? {
-            ...prior,
-            name: seed.name,
-            email: seed.email,
-            password: seed.password,
-            role: seed.role,
-            avatarSeed: seed.avatarSeed,
-          }
-        : seed;
-      await putAuthUserDB(merged);
+    PRIMARY_USERS.map(async (seedUser) => {
+      const userToStore: AuthUser = {
+        ...seedUser,
+        email: normalizeEmail(seedUser.email),
+      };
+      await putAuthUserDB(userToStore);
     }),
   );
-  return getAuthUsersDB();
+  console.log("[Auth] Primary demo user accounts seeded successfully.");
 }
 
 export async function listAuthUsers(): Promise<AuthUser[]> {
-  const users = await ensureSeedAuthUsers();
+  await ensureSeedAuthUsers();
+  const users = await getAuthUsersDB();
   return users.sort((a, b) => a.createdAt.localeCompare(b.createdAt));
 }
 
@@ -89,12 +81,36 @@ export async function getAuthUserById(id: string): Promise<AuthUser | null> {
 }
 
 export async function loginAuthUser(email: string, password: string): Promise<AuthUser> {
+  // Ensure demo users are always available before attempting login.
   await ensureSeedAuthUsers();
-  const normalized = normalizeEmail(email);
-  const user = await getAuthUserByEmailDB(normalized);
-  if (!user || user.password !== password) {
+
+  const normalizedEmail = normalizeEmail(email);
+  console.log(`[Auth] Login attempt for normalized email: "${normalizedEmail}"`);
+
+  let user = await getAuthUserByEmailDB(normalizedEmail);
+
+  // Fallback: If the user isn't found, re-seed and try one more time.
+  // This makes the login extremely robust, even if IndexedDB is cleared.
+  if (!user) {
+    console.warn(`[Auth] User "${normalizedEmail}" not found. Re-seeding and retrying...`);
+    await ensureSeedAuthUsers();
+    user = await getAuthUserByEmailDB(normalizedEmail);
+  }
+
+  if (!user) {
+    // This should be practically unreachable for demo accounts.
+    console.error(`[Auth] FATAL: Login failed for "${normalizedEmail}". User not found even after re-seeding.`);
     throw new Error("Invalid email or password.");
   }
+
+  console.log(`[Auth] Found user:`, user.email, `(ID: ${user.id})`);
+
+  if (user.password !== password) {
+    console.error(`[Auth] Login failed for "${normalizedEmail}". Password mismatch.`);
+    throw new Error("Invalid email or password.");
+  }
+
+  console.log(`[Auth] Login successful for user: ${user.name}`);
   return user;
 }
 
