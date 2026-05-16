@@ -1,15 +1,19 @@
 import { Link, useLocation } from 'wouter';
-import { ThemeToggle } from '@/components/ThemeToggle';
+import { MARKETPLACE_BASE, marketplacePath } from '@/lib/appPaths';
 
 const FOOTER_LINKS = [
-  { href: '/acquire', label: 'Buy/sell' },
-  { href: '/feed', label: 'Feed' },
-  { href: '/stats', label: 'Stats' },
-  { href: '/cofounders', label: 'Co-founders' },
+  { href: marketplacePath('/acquire'), label: 'Buy/sell' },
+  { href: marketplacePath('/feed'), label: 'Feed' },
+  { href: marketplacePath('/stats'), label: 'Stats' },
+  { href: marketplacePath('/cofounders'), label: 'Co-founders' },
 ] as const;
 
 export function SiteFooter() {
   const [location] = useLocation();
+  const homeHref = marketplacePath('/');
+  const isMarketplaceHome =
+    location === MARKETPLACE_BASE || location === `${MARKETPLACE_BASE}/`;
+
   return (
     <footer
       className="mt-16 w-full min-w-0 border-t border-border pt-8 pb-2"
@@ -17,14 +21,14 @@ export function SiteFooter() {
     >
       <nav className="mb-6 hidden flex-wrap items-center justify-center gap-x-1 gap-y-2 text-sm lg:flex lg:justify-start">
         <Link
-          href="/"
+          href={homeHref}
           className={
-            location === '/' || location === ''
+            isMarketplaceHome
               ? 'px-1 font-bold text-foreground'
               : 'px-1 text-muted-foreground hover:text-foreground'
           }
         >
-          Home
+          Marketplace home
         </Link>
         {FOOTER_LINKS.flatMap((l) => [
           <span key={`${l.href}-dot`} className="px-0.5 text-muted-foreground/40" aria-hidden>
@@ -64,7 +68,6 @@ export function SiteFooter() {
           <a href="#" className="hover:text-foreground">
             Privacy
           </a>
-          <ThemeToggle className="hidden shrink-0 lg:inline-flex" />
         </div>
       </div>
     </footer>

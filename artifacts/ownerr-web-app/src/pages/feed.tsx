@@ -11,6 +11,7 @@ import {
 } from '@/lib/mockData';
 import { mergeWithUserStartups, USER_STARTUPS_CHANGED_EVENT } from '@/lib/userStartups';
 import { feedPostAvatarUrl, formatShortCurrency } from '@/lib/utils';
+import { marketplacePath } from '@/lib/appPaths';
 import { FeedSidebar } from '@/components/FeedSidebar';
 
 export default function Feed() {
@@ -75,14 +76,14 @@ export default function Feed() {
                     className="h-6 w-6 shrink-0 rounded-md border border-border/60 bg-muted object-cover"
                   />
                   <Link
-                    href={`/founder/${post.founderHandle}`}
+                    href={marketplacePath(`/founder/${post.founderHandle}`)}
                     className="font-bold text-foreground hover:underline"
                   >
                     {displayName}
                   </Link>
                   <span className="text-muted-foreground">{action}</span>
                   <Link
-                    href={`/startup/${post.startupSlug}`}
+                    href={marketplacePath(`/startup/${post.startupSlug}`)}
                     className="font-bold text-foreground hover:underline"
                   >
                     {post.startupName}

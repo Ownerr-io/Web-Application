@@ -1,20 +1,14 @@
-import { useEffect, useState, useSyncExternalStore } from 'react';
-import { Sun, Moon } from 'lucide-react';
-import { cn } from '@/lib/utils';
+import { useSyncExternalStore } from 'react';
 
-const KEY = 'ownerr-theme';
-
-export function getInitialTheme(): 'dark' | 'light' {
-  if (typeof window === 'undefined') return 'dark';
-  const stored = window.localStorage.getItem(KEY);
-  if (stored === 'light' || stored === 'dark') return stored;
+/** Dark-only app: always return dark (no persisted light theme). */
+export function getInitialTheme(): 'dark' {
   return 'dark';
 }
 
-export function applyTheme(theme: 'dark' | 'light') {
-  const root = document.documentElement;
-  if (theme === 'dark') root.classList.add('dark');
-  else root.classList.remove('dark');
+/** Forces the document into dark mode (light theme is disabled). */
+export function applyTheme(_theme?: 'dark' | 'light') {
+  if (typeof document === 'undefined') return;
+  document.documentElement.classList.add('dark');
 }
 
 function getDocumentIsDark(): boolean {
@@ -30,35 +24,7 @@ function subscribeToHtmlClass(next: () => void) {
   return () => obs.disconnect();
 }
 
-/** Subscribes to `document.documentElement` `dark` class (used for charts, etc.) */
+/** Subscribes to `document.documentElement` `dark` class (used for charts, etc.). */
 export function useIsDark() {
-  return useSyncExternalStore(
-    subscribeToHtmlClass,
-    getDocumentIsDark,
-    () => getInitialTheme() === 'dark',
-  );
-}
-
-export function ThemeToggle({ className = '' }: { className?: string }) {
-  const [theme, setTheme] = useState<'dark' | 'light'>(getInitialTheme());
-
-  useEffect(() => {
-    applyTheme(theme);
-    try { window.localStorage.setItem(KEY, theme); } catch {}
-  }, [theme]);
-
-  return (
-    <button
-      type="button"
-      onClick={() => setTheme(theme === 'dark' ? 'light' : 'dark')}
-      className={cn(
-        'inline-flex items-center gap-2 rounded-full border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground transition-colors hover:bg-muted',
-        className,
-      )}
-      aria-label="Toggle theme"
-    >
-      {theme === 'dark' ? <Sun className="w-3.5 h-3.5" /> : <Moon className="w-3.5 h-3.5" />}
-      <span>{theme === 'dark' ? 'Light' : 'Dark'}</span>
-    </button>
-  );
+  return useSyncExternalStore(subscribeToHtmlClass, getDocumentIsDark, () => true);
 }

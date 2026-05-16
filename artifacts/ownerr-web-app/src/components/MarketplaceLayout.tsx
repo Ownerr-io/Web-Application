@@ -1,41 +1,27 @@
-import React, { useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
-import { ChevronRight, Megaphone, Menu, Plus } from 'lucide-react';
+import { ChevronRight, Megaphone, Plus } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
 import { mockStartups, Startup } from '@/lib/mockData';
 import { CLAIM_SPOTS_CLAIMED, CLAIM_SPOTS_TOTAL } from '@/lib/claimSpotsMockData';
-import { applyTheme, getInitialTheme, ThemeToggle } from './ThemeToggle';
+import { applyTheme } from './ThemeToggle';
+import { ProductNav } from '@/components/ProductNav';
 import { useAddStartup } from '@/context/AddStartupContext';
 import { useMockSession } from '@/context/MockSessionContext';
 import { AddStartupDialog } from '@/components/AddStartupDialog';
-import { AuthDialog } from '@/components/AuthDialog';
 import { HeaderStartupSearch } from '@/components/HeaderStartupSearch';
 import { AdvertiseDialog } from '@/components/AdvertiseDialog';
 import { SiteFooter } from '@/components/SiteFooter';
+import { marketplacePath, MARKETPLACE_BASE } from '@/lib/appPaths';
 import { PageBackRow } from '@/components/PageBackRow';
 import { MoreStartupsForSaleSection } from '@/components/MoreStartupsForSaleSection';
 import { StartupGrowthTicker } from '@/components/StartupGrowthTicker';
-import { Button } from '@/components/ui/button';
-import {
-  Sheet,
-  SheetContent,
-  SheetHeader,
-  SheetTitle,
-  SheetTrigger,
-} from '@/components/ui/sheet';
 import { cn } from '@/lib/utils';
 
 const ROTATING_WITH_AD_SLOT = 4;
 const ROTATING_LEFT_SLOTS = 5;
 const STARTUP_ROTATE_MS = 7200;
 
-const MOBILE_NAV_LINKS: { href: string; label: string }[] = [
-  { href: '/', label: 'Home' },
-  { href: '/acquire', label: 'Buy/sell' },
-  { href: '/feed', label: 'Feed' },
-  { href: '/stats', label: 'Stats' },
-  { href: '/cofounders', label: 'Co-founders' },
-];
 
 /** Same shell + side gutters for fixed header, scroll main, and side rails: 170px rail | 1.5rem gap (gap-6) | center | … */
 const LAYOUT_SHELL =
@@ -44,9 +30,9 @@ const LAYOUT_CENTER_GUTTER =
   'min-w-0 w-full box-border lg:pl-[calc(170px+1.5rem)] lg:pr-[calc(170px+1.5rem)]';
 const LAYOUT_RAIL_ROW = 'flex w-full min-h-0 min-w-0 flex-1 gap-6';
 
-/** Below fixed header + banner + same top inset as LAYOUT_SHELL `pt-4` in the scroll column */
+/** Below fixed header + banner + same top inset as LAYOUT_SHELL `pt-4` in the scroll column (nav row ~3.75rem with py-3). */
 const LAYOUT_FIXED_TOP_INSET =
-  'pt-[calc(env(safe-area-inset-top,0px)+3.5rem+2.25rem+1rem)]';
+  'pt-[calc(env(safe-area-inset-top,0px)+3.75rem+2.25rem+1rem)]';
 
 function sliceWrap<T>(items: T[], start: number, count: number): T[] {
   if (items.length === 0) return [];
@@ -74,7 +60,7 @@ function StartupRailCard({ startup }: { startup: Startup }) {
   return (
     <div className="group relative flex min-h-0 min-w-0 flex-1 flex-col">
       <Link
-        href={`/startup/${startup.slug}`}
+        href={marketplacePath(`/startup/${startup.slug}`)}
         className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col no-underline"
       >
         <div
@@ -150,7 +136,7 @@ function MobileStartupChipLink({ startup }: { startup: Startup }) {
   const logoColor = startup.logoColor ?? '#E6EAFF';
   return (
     <Link
-      href={`/startup/${startup.slug}`}
+      href={marketplacePath(`/startup/${startup.slug}`)}
       className="inline-flex shrink-0 items-center gap-2 py-1 pr-6 touch-manipulation"
     >
       <span
@@ -163,7 +149,7 @@ function MobileStartupChipLink({ startup }: { startup: Startup }) {
           className="h-4 w-4"
         />
       </span>
-      <span className="max-w-[10rem] truncate text-[11px] font-bold leading-tight text-foreground">
+      <span className="max-w-[10rem] truncate text-[11px] font-bold leading-tight text-[color:var(--terminal-fg)]">
         {startup.name}
       </span>
     </Link>
@@ -244,7 +230,7 @@ function MobileStartupChipRails({
     <>
       <div
         className={cn(
-          'fixed inset-x-0 top-0 z-[45] border-b border-border/60 bg-background/90 backdrop-blur-sm supports-[backdrop-filter]:bg-background/80 lg:hidden',
+          'fixed inset-x-0 top-0 z-[45] border-b border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/95 backdrop-blur-sm supports-[backdrop-filter]:bg-[color:var(--terminal-surface)]/90 lg:hidden',
           'transition-[opacity,transform] duration-200 ease-out motion-reduce:transition-none',
           scrollIdle
             ? 'pointer-events-auto translate-y-0 opacity-100'
@@ -339,29 +325,25 @@ function StartupRail({
   );
 }
 
-export function Layout({ children }: { children: React.ReactNode }) {
+export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
   const [location] = useLocation();
   const { addOpen, setAddOpen, openAddStartup } = useAddStartup();
-  const { currentUser, isAuthenticated, openAuthDialog, logout } = useMockSession();
+  const { isAuthenticated, openAuthDialog } = useMockSession();
   const [advertiseOpen, setAdvertiseOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [mobileScrollIdle, setMobileScrollIdle] = useState(true);
   const mobileScrollIdleTimerRef = useRef<number | null>(null);
-  const isHome = location === '/' || location === '';
-  const isAcquire = location === '/acquire';
-  const isStartupDetail = location.startsWith('/startup/');
-  const isFounderProfile = location.startsWith('/founder/');
+  const isHome = location === MARKETPLACE_BASE || location === `${MARKETPLACE_BASE}/`;
+  const isAcquire = location === marketplacePath('/acquire');
+  const isStartupDetail = location.startsWith(`${MARKETPLACE_BASE}/startup/`);
+  const isFounderProfile = location.startsWith(`${MARKETPLACE_BASE}/founder/`);
   const isSlimChrome = isAcquire || isStartupDetail || isFounderProfile;
 
   useEffect(() => {
-    applyTheme(getInitialTheme());
+    applyTheme();
   }, []);
 
-  // V2: Disable layout for dashboard
-  const isDashboard = location.startsWith('/buyer') || location.startsWith('/seller');
-
   useEffect(() => {
-    if (isDashboard) return;
     const isMobileLayout = () => window.matchMedia('(max-width: 1023px)').matches;
     const clearTimer = () => {
       if (mobileScrollIdleTimerRef.current != null) {
@@ -390,22 +372,10 @@ export function Layout({ children }: { children: React.ReactNode }) {
       window.removeEventListener('scrollend', onScrollEnd);
       clearTimer();
     };
-  }, [isDashboard]);
-
-  useLayoutEffect(() => {
-    if (isDashboard) return;
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    document.scrollingElement?.scrollTo(0, 0);
-  }, [location, isDashboard]);
-
-  if (isDashboard) {
-    return <>{children}</>;
-  }
+  }, []);
 
   return (
-    <div className="min-h-screen bg-background text-foreground selection:bg-foreground selection:text-background">
+    <div className="acquire-terminal-palette min-h-screen selection:bg-[color:var(--terminal-ochre)] selection:text-[#0b0b0c]">
       <MobileStartupChipRails
         pool={mockStartups}
         onAdvertise={() => setAdvertiseOpen(true)}
@@ -415,7 +385,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
       {/* Fixed navbar: mobile top follows ribbon (below chips when idle, flush under safe area when scrolling). */}
       <header
         className={cn(
-          'fixed left-0 right-0 z-40 border-b border-border/50 bg-background/95 shadow-[0_1px_0_0_rgba(0,0,0,0.04)] backdrop-blur-md supports-[backdrop-filter]:bg-background/85 dark:shadow-[0_1px_0_0_rgba(255,255,255,0.06)]',
+          'fixed left-0 right-0 z-40 border-b border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/95 text-[color:var(--terminal-fg)] shadow-[0_1px_0_0_rgba(0,0,0,0.35)] backdrop-blur-md supports-[backdrop-filter]:bg-[color:var(--terminal-surface)]/90',
           'transition-[top] duration-200 ease-out motion-reduce:transition-none',
           'pt-0 lg:top-0 lg:pt-[env(safe-area-inset-top,0px)]',
           mobileScrollIdle
@@ -423,109 +393,13 @@ export function Layout({ children }: { children: React.ReactNode }) {
             : 'top-[env(safe-area-inset-top,0px)]',
         )}
       >
-        <div className={LAYOUT_SHELL}>
-          <div className={LAYOUT_CENTER_GUTTER}>
-            <div className="flex h-14 min-h-14 w-full min-w-0 max-w-full items-center gap-2">
-              <div className="flex min-w-0 flex-1 justify-start lg:justify-center">
-                <Link
-                  href="/"
-                  className="flex min-w-0 max-w-full items-center gap-2 transition-opacity hover:opacity-80"
-                  onClick={() => setMobileNavOpen(false)}
-                >
-                  <img
-                    src="/Ownerr%20Logo.svg"
-                    alt=""
-                    className="h-8 w-auto shrink-0 object-contain"
-                    width={32}
-                    height={40}
-                  />
-                  <span className="truncate text-base font-bold tracking-tight">Ownerr</span>
-                </Link>
-              </div>
-              <div className="hidden shrink-0 items-center gap-2 lg:flex">
-                {isAuthenticated && currentUser ? (
-                  <>
-                    <div className="rounded-full border border-border bg-card px-3 py-1.5 text-xs font-bold text-foreground">
-                      {currentUser.name}
-                    </div>
-                    <Button type="button" variant="ghost" size="sm" className="font-bold" onClick={logout}>
-                      Logout
-                    </Button>
-                  </>
-                ) : (
-                  <Button type="button" variant="outline" size="sm" className="font-bold" onClick={openAuthDialog}>
-                    Login
-                  </Button>
-                )}
-              </div>
-              <div className="shrink-0 lg:hidden">
-                <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
-                  <SheetTrigger asChild>
-                    <Button
-                      type="button"
-                      variant="ghost"
-                      size="icon"
-                      className="h-11 w-11 shrink-0"
-                      aria-label="Open menu"
-                    >
-                      <Menu className="h-6 w-6" strokeWidth={2} />
-                    </Button>
-                  </SheetTrigger>
-                  <SheetContent side="right" className="font-mono w-[min(100%,20rem)] sm:max-w-sm">
-                    <SheetHeader className="sr-only">
-                      <SheetTitle>Navigation</SheetTitle>
-                    </SheetHeader>
-                    <nav className="mt-2 flex flex-col gap-1 pr-8" aria-label="Main">
-                      {MOBILE_NAV_LINKS.map((item) => {
-                        const active =
-                          item.href === '/'
-                            ? location === '/' || location === ''
-                            : location === item.href;
-                        return (
-                          <Link
-                            key={item.href}
-                            href={item.href}
-                            onClick={() => setMobileNavOpen(false)}
-                            className={cn(
-                              'rounded-lg px-3 py-3 text-sm font-bold transition-colors',
-                              active
-                                ? 'bg-muted text-foreground'
-                                : 'text-muted-foreground hover:bg-muted/60 hover:text-foreground',
-                            )}
-                          >
-                            {item.label}
-                          </Link>
-                        );
-                      })}
-                    </nav>
-                    <div className="mt-6 border-t border-border pr-8 pt-4">
-                      {isAuthenticated && currentUser ? (
-                        <div className="mb-4 flex items-center justify-between gap-2 rounded-lg border border-border px-3 py-2 text-sm font-bold">
-                          <span className="truncate">{currentUser.name}</span>
-                          <Button type="button" variant="ghost" size="sm" onClick={logout}>
-                            Logout
-                          </Button>
-                        </div>
-                      ) : (
-                        <Button
-                          type="button"
-                          className="mb-4 w-full"
-                          onClick={() => {
-                            setMobileNavOpen(false);
-                            openAuthDialog();
-                          }}
-                        >
-                          Login
-                        </Button>
-                      )}
-                      <ThemeToggle className="flex w-full justify-center" />
-                    </div>
-                  </SheetContent>
-                </Sheet>
-              </div>
-            </div>
-          </div>
-        </div>
+        {/* Same bar + inner shell as marketing pages — do not wrap in LAYOUT_CENTER_GUTTER or the nav shrinks between side rails. */}
+        <ProductNav
+          terminalChrome
+          onNavigate={() => setMobileNavOpen(false)}
+          mobileSheetOpen={mobileNavOpen}
+          onMobileSheetOpenChange={setMobileNavOpen}
+        />
       </header>
 
       <StartupGrowthTicker />
@@ -536,8 +410,8 @@ export function Layout({ children }: { children: React.ReactNode }) {
         className={cn(
           'pointer-events-none relative z-30 box-border transition-[padding-top] duration-200 ease-out motion-reduce:transition-none',
             mobileScrollIdle
-            ? 'pt-[calc(env(safe-area-inset-top,0px)+2.75rem+3.5rem)] lg:pt-[calc(env(safe-area-inset-top,0px)+3.5rem+2.25rem)]'
-            : 'pt-[calc(env(safe-area-inset-top,0px)+3.5rem)] lg:pt-[calc(env(safe-area-inset-top,0px)+3.5rem+2.25rem)]',
+            ? 'pt-[calc(env(safe-area-inset-top,0px)+2.75rem+3.75rem)] lg:pt-[calc(env(safe-area-inset-top,0px)+3.75rem+2.25rem)]'
+            : 'pt-[calc(env(safe-area-inset-top,0px)+3.75rem)] lg:pt-[calc(env(safe-area-inset-top,0px)+3.75rem+2.25rem)]',
         )}
       >
         <div
@@ -560,7 +434,7 @@ export function Layout({ children }: { children: React.ReactNode }) {
                 }`}
               >
                 <h1
-                  className={`w-full max-w-[min(100%,1200px)] font-bold tracking-tighter text-balance leading-[1.08] sm:leading-none ${
+                  className={`w-full max-w-[min(100%,1200px)] font-bold tracking-tighter text-balance text-[color:var(--terminal-fg)] leading-[1.08] sm:leading-none ${
                     isHome
                       ? 'mx-0 text-2xl sm:mx-auto sm:text-3xl md:text-4xl lg:text-[clamp(1.75rem,2.35vw+0.45rem,3.75rem)]'
                       : 'mx-auto px-2 text-2xl sm:text-3xl md:text-4xl lg:text-[clamp(1.75rem,2.35vw+0.45rem,3.75rem)]'
@@ -574,52 +448,19 @@ export function Layout({ children }: { children: React.ReactNode }) {
                   <button
                     type="button"
                     onClick={() => (isAuthenticated ? openAddStartup() : openAuthDialog())}
-                    className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-[10px] border border-border bg-card px-5 font-bold text-foreground shadow-sm transition-transform hover:-translate-y-0.5 sm:w-auto sm:justify-center"
+                    className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] px-5 font-bold text-[color:var(--terminal-fg)] shadow-sm transition-transform hover:-translate-y-0.5 sm:w-auto sm:justify-center"
                   >
                     <Plus className="h-4 w-4 shrink-0" /> Add startup
                   </button>
                 </div>
 
-                <nav
-                  className="hidden flex-wrap items-center justify-center gap-x-2.5 gap-y-1 text-sm [row-gap:0.35rem] sm:gap-x-3 lg:flex"
-                  aria-label="Main"
-                >
-                  {[
-                    { href: '/acquire', label: 'Buy/sell' },
-                    { href: '/feed', label: 'Feed' },
-                    { href: '/stats', label: 'Stats' },
-                    { href: '/cofounders', label: 'Co-founders' },
-                  ].map((l, i, arr) => (
-                    <React.Fragment key={l.href}>
-                      <Link
-                        href={l.href}
-                        className={
-                          location === l.href
-                            ? 'text-foreground font-bold'
-                            : 'text-muted-foreground hover:text-foreground'
-                        }
-                      >
-                        {l.label}
-                      </Link>
-                      {i < arr.length - 1 && (
-                        <span
-                          className="select-none text-muted-foreground/50"
-                          aria-hidden
-                        >
-                          ·
-                        </span>
-                      )}
-                    </React.Fragment>
-                  ))}
-                </nav>
+                <AddStartupDialog open={addOpen} onOpenChange={setAddOpen} />
               </div>
             )}
 
-            <AddStartupDialog open={addOpen} onOpenChange={setAddOpen} />
-
             {!isSlimChrome && (
             <Link
-              href="/claim"
+              href={marketplacePath('/claim')}
               className={`group promo-strip flex w-full cursor-pointer flex-col items-stretch gap-3 rounded-[10px] border border-dashed border-border p-3 text-inherit no-underline shadow-sm transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4 dark:border-emerald-500/25 transform -rotate-[0.5deg] hover:rotate-0 ${isHome ? 'mb-4' : 'mb-6'}`}
             >
               <div className="flex min-w-0 items-start gap-2.5 sm:items-center sm:gap-3">
@@ -688,7 +529,6 @@ export function Layout({ children }: { children: React.ReactNode }) {
       </div>
 
       <AdvertiseDialog open={advertiseOpen} onOpenChange={setAdvertiseOpen} />
-      <AuthDialog />
     </div>
   );
 }

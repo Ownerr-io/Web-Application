@@ -12,6 +12,7 @@ import { getClaimSpotEntriesDB } from '@/lib/db';
 import { StartupCard } from '@/components/StartupCard';
 import { cn, formatCurrency, formatShortCurrency, founderAvatarUrl } from '@/lib/utils';
 import { FounderLink } from '@/components/EntityLink';
+import { marketplacePath } from '@/lib/appPaths';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 
@@ -174,13 +175,13 @@ export default function FounderProfile() {
               aria-label="Breadcrumb"
             >
               <Link
-                href="/"
+                href={marketplacePath('/')}
                 className="font-medium text-foreground/80 transition-colors hover:text-foreground"
               >
                 Ownerr
               </Link>
               <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
-              <Link href="/claim" className="transition-colors hover:text-foreground">
+              <Link href={marketplacePath('/claim')} className="transition-colors hover:text-foreground">
                 First {CLAIM_SPOTS_TOTAL} spots
               </Link>
               <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
@@ -264,13 +265,13 @@ export default function FounderProfile() {
           <div className="rounded-xl border border-dashed border-border bg-muted/20 p-6 text-center dark:border-zinc-600 dark:bg-zinc-900/40">
             <p className="text-sm text-muted-foreground">
               This person appears on the{' '}
-              <Link href="/claim" className="font-bold text-foreground underline-offset-2 hover:underline">
+              <Link href={marketplacePath('/claim')} className="font-bold text-foreground underline-offset-2 hover:underline">
                 Who claimed a spot
               </Link>{' '}
               table. Full founder profiles with verified startups stay on the main leaderboard.
             </p>
             <Button className="mt-4 font-bold" variant="secondary" asChild>
-              <Link href="/claim">Back to claim roster</Link>
+              <Link href={marketplacePath('/claim')}>Back to claim roster</Link>
             </Button>
           </div>
         </div>
@@ -282,10 +283,10 @@ export default function FounderProfile() {
         <p className="mt-2 text-sm text-muted-foreground">No founder or claim roster match for this link.</p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Button asChild variant="outline">
-            <Link href="/claim">Claim roster</Link>
+            <Link href={marketplacePath('/claim')}>Claim roster</Link>
           </Button>
           <Button asChild>
-            <Link href="/cofounders">Browse founders</Link>
+            <Link href={marketplacePath('/cofounders')}>Browse founders</Link>
           </Button>
         </div>
       </div>
@@ -304,14 +305,14 @@ export default function FounderProfile() {
           aria-label="Breadcrumb"
         >
           <Link
-            href="/"
+            href={marketplacePath('/')}
             className="font-medium text-foreground/80 transition-colors hover:text-foreground"
           >
             Ownerr
           </Link>
           <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
           <Link
-            href="/cofounders"
+            href={marketplacePath('/cofounders')}
             className="transition-colors hover:text-foreground"
           >
             Founder

@@ -1,6 +1,7 @@
 import { type ReactNode } from 'react';
 import { Link } from 'wouter';
 import { cn } from '@/lib/utils';
+import { marketplacePath } from '@/lib/appPaths';
 
 /**
  * Renders a link to a startup, or a span when the slug is empty or invalid.
@@ -17,7 +18,7 @@ export function StartupLink({
   if (!slug) return <span className={className}>{children}</span>;
   return (
     <Link
-      href={`/startup/${encodeURIComponent(slug)}`}
+      href={marketplacePath(`/startup/${encodeURIComponent(slug)}`)}
       className={cn('text-inherit hover:underline', className)}
     >
       {children}
@@ -40,7 +41,7 @@ export function FounderLink({
   if (!handle) return <span className={className}>{children}</span>;
   return (
     <Link
-      href={`/founder/${encodeURIComponent(handle)}`}
+      href={marketplacePath(`/founder/${encodeURIComponent(handle)}`)}
       className={cn('text-inherit hover:underline', className)}
     >
       {children}

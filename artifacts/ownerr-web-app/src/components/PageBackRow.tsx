@@ -1,6 +1,7 @@
 import { ChevronLeft } from 'lucide-react';
 import { Link, useLocation } from 'wouter';
 import { cn } from '@/lib/utils';
+import { MARKETPLACE_BASE, marketplacePath } from '@/lib/appPaths';
 
 type PageBackRowProps = {
   className?: string;
@@ -13,13 +14,16 @@ type PageBackRowProps = {
  * Back uses history when available; otherwise goes home.
  */
 export function PageBackRow({ className, showHome = true }: PageBackRowProps) {
-  const [, setLocation] = useLocation();
+  const [location, setLocation] = useLocation();
+  const onMarketplace =
+    location.startsWith(`${MARKETPLACE_BASE}/`) || location === MARKETPLACE_BASE;
+  const homeHref = onMarketplace ? marketplacePath('/') : '/';
 
   function goBack() {
     if (window.history.length > 1) {
       window.history.back();
     } else {
-      setLocation('/');
+      setLocation(homeHref);
     }
   }
 
@@ -40,7 +44,7 @@ export function PageBackRow({ className, showHome = true }: PageBackRowProps) {
       </button>
       {showHome ? (
         <Link
-          href="/"
+          href={homeHref}
           className="inline-flex h-10 shrink-0 items-center gap-1.5 rounded-[10px] border border-dashed border-border bg-transparent px-3.5 text-sm font-bold text-muted-foreground transition-colors hover:border-foreground/30 hover:text-foreground"
         >
           Home

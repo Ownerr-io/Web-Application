@@ -15,6 +15,7 @@ import {
 import { Link } from 'wouter';
 import { Switch } from '@/components/ui/switch';
 import { mockStartups } from '@/lib/mockData';
+import { marketplacePath } from '@/lib/appPaths';
 import {
   aggregateByCategory,
   aggregateMrrByTech,
@@ -572,7 +573,7 @@ export function StatsDashboard() {
                   <tr key={r.slug} className="hover:bg-muted/50">
                     <td className={td}>{i + 1}</td>
                     <td className={td}>
-                      <Link href={`/startup/${r.slug}`} className="inline-flex items-center gap-2 font-medium text-foreground hover:underline">
+                      <Link href={marketplacePath(`/startup/${r.slug}`)} className="inline-flex items-center gap-2 font-medium text-foreground hover:underline">
                         <img
                           src={dicebearShapesSvg(r.name)}
                           alt=""

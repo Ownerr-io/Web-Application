@@ -59,7 +59,7 @@
   --radius-xl: calc(var(--radius) + 4px);
 }
 
-/* LIGHT MODE */
+/* LIGHT MODE — disabled (dark-only)
 :root {
   --background: 0 0% 96.1%;
   --foreground: 0 0% 3.9%;
@@ -101,10 +101,28 @@
   --muted-border: rgba(0,0,0,0.08);
   --accent-border: rgba(0,0,0,0.08);
   --destructive-border: rgba(0,0,0,0.08);
-}
 
-/* DARK MODE — Ownerr-style: solid black page, charcoal surfaces */
+  --terminal-bg: #eceef3;
+  --terminal-surface: #f7f8fa;
+  --terminal-surface-2: #dfe4ec;
+  --terminal-fg: #0d1117;
+  --terminal-muted: #4b5563;
+  --terminal-border: #c1c9d6;
+  --terminal-ochre: #9cb82e;
+  --terminal-ochre-muted: rgba(120, 160, 40, 0.2);
+  --terminal-ochre-hover: #b8cf4a;
+  --terminal-lime: #3d5a0f;
+  --terminal-glow: rgba(100, 140, 50, 0.14);
+}
+*/
+
+/* Ownerr dark tokens on :root and .dark (Tailwind `dark:` uses .dark on ancestor) */
+:root,
 .dark {
+  --app-font-sans: 'Inconsolata', monospace;
+  --app-font-serif: 'Inconsolata', monospace;
+  --app-font-mono: 'Inconsolata', monospace;
+  --radius: 10px;
   --background: 0 0% 0%;
   --foreground: 0 0% 100%;
   --border: 0 0% 20%;
@@ -140,6 +158,30 @@
   --muted-border: rgba(255,255,255,0.08);
   --accent-border: rgba(255,255,255,0.08);
   --destructive-border: rgba(255,255,255,0.08);
+
+  --terminal-bg: #0b0b0c;
+  --terminal-surface: #121315;
+  --terminal-surface-2: #181a1e;
+  --terminal-fg: #fafafa;
+  --terminal-muted: #8b939e;
+  --terminal-border: #2a2e35;
+  --terminal-ochre: #d4a747;
+  --terminal-ochre-muted: rgba(212, 167, 71, 0.22);
+  --terminal-ochre-hover: #e0b55a;
+  --terminal-lime: #b7f542;
+  --terminal-glow: rgba(189, 252, 115, 0.12);
+
+  /**
+   * Brand accent — canonical lime (#d9f69d). Landing / marketplace remap `--terminal-ochre*` via
+   * `.landing-terminal-palette` / `.acquire-terminal-palette`; authenticated desk uses `--desk-*` for `primary` / ring.
+   */
+  --brand-accent: #d9f69d;
+  --brand-accent-hover: #e8fab3;
+  --brand-accent-muted: rgb(217 246 157 / 0.22);
+  --brand-accent-ink: #0b0b0c;
+  --desk-primary: 76 82% 79%;
+  --desk-primary-foreground: 240 6% 5%;
+  --desk-ring: 76 58% 52%;
 }
 
 @layer base {
@@ -421,6 +463,22 @@
   will-change: transform;
 }
 
+@keyframes market-pulse-marquee {
+  from {
+    transform: translate3d(0, 0, 0);
+  }
+  to {
+    transform: translate3d(-50%, 0, 0);
+  }
+}
+
+.market-pulse-marquee {
+  display: flex;
+  width: max-content;
+  animation: market-pulse-marquee 72s linear infinite;
+  will-change: transform;
+}
+
 @media (prefers-reduced-motion: reduce) {
   .mobile-ribbon-marquee {
     animation: none;
@@ -428,6 +486,115 @@
   .growth-ticker-marquee {
     animation: none;
   }
+  .market-pulse-marquee {
+    animation: none;
+  }
+}
+
+.landing-terminal-palette,
+.acquire-terminal-palette,
+.desk-app-shell {
+  --terminal-ochre: var(--brand-accent);
+  --terminal-ochre-muted: var(--brand-accent-muted);
+  --terminal-ochre-hover: var(--brand-accent-hover);
+  --terminal-lime: var(--brand-accent);
+}
+
+.landing-terminal-palette {
+  min-height: 100vh;
+  background-color: var(--terminal-bg);
+  color: var(--terminal-fg);
+}
+
+.landing-terminal-palette .text-muted-foreground,
+.acquire-terminal-palette .text-muted-foreground,
+.desk-app-shell .text-muted-foreground,
+.desk-app-theme .text-muted-foreground {
+  color: var(--terminal-muted) !important;
+}
+
+.landing-terminal-palette .text-foreground,
+.acquire-terminal-palette .text-foreground,
+.desk-app-shell .text-foreground,
+.desk-app-theme .text-foreground {
+  color: var(--terminal-fg) !important;
+}
+
+.landing-terminal-palette .border-border,
+.acquire-terminal-palette .border-border,
+.desk-app-shell .border-border,
+.desk-app-theme.border-border {
+  border-color: var(--terminal-border) !important;
+}
+
+.landing-terminal-palette .bg-card,
+.landing-terminal-palette .bg-background,
+.acquire-terminal-palette .bg-card,
+.acquire-terminal-palette .bg-background,
+.desk-app-shell .bg-card,
+.desk-app-shell .bg-background {
+  background-color: var(--terminal-surface) !important;
+}
+
+.landing-terminal-palette .bg-muted,
+.landing-terminal-palette .bg-muted\/20,
+.landing-terminal-palette .bg-muted\/40,
+.acquire-terminal-palette .bg-muted,
+.acquire-terminal-palette .bg-muted\/20,
+.acquire-terminal-palette .bg-muted\/40,
+.desk-app-shell .bg-muted,
+.desk-app-shell .bg-muted\/20,
+.desk-app-shell .bg-muted\/40 {
+  background-color: var(--terminal-surface-2) !important;
+}
+
+.acquire-terminal-palette {
+  background-color: var(--terminal-bg);
+  color: var(--terminal-fg);
+}
+
+/**
+ * Authenticated `/app` shell — terminal charcoal + brand accent on links/focus (Tailwind `primary` / `ring`).
+ * Mobile nav sheet uses `.desk-app-theme` (portaled) so tokens match.
+ */
+.desk-app-shell,
+.desk-app-theme {
+  --primary: var(--desk-primary);
+  --primary-foreground: var(--desk-primary-foreground);
+  --ring: var(--desk-ring);
+}
+
+.desk-app-shell {
+  min-height: 100vh;
+  background-color: var(--terminal-bg);
+  color: var(--terminal-fg);
+}
+
+.desk-app-shell ::selection {
+  background-color: var(--brand-accent-muted);
+  color: var(--brand-accent-ink);
+}
+
+/* Portaled drawer: root carries utilities (`bg-background`, `border-border`) */
+.desk-app-theme.bg-background {
+  background-color: var(--terminal-surface) !important;
+  color: var(--terminal-fg) !important;
+}
+
+.text-terminal-ochre {
+  color: var(--terminal-ochre);
+}
+
+.text-terminal-lime {
+  color: var(--terminal-lime);
+}
+
+.bg-terminal-ochre-soft {
+  background-color: var(--terminal-ochre-muted);
+}
+
+.border-terminal {
+  border-color: var(--terminal-border);
 }
 
 @layer utilities {

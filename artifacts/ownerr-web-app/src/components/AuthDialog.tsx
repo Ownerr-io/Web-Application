@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { useLocation } from "wouter";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -8,9 +8,11 @@ import { useMockSession } from "@/context/MockSessionContext";
 import { useToast } from "@/hooks/use-toast";
 import { MOCK_AUTH_DEMO_PASSWORD, MOCK_AUTH_LOGIN_ACCOUNTS } from "@/lib/mockAuthService";
 import { founderAvatarUrl } from "@/lib/utils";
+import { appPath } from "@/lib/appPaths";
+import { appDeskHrefForRole } from "@/routes/navConfig";
 
 export function AuthDialog() {
-  const { authDialogOpen, closeAuthDialog, login, register } = useMockSession();
+  const { currentUser, authDialogOpen, closeAuthDialog, login, register } = useMockSession();
   const { toast } = useToast();
   const [, navigate] = useLocation();
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -24,6 +26,13 @@ export function AuthDialog() {
     [],
   );
 
+  /** If dialog opens while already signed in (edge case), go straight to desk — no extra screen. */
+  useEffect(() => {
+    if (!authDialogOpen || !currentUser) return;
+    navigate(appDeskHrefForRole(currentUser.role), { replace: true });
+    closeAuthDialog();
+  }, [authDialogOpen, currentUser, navigate, closeAuthDialog]);
+
   async function onSubmit() {
     setBusy(true);
     try {
@@ -34,14 +43,14 @@ export function AuthDialog() {
 
       toast({ title: `Welcome, ${user.name}` });
 
-      // V2: Role-based redirect
-      const targetPath = user.role === "buyer" ? "/buyer" : "/seller";
+      const targetPath =
+        user.role === "buyer" ? appPath("/buyer") : appPath("/seller");
       navigate(targetPath, { replace: true });
 
       setName("");
       setEmail("");
       setPassword(MOCK_AUTH_DEMO_PASSWORD);
-      closeAuthDialog(); // Close dialog on success
+      closeAuthDialog();
     } catch (error) {
       toast({
         title: mode === "login" ? "Login failed" : "Registration failed",
