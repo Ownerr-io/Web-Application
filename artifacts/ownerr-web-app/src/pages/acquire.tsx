@@ -1,6 +1,6 @@
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useLocation, useSearch } from 'wouter';
-import { Info } from 'lucide-react';
+import { ChevronDown, Info, SlidersHorizontal } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { mockStartups, type Category } from '@/lib/mockData';
 import { ACQUIRE_GRID_ROWS } from '@/lib/acquireMarketplaceData';
@@ -17,30 +17,32 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
+import { appPath, marketplacePath } from '@/lib/appPaths';
 import { Skeleton } from '@/components/ui/skeleton';
+import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
 const acquireOrder = new Map(ACQUIRE_GRID_ROWS.map((r, i) => [r.slug, i]));
 
-/** Light: semantic; dark: X-style panels */
+/** Terminal palette + sticky filter column (desktop). */
 const FILTER_PANEL =
-  'max-h-[calc(100dvh-10.5rem)] overflow-y-auto overscroll-contain rounded-[14px] border border-border bg-muted/50 p-4 font-mono text-foreground dark:border-[#2f3336] dark:bg-[#0a0a0a] dark:text-white';
-const FILTER_LABEL = 'text-[10px] font-bold uppercase tracking-wide text-muted-foreground dark:text-[#71767b]';
+  'max-h-[min(78dvh,calc(100dvh-8rem))] overflow-y-auto overscroll-contain rounded-[14px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4 font-mono text-[color:var(--terminal-fg)]';
+const FILTER_LABEL = 'text-[10px] font-bold uppercase tracking-wide text-[color:var(--terminal-muted)]';
 const FILTER_SELECT_TRIGGER =
-  'h-10 border-border bg-background font-mono text-sm text-foreground dark:border-[#2f3336] dark:bg-[#16181c] dark:text-white';
+  'h-10 border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] font-mono text-sm text-[color:var(--terminal-fg)]';
 const FILTER_SELECT_TRIGGER_SPACED = `mb-4 ${FILTER_SELECT_TRIGGER}`;
 const FILTER_SELECT_CONTENT =
-  'border-border bg-popover font-mono text-popover-foreground dark:border-[#2f3336] dark:bg-[#16181c] dark:text-white';
+  'border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] font-mono text-[color:var(--terminal-fg)]';
 const FILTER_INPUT =
-  'h-9 w-full min-w-0 rounded-md border border-border bg-background px-2 text-xs text-foreground outline-none placeholder:text-muted-foreground focus:ring-1 focus:ring-primary dark:border-[#2f3336] dark:bg-[#16181c] dark:text-white dark:placeholder:text-[#536471] dark:focus:ring-[#1d9bf0]';
-const FILTER_MUTED = 'text-muted-foreground dark:text-[#71767b]';
+  'h-9 w-full min-w-0 rounded-md border border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] px-2 text-xs text-[color:var(--terminal-fg)] outline-none placeholder:text-[color:var(--terminal-muted)] focus:ring-1 focus:ring-[color:var(--terminal-ochre)]';
+const FILTER_MUTED = 'text-[color:var(--terminal-muted)]';
 const FILTER_DISABLED =
-  'h-9 w-full cursor-not-allowed rounded-md border border-border bg-muted/60 px-2 text-xs text-muted-foreground dark:border-[#2f3336] dark:bg-[#16181c]/40';
+  'h-9 w-full cursor-not-allowed rounded-md border border-[color:var(--terminal-border)] bg-[#181a1e] px-2 text-xs text-[color:var(--terminal-muted)] opacity-70';
 const SELECT_ITEM =
-  'cursor-pointer focus:bg-accent focus:text-accent-foreground dark:focus:bg-[#2f3336] dark:focus:text-white';
+  'cursor-pointer focus:bg-[color:var(--terminal-surface-2)] focus:text-[color:var(--terminal-fg)]';
 const FILTER_ROW_BLOCK = 'w-[200px] max-w-full';
 const ACQUIRE_FILTERS_STORAGE_KEY = 'ownerr-acquire-filters-v1';
 const BUYER_FILTER_SELECT_TRIGGER =
-  'h-9 border-border bg-background font-mono text-xs text-foreground dark:border-[#2f3336] dark:bg-[#16181c] dark:text-white';
+  'h-9 w-full min-w-0 border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] font-mono text-xs text-[color:var(--terminal-fg)]';
 
 const PAYMENT_PROVIDERS = [
   'Stripe',
@@ -225,6 +227,209 @@ type AcquireFiltersBodyProps = {
   revenueProvider: string;
   setRevenueProvider: (v: string) => void;
 };
+
+type AcquireBuyerFiltersFormProps = Omit<AcquireFiltersBodyProps, 'includeSort'> & {
+  revenue30dOptions: RangeOption[];
+  mrrOptions: RangeOption[];
+  growthOptions: RangeOption[];
+  askingPriceOptions: RangeOption[];
+  trafficOptions: RangeOption[];
+};
+
+/** Stacked filters for authenticated buyer acquire — mobile popover only (`lg:hidden` wrapper). */
+function AcquireBuyerFiltersForm(props: AcquireBuyerFiltersFormProps) {
+  const {
+    sort,
+    setSort,
+    category,
+    setCategoryWithUrl,
+    revMin,
+    revMax,
+    setRevMin,
+    setRevMax,
+    mrrMin,
+    mrrMax,
+    setMrrMin,
+    setMrrMax,
+    growthMin,
+    growthMax,
+    setGrowthMin,
+    setGrowthMax,
+    askMin,
+    askMax,
+    setAskMin,
+    setAskMax,
+    trafficMin,
+    trafficMax,
+    setTrafficMin,
+    setTrafficMax,
+    verifiedRevenueOnly,
+    setVerifiedRevenueOnly,
+    verifiedDomainOnly,
+    setVerifiedDomainOnly,
+    verifiedOnly,
+    setVerifiedOnly,
+    revenueProvider,
+    setRevenueProvider,
+    revenue30dOptions,
+    mrrOptions,
+    growthOptions,
+    askingPriceOptions,
+    trafficOptions,
+  } = props;
+
+  return (
+    <div className="flex w-full flex-col gap-4">
+      <div>
+        <label className={`mb-1 block ${FILTER_LABEL}`}>Sort</label>
+        <Select value={sort} onValueChange={(v) => setSort(v as SortMode)}>
+          <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className={FILTER_SELECT_CONTENT}>
+            <SelectItem value="best_deals" className={SELECT_ITEM}>
+              Best deals (default)
+            </SelectItem>
+            <SelectItem value="mrr_desc" className={SELECT_ITEM}>
+              MRR (high to low)
+            </SelectItem>
+            <SelectItem value="growth_desc" className={SELECT_ITEM}>
+              Growth (high to low)
+            </SelectItem>
+            <SelectItem value="traffic_desc" className={SELECT_ITEM}>
+              Traffic (high to low)
+            </SelectItem>
+            <SelectItem value="newest" className={SELECT_ITEM}>
+              Newest listings
+            </SelectItem>
+            <SelectItem value="price_asc" className={SELECT_ITEM}>
+              Asking price (low to high)
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <label className={`mb-1 block ${FILTER_LABEL}`}>Categories</label>
+        <Select value={category} onValueChange={(v) => setCategoryWithUrl(v as Category | 'All')}>
+          <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className={FILTER_SELECT_CONTENT}>
+            {FILTER_CATEGORIES.map((c) => (
+              <SelectItem key={c} value={c} className={SELECT_ITEM}>
+                {c}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <div>
+        <label className={`mb-1 block ${FILTER_LABEL}`}>Revenue provider</label>
+        <Select value={revenueProvider} onValueChange={setRevenueProvider}>
+          <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className={FILTER_SELECT_CONTENT}>
+            <SelectItem value="all" className={SELECT_ITEM}>
+              All providers
+            </SelectItem>
+            {PAYMENT_PROVIDERS.map((provider) => (
+              <SelectItem key={provider} value={provider} className={SELECT_ITEM}>
+                {provider}
+              </SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+
+      <RangeDropdown
+        label="Revenue (last 30 days)"
+        min={revMin}
+        max={revMax}
+        options={revenue30dOptions}
+        onMin={setRevMin}
+        onMax={setRevMax}
+      />
+      <RangeDropdown label="MRR" min={mrrMin} max={mrrMax} options={mrrOptions} onMin={setMrrMin} onMax={setMrrMax} />
+      <RangeDropdown
+        label="Growth (last 30 days)"
+        min={growthMin}
+        max={growthMax}
+        options={growthOptions}
+        onMin={setGrowthMin}
+        onMax={setGrowthMax}
+      />
+      <RangeDropdown
+        label="Asking Price"
+        min={askMin}
+        max={askMax}
+        options={askingPriceOptions}
+        onMin={setAskMin}
+        onMax={setAskMax}
+      />
+      <RangeDropdown
+        label="Traffic (visitors/mo)"
+        min={trafficMin}
+        max={trafficMax}
+        options={trafficOptions}
+        onMin={setTrafficMin}
+        onMax={setTrafficMax}
+      />
+
+      <div>
+        <label className={`mb-1 block ${FILTER_LABEL}`}>Verification</label>
+        <Select
+          value={
+            verifiedOnly ? 'fully' : verifiedRevenueOnly ? 'revenue' : verifiedDomainOnly ? 'domain' : 'all'
+          }
+          onValueChange={(value) => {
+            if (value === 'fully') {
+              setVerifiedOnly(true);
+              setVerifiedRevenueOnly(false);
+              setVerifiedDomainOnly(false);
+              return;
+            }
+            if (value === 'revenue') {
+              setVerifiedOnly(false);
+              setVerifiedRevenueOnly(true);
+              setVerifiedDomainOnly(false);
+              return;
+            }
+            if (value === 'domain') {
+              setVerifiedOnly(false);
+              setVerifiedRevenueOnly(false);
+              setVerifiedDomainOnly(true);
+              return;
+            }
+            setVerifiedOnly(false);
+            setVerifiedRevenueOnly(false);
+            setVerifiedDomainOnly(false);
+          }}
+        >
+          <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent className={FILTER_SELECT_CONTENT}>
+            <SelectItem value="all" className={SELECT_ITEM}>
+              All listings
+            </SelectItem>
+            <SelectItem value="fully" className={SELECT_ITEM}>
+              Fully verified only
+            </SelectItem>
+            <SelectItem value="revenue" className={SELECT_ITEM}>
+              Verified revenue only
+            </SelectItem>
+            <SelectItem value="domain" className={SELECT_ITEM}>
+              Verified domain only
+            </SelectItem>
+          </SelectContent>
+        </Select>
+      </div>
+    </div>
+  );
+}
 
 function AcquireMarketplaceFiltersBody({
   includeSort = false,
@@ -417,7 +622,7 @@ function AcquireMarketplaceFiltersBody({
             checked={verifiedOnly}
             onCheckedChange={(v) => setVerifiedOnly(v === true)}
           />
-          <label htmlFor="filter-verified-only" className="cursor-pointer text-xs font-medium text-foreground dark:text-white">
+          <label htmlFor="filter-verified-only" className="cursor-pointer text-xs font-medium text-[color:var(--terminal-fg)]">
             Fully verified only
           </label>
         </div>
@@ -427,7 +632,7 @@ function AcquireMarketplaceFiltersBody({
             checked={verifiedRevenueOnly}
             onCheckedChange={(v) => setVerifiedRevenueOnly(v === true)}
           />
-          <label htmlFor="filter-rev-verified" className="cursor-pointer text-xs font-medium text-foreground dark:text-white">
+          <label htmlFor="filter-rev-verified" className="cursor-pointer text-xs font-medium text-[color:var(--terminal-fg)]">
             Verified revenue only
           </label>
         </div>
@@ -437,7 +642,7 @@ function AcquireMarketplaceFiltersBody({
             checked={verifiedDomainOnly}
             onCheckedChange={(v) => setVerifiedDomainOnly(v === true)}
           />
-          <label htmlFor="filter-domain-verified" className="cursor-pointer text-xs font-medium text-foreground dark:text-white">
+          <label htmlFor="filter-domain-verified" className="cursor-pointer text-xs font-medium text-[color:var(--terminal-fg)]">
             Verified domain only
           </label>
         </div>
@@ -449,7 +654,8 @@ function AcquireMarketplaceFiltersBody({
 export default function Acquire() {
   const wouterSearch = useSearch();
   const [location, setLocation] = useLocation();
-  const isBuyerPage = location.startsWith('/buyer/acquire');
+  const isBuyerPage = location.startsWith(appPath('/buyer/acquire'));
+  const acquireBase = isBuyerPage ? appPath('/buyer/acquire') : marketplacePath('/acquire');
   const [isMounted, setIsMounted] = useState(false);
 
   const [search, setSearch] = useState('');
@@ -612,12 +818,12 @@ export default function Acquire() {
 
   const setCategoryWithUrl = (val: Category | 'All') => {
     setCategory(val);
-    if (val === 'All') setLocation('/acquire');
-    else setLocation(`/acquire?category=${encodeURIComponent(val)}`);
+    if (val === 'All') setLocation(acquireBase);
+    else setLocation(`${acquireBase}?category=${encodeURIComponent(val)}`);
   };
 
   const clearFilters = () => {
-    setLocation('/acquire');
+    setLocation(acquireBase);
     setCategory('All');
     setSearch('');
     setRevMin('');
@@ -672,7 +878,7 @@ export default function Acquire() {
       const p = new URLSearchParams(raw);
       if (!p.has('listing')) return;
       p.delete('listing');
-      const next = p.toString() ? `/acquire?${p.toString()}` : '/acquire';
+      const next = p.toString() ? `${acquireBase}?${p.toString()}` : acquireBase;
       setLocation(next);
     }, 3800);
     return () => window.clearTimeout(tid);
@@ -771,18 +977,24 @@ export default function Acquire() {
   const listingsContent = (
     <div className="min-w-0 flex-1">
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
-        <p className="font-mono text-sm font-bold text-muted-foreground">
-          {(listingsQuery.data?.filter((item) => item.forSale).length ?? 0).toLocaleString()} startups found
+        <p className="font-mono text-sm font-bold text-[color:var(--terminal-muted)]">
+          <span className="text-[color:var(--terminal-ochre)]">
+            {(listingsQuery.data?.filter((item) => item.forSale).length ?? 0).toLocaleString()}
+          </span>{' '}
+          startups found
         </p>
         {activeFilterCount > 0 ? (
-          <p className="font-mono text-xs text-muted-foreground">{activeFilterCount} active filters</p>
+          <p className="font-mono text-xs text-[color:var(--terminal-muted)]">{activeFilterCount} active filters</p>
         ) : null}
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
         {listingsQuery.isLoading
           ? Array.from({ length: 6 }).map((_, index) => (
-            <div key={index} className="rounded-[14px] border border-border bg-card p-4">
+            <div
+              key={index}
+              className="rounded-[14px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4"
+            >
               <Skeleton className="h-6 w-1/3" />
               <Skeleton className="mt-3 h-24 w-full" />
               <Skeleton className="mt-3 h-16 w-full" />
@@ -814,11 +1026,15 @@ export default function Acquire() {
       </div>
 
       {!listingsQuery.isLoading && filtered.length === 0 ? (
-        <div className="mt-8 rounded-[14px] border border-dashed border-border p-12 text-center font-mono">
-          <p className="text-muted-foreground">
+        <div className="mt-8 rounded-[14px] border border-dashed border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-12 text-center font-mono">
+          <p className="text-[color:var(--terminal-muted)]">
             {search.trim() ? `No startups match “${search.trim()}”.` : 'No startups match these filters.'}
           </p>
-          <Button variant="outline" className="mt-4" onClick={clearFilters}>
+          <Button
+            variant="outline"
+            className="mt-4 border-[color:var(--terminal-border)] bg-transparent font-mono font-bold text-[color:var(--terminal-fg)] hover:bg-[color:var(--terminal-surface-2)]"
+            onClick={clearFilters}
+          >
             Clear filters
           </Button>
         </div>
@@ -827,12 +1043,70 @@ export default function Acquire() {
   );
 
   return (
-    <div className="flex flex-col gap-6 pb-16 sm:pb-20 lg:gap-12 lg:pb-24">
+    <div className="acquire-terminal-palette flex min-w-0 flex-col gap-6 pb-16 sm:pb-20 lg:gap-12 lg:pb-24">
       {isBuyerPage ? (
         <>
-          <section className={cn(FILTER_PANEL, 'max-h-none overflow-visible p-3')}>
-            <div className="flex items-end gap-2">
-              <div className="min-w-0 flex-1">
+          <div className="lg:hidden">
+            <Popover>
+              <PopoverTrigger asChild>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="flex h-11 w-full items-center justify-between gap-3 rounded-[12px] border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] px-4 font-mono text-sm font-bold text-[color:var(--terminal-fg)] shadow-sm hover:bg-[color:var(--terminal-surface-2)]"
+                >
+                  <span className="flex min-w-0 items-center gap-2">
+                    <SlidersHorizontal
+                      className="h-4 w-4 shrink-0 text-[color:var(--brand-accent)]"
+                      aria-hidden
+                    />
+                    <span className="truncate">Filters & sort</span>
+                  </span>
+                  <span className="flex shrink-0 items-center gap-2">
+                    {activeFilterCount > 0 ? (
+                      <span className="rounded-full bg-[color:var(--brand-accent)]/20 px-2 py-0.5 font-mono text-[11px] font-bold tabular-nums text-[color:var(--brand-accent)]">
+                        {activeFilterCount}
+                      </span>
+                    ) : null}
+                    <ChevronDown className="h-4 w-4 opacity-80" aria-hidden />
+                  </span>
+                </Button>
+              </PopoverTrigger>
+              <PopoverContent
+                align="center"
+                sideOffset={8}
+                className="z-[80] w-[calc(100vw-2rem)] max-w-md border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-0 font-mono text-[color:var(--terminal-fg)] shadow-xl [--terminal-ochre:var(--brand-accent)]"
+              >
+                <div className="max-h-[min(78dvh,560px)] overflow-y-auto overscroll-contain p-4">
+                  <div className="mb-4 border-b border-[color:var(--terminal-border)] pb-3">
+                    <p className={`mb-1 ${FILTER_LABEL}`}>Refine listings</p>
+                    <p className="text-xs leading-snug text-[color:var(--terminal-muted)]">
+                      Sort order and every marketplace filter in one panel.
+                    </p>
+                  </div>
+                  <AcquireBuyerFiltersForm
+                    {...filterBodyProps}
+                    revenue30dOptions={revenue30dOptions}
+                    mrrOptions={mrrOptions}
+                    growthOptions={growthOptions}
+                    askingPriceOptions={askingPriceOptions}
+                    trafficOptions={trafficOptions}
+                  />
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="mt-4 h-10 w-full border-[color:var(--terminal-border)] bg-transparent font-mono font-bold text-[color:var(--terminal-fg)] hover:bg-[color:var(--terminal-surface-2)]"
+                    onClick={clearFilters}
+                  >
+                    Clear filters
+                  </Button>
+                </div>
+              </PopoverContent>
+            </Popover>
+          </div>
+
+          <section className={cn(FILTER_PANEL, 'hidden max-h-none overflow-visible p-3 lg:block')}>
+            <div className="flex min-w-0 items-end gap-2 overflow-x-auto pb-1 lg:overflow-x-visible">
+              <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <label className={`mb-1 block ${FILTER_LABEL}`}>Sort</label>
                 <Select value={sort} onValueChange={(v) => setSort(v as SortMode)}>
                   <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
@@ -849,7 +1123,7 @@ export default function Acquire() {
                 </Select>
               </div>
 
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <label className={`mb-1 block ${FILTER_LABEL}`}>Categories</label>
                 <Select value={category} onValueChange={(v) => setCategoryWithUrl(v as Category | 'All')}>
                   <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
@@ -865,7 +1139,7 @@ export default function Acquire() {
                 </Select>
               </div>
 
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <label className={`mb-1 block ${FILTER_LABEL}`}>Revenue provider</label>
                 <Select value={revenueProvider} onValueChange={setRevenueProvider}>
                   <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
@@ -882,7 +1156,7 @@ export default function Acquire() {
                 </Select>
               </div>
 
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <RangeDropdown
                   label="Revenue (last 30 days)"
                   min={revMin}
@@ -892,10 +1166,10 @@ export default function Acquire() {
                   onMax={setRevMax}
                 />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <RangeDropdown label="MRR" min={mrrMin} max={mrrMax} options={mrrOptions} onMin={setMrrMin} onMax={setMrrMax} />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <RangeDropdown
                   label="Growth (last 30 days)"
                   min={growthMin}
@@ -905,7 +1179,7 @@ export default function Acquire() {
                   onMax={setGrowthMax}
                 />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <RangeDropdown
                   label="Asking Price"
                   min={askMin}
@@ -915,7 +1189,7 @@ export default function Acquire() {
                   onMax={setAskMax}
                 />
               </div>
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <RangeDropdown
                   label="Traffic (visitors/mo)"
                   min={trafficMin}
@@ -926,7 +1200,7 @@ export default function Acquire() {
                 />
               </div>
 
-              <div className="min-w-0 flex-1">
+              <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <label className={`mb-1 block ${FILTER_LABEL}`}>Verification</label>
                 <Select
                   value={
@@ -978,10 +1252,20 @@ export default function Acquire() {
           {listingsContent}
         </>
       ) : (
-        <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[300px_minmax(0,1fr)] lg:gap-8">
-          <aside className={cn(FILTER_PANEL, 'p-4 lg:mt-7')}>
+        <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] lg:gap-8 lg:items-start">
+          <aside
+            className={cn(
+              FILTER_PANEL,
+              'lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+5.85rem)] lg:z-10 lg:self-start',
+            )}
+          >
             <AcquireMarketplaceFiltersBody includeSort {...filterBodyProps} />
-            <Button type="button" variant="outline" className="mt-4 h-10 w-full font-mono" onClick={clearFilters}>
+            <Button
+              type="button"
+              variant="outline"
+              className="mt-4 h-10 w-full border-[color:var(--terminal-border)] bg-transparent font-mono font-bold text-[color:var(--terminal-fg)] hover:bg-[color:var(--terminal-surface-2)]"
+              onClick={clearFilters}
+            >
               Clear filters
             </Button>
           </aside>

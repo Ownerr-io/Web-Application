@@ -1,6 +1,7 @@
 import { Link, useLocation } from 'wouter';
 import { useMockSession } from '@/context/MockSessionContext';
 import { Startup } from '@/lib/mockData';
+import { marketplacePath } from '@/lib/appPaths';
 import { formatShortCurrency } from '@/lib/utils';
 import { StartupTripleScores } from '@/components/StartupTripleScores';
 import { Button } from '@/components/ui/button';
@@ -54,14 +55,14 @@ function CardBody({ startup, logoColor }: { startup: Startup; logoColor: string 
 
 export function StartupCard({ startup, showBidCta }: { startup: Startup; showBidCta?: boolean }) {
   const logoColor = startup.logoColor ?? '#E6EAFF';
-  const bidHref = `/acquire?listing=${encodeURIComponent(startup.slug)}`;
+  const bidHref = `${marketplacePath('/acquire')}?listing=${encodeURIComponent(startup.slug)}`;
   const { isAuthenticated, openAuthDialog } = useMockSession();
   const [, setLocation] = useLocation();
 
   if (showBidCta && startup.forSale) {
     return (
       <div className="startup-listing-card group flex flex-col">
-        <Link href={`/startup/${startup.slug}`} className="block min-h-0 flex-1">
+        <Link href={marketplacePath(`/startup/${startup.slug}`)} className="block min-h-0 flex-1">
           <CardBody startup={startup} logoColor={logoColor} />
         </Link>
         <div className="mt-3 border-t border-border/80 px-1 pb-1 pt-3">
@@ -85,7 +86,7 @@ export function StartupCard({ startup, showBidCta }: { startup: Startup; showBid
   }
 
   return (
-    <Link href={`/startup/${startup.slug}`} className="block">
+    <Link href={marketplacePath(`/startup/${startup.slug}`)} className="block">
       <div className="startup-listing-card group flex flex-col">
         <CardBody startup={startup} logoColor={logoColor} />
       </div>

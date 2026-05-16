@@ -10,6 +10,7 @@ import {
 } from '@/lib/claimSpotsMockData';
 import { addClaimSpotEntryDB, getClaimSpotEntriesDB } from '@/lib/db';
 import { cn, founderAvatarUrl } from '@/lib/utils';
+import { marketplacePath } from '@/lib/appPaths';
 import { useToast } from '@/hooks/use-toast';
 import { Button } from '@/components/ui/button';
 import {
@@ -314,11 +315,11 @@ export default function ClaimSpotsPage() {
                 role="link"
                 tabIndex={0}
                 className="cursor-pointer px-3 py-3.5 transition-colors hover:bg-muted/60 active:bg-muted/80 dark:hover:bg-zinc-800/50"
-                onClick={() => setLocation(`/founder/${encodeURIComponent(entry.handle)}`)}
+                onClick={() => setLocation(marketplacePath(`/founder/${encodeURIComponent(entry.handle)}`))}
                 onKeyDown={(e) => {
                   if (e.key === 'Enter' || e.key === ' ') {
                     e.preventDefault();
-                    setLocation(`/founder/${encodeURIComponent(entry.handle)}`);
+                    setLocation(marketplacePath(`/founder/${encodeURIComponent(entry.handle)}`));
                   }
                 }}
               >
@@ -385,11 +386,11 @@ export default function ClaimSpotsPage() {
                   role="link"
                   tabIndex={0}
                   className="cursor-pointer hover:bg-muted/60 dark:hover:bg-zinc-800/50"
-                  onClick={() => setLocation(`/founder/${encodeURIComponent(entry.handle)}`)}
+                  onClick={() => setLocation(marketplacePath(`/founder/${encodeURIComponent(entry.handle)}`))}
                   onKeyDown={(e) => {
                     if (e.key === 'Enter' || e.key === ' ') {
                       e.preventDefault();
-                      setLocation(`/founder/${encodeURIComponent(entry.handle)}`);
+                      setLocation(marketplacePath(`/founder/${encodeURIComponent(entry.handle)}`));
                     }
                   }}
                 >

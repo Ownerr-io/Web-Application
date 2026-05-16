@@ -4,6 +4,7 @@ import { ChevronRight } from 'lucide-react';
 import { mockStartups, type Startup } from '@/lib/mockData';
 import { mergeWithUserStartups, USER_STARTUPS_CHANGED_EVENT } from '@/lib/userStartups';
 import { cn, formatShortCurrency } from '@/lib/utils';
+import { marketplacePath } from '@/lib/appPaths';
 import { StartupTripleScores } from '@/components/StartupTripleScores';
 
 function formatGrowthLine(s: Startup): { text: string; isNeg: boolean } | null {
@@ -20,7 +21,7 @@ function MarketplaceSaleCard({ startup }: { startup: Startup }) {
   const logoColor = startup.logoColor ?? '#E6EAFF';
   const growth = formatGrowthLine(startup);
   const strike = startup.askingPriceStrike;
-  const href = `/startup/${startup.slug}`;
+  const href = marketplacePath(`/startup/${startup.slug}`);
   const resolvedHref = router.hrefs(
     href.startsWith('~') ? href.slice(1) : router.base + href,
     router,

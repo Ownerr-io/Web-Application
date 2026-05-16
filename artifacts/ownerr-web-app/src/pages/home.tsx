@@ -8,7 +8,7 @@ import { WhatsHappening } from '@/components/WhatsHappening';
 import { BottomSection } from '@/components/BottomSection';
 import { formatCurrency, founderAvatarUrl } from '@/lib/utils';
 import { ChevronDown, ChevronRight } from 'lucide-react';
-import { useMockSession } from '@/context/MockSessionContext';
+import { marketplacePath } from '@/lib/appPaths';
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -22,7 +22,6 @@ export default function Home() {
   const [userStartupsTick, setUserStartupsTick] = useState(0);
   const [metric, setMetric] = useState<'mrr' | 'arr'>('mrr');
   const [period, setPeriod] = useState<'all_time' | 'current'>('all_time');
-  const { isAuthenticated, openAuthDialog } = useMockSession();
   const [, setLocation] = useLocation();
 
   useEffect(() => { setIsMounted(true); }, []);
@@ -62,7 +61,7 @@ export default function Home() {
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-bold sm:text-xl">Recently listed</h2>
           <button
-            onClick={() => (isAuthenticated ? setLocation('/acquire') : openAuthDialog())}
+            onClick={() => setLocation(marketplacePath('/acquire'))}
             className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
           >
             View all
@@ -83,7 +82,7 @@ export default function Home() {
         <div className="flex items-center justify-between mb-2">
           <h2 className="text-lg font-bold sm:text-xl">Best deals this week</h2>
           <button
-            onClick={() => (isAuthenticated ? setLocation('/acquire') : openAuthDialog())}
+            onClick={() => setLocation(marketplacePath('/acquire'))}
             className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
           >
             View all
@@ -171,7 +170,7 @@ export default function Home() {
                     >
                       <td className="px-2 py-1.5 text-center font-bold text-sm">{rankDisplay}</td>
                       <td className="px-2 py-1.5">
-                        <Link href={`/startup/${startup.slug}?from=leaderboard`}>
+                        <Link href={`${marketplacePath(`/startup/${startup.slug}`)}?from=leaderboard`}>
                           <div className="flex items-center gap-2 group cursor-pointer">
                             <div
                               className="w-6 h-6 rounded-[5px] flex items-center justify-center text-xs font-bold border border-black/5 shrink-0"
@@ -197,7 +196,7 @@ export default function Home() {
                       </td>
                       <td className="px-2 py-1.5">
                         {founder ? (
-                          <Link href={`/founder/${founder.handle}`}>
+                          <Link href={marketplacePath(`/founder/${founder.handle}`)}>
                             <div className="flex items-center gap-2 group cursor-pointer w-max">
                               <img
                                 src={founderAvatarUrl(founder.avatarSeed)}
@@ -208,7 +207,7 @@ export default function Home() {
                             </div>
                           </Link>
                         ) : startup.founderDisplayName ? (
-                          <Link href={`/founder/${encodeURIComponent(startup.founderHandle)}`}>
+                          <Link href={marketplacePath(`/founder/${encodeURIComponent(startup.founderHandle)}`)}>
                             <div className="flex items-center gap-2 w-max group">
                               <img
                                 src={founderAvatarUrl(startup.founderHandle)}

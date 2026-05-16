@@ -4,6 +4,7 @@ import { BROWSE_LABEL_TO_ACQUIRE_CATEGORY } from '@/lib/acquireBrowseCategoryMap
 import { browseCategories } from '@/lib/mockData';
 import { useMockSession } from '@/context/MockSessionContext';
 import { useAddStartup } from '@/context/AddStartupContext';
+import { marketplacePath } from '@/lib/appPaths';
 
 function getIcon(name: string) {
   const Lib = Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>;
@@ -49,8 +50,8 @@ export function BottomSection() {
             const Icon = getIcon(c.icon);
             const acq = BROWSE_LABEL_TO_ACQUIRE_CATEGORY[c.label];
             const href = acq
-              ? `/acquire?category=${encodeURIComponent(acq)}`
-              : '/acquire';
+              ? `${marketplacePath('/acquire')}?category=${encodeURIComponent(acq)}`
+              : marketplacePath('/acquire');
             return (
               <Link
                 key={c.label}

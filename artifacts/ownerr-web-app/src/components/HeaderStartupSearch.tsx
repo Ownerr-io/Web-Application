@@ -2,6 +2,7 @@ import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'wouter';
 import { Search } from 'lucide-react';
 import { mockStartups } from '@/lib/mockData';
+import { marketplacePath } from '@/lib/appPaths';
 import { mergeWithUserStartups, USER_STARTUPS_CHANGED_EVENT } from '@/lib/userStartups';
 import { cn } from '@/lib/utils';
 
@@ -51,7 +52,7 @@ export function HeaderStartupSearch({ className }: { className?: string }) {
   }, [startups, query]);
 
   function pick(slug: string) {
-    setLocation(`/startup/${slug}`);
+    setLocation(marketplacePath(`/startup/${slug}`));
     setQuery('');
     setOpen(false);
   }

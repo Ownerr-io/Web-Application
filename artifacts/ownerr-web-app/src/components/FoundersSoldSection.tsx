@@ -2,6 +2,7 @@ import { Heart, Link2, MessageCircle } from 'lucide-react';
 import { Link } from 'wouter';
 import { FOUNDER_SOLD_POSTS } from '@/lib/acquireMarketplaceData';
 import { founderAvatarUrl } from '@/lib/utils';
+import { marketplacePath } from '@/lib/appPaths';
 
 function PostBody({ text }: { text: string }) {
   const chunks = text.split(/(@[\w_]+)/g);
@@ -11,7 +12,7 @@ function PostBody({ text }: { text: string }) {
         chunk.startsWith('@') ? (
           <Link
             key={i}
-            href={`/founder/${encodeURIComponent(chunk.slice(1))}`}
+            href={marketplacePath(`/founder/${encodeURIComponent(chunk.slice(1))}`)}
             className="text-sky-600 hover:underline dark:text-[#1d9bf0]"
           >
             {chunk}
@@ -56,7 +57,7 @@ export function FoundersSoldSection() {
                     <div className="min-w-0">
                       <div className="flex flex-wrap items-center gap-1">
                         <Link
-                          href={`/founder/${post.handle}`}
+                          href={marketplacePath(`/founder/${post.handle}`)}
                           className="truncate font-mono text-[15px] font-bold text-foreground hover:underline dark:text-[#e7e9ea]"
                         >
                           {post.displayName}
@@ -71,7 +72,7 @@ export function FoundersSoldSection() {
                         ) : null}
                       </div>
                       <Link
-                        href={`/founder/${post.handle}`}
+                        href={marketplacePath(`/founder/${post.handle}`)}
                         className="block font-mono text-[15px] text-muted-foreground hover:text-foreground hover:underline dark:text-[#71767b] dark:hover:text-[#e7e9ea]"
                       >
                         @{post.handle}

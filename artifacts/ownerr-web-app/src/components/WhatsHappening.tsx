@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { ChevronRight, Heart, MessageCircle, Share2 } from 'lucide-react';
 import { whatsHappeningPosts, mockFounders, mockStartups } from '@/lib/mockData';
+import { marketplacePath } from '@/lib/appPaths';
 
 export function WhatsHappening() {
   return (
@@ -8,7 +9,7 @@ export function WhatsHappening() {
       <div className="flex items-center justify-between mb-3">
         <h2 className="text-xl font-bold">What's happening?</h2>
         <Link
-          href="/feed"
+          href={marketplacePath('/feed')}
           className="inline-flex items-center gap-0.5 text-sm text-muted-foreground hover:text-foreground"
         >
           View feed
@@ -27,7 +28,7 @@ export function WhatsHappening() {
             >
               <header className="flex items-center gap-2 mb-2 text-xs">
                 {startup && (
-                  <Link href={`/startup/${post.startupSlug}`} className="shrink-0" aria-label={startup.name}>
+                  <Link href={marketplacePath(`/startup/${post.startupSlug}`)} className="shrink-0" aria-label={startup.name}>
                     <img
                       src={`https://api.dicebear.com/7.x/shapes/svg?seed=${startup.name}`}
                       alt=""
@@ -36,13 +37,13 @@ export function WhatsHappening() {
                   </Link>
                 )}
                 <Link
-                  href={`/founder/${post.founderHandle}`}
+                  href={marketplacePath(`/founder/${post.founderHandle}`)}
                   className="font-bold text-foreground hover:underline"
                 >
                   @{post.founderHandle}
                 </Link>
                 <span className="text-muted-foreground">on</span>
-                <Link href={`/startup/${post.startupSlug}`} className="font-bold hover:underline truncate max-w-[140px]">
+                <Link href={marketplacePath(`/startup/${post.startupSlug}`)} className="font-bold hover:underline truncate max-w-[140px]">
                   {post.startupName}
                 </Link>
                 <span className="text-muted-foreground">·</span>

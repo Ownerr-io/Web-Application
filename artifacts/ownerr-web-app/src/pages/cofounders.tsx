@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
 import { mockFounders } from '@/lib/mockData';
+import { marketplacePath } from '@/lib/appPaths';
 import { founderAvatarUrl } from '@/lib/utils';
 import { Search } from 'lucide-react';
 
@@ -61,7 +62,7 @@ export default function Cofounders() {
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: index * 0.05, duration: 0.2 }}
           >
-            <Link href={`/founder/${founder.handle}`}>
+            <Link href={marketplacePath(`/founder/${founder.handle}`)}>
               <div className="startup-card p-5 h-full flex flex-col group cursor-pointer">
                 <div className="flex items-center gap-3 mb-4">
                   <img 

@@ -9,6 +9,7 @@ import { useAddStartup } from '@/context/AddStartupContext';
 import { FEED_BONUS_DEAL, FEED_POSTING_STREAKS, FEED_TOP_STARTUPS } from '@/lib/feedSidebarData';
 import { cn, dicebearShapesSvg, formatShortCurrency, founderAvatarUrl } from '@/lib/utils';
 import { FounderLink, StartupLink } from '@/components/EntityLink';
+import { marketplacePath } from '@/lib/appPaths';
 
 type RotatingItem =
   | { kind: 'startup'; startup: Startup }
@@ -65,7 +66,7 @@ export function FeedSidebar() {
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-bold">Top startups</h3>
               <Link
-                href="/#leaderboard"
+                href={`${marketplacePath('/')}#leaderboard`}
                 className="inline-flex items-center gap-0.5 text-[10px] font-bold text-muted-foreground hover:text-foreground"
               >
                 View all
@@ -75,10 +76,7 @@ export function FeedSidebar() {
             <ol className="max-h-[min(200px,28vh)] space-y-3 overflow-y-auto pr-1 text-sm [scrollbar-gutter:stable]">
               {FEED_TOP_STARTUPS.map((row, i) => (
                 <li key={`${row.slug}-${i}`}>
-                  <Link
-                    href={`/startup/${row.slug}`}
-                    className="flex items-start gap-2 rounded-lg p-1.5 -m-1.5 transition-colors hover:bg-muted/50"
-                  >
+                  <StartupLink slug={row.slug} className="flex items-start gap-2 rounded-lg p-1.5 -m-1.5 transition-colors hover:bg-muted/50">
                     <span className="w-5 shrink-0 text-right text-xs font-bold text-muted-foreground">
                       {i + 1}
                     </span>
@@ -104,7 +102,7 @@ export function FeedSidebar() {
                         </span>
                       </div>
                     </div>
-                  </Link>
+                  </StartupLink>
                 </li>
               ))}
             </ol>
@@ -159,7 +157,7 @@ export function FeedSidebar() {
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h3 className="text-sm font-bold">Deals of the week</h3>
               <Link
-                href="/acquire"
+                href={marketplacePath('/acquire')}
                 className="inline-flex items-center gap-0.5 text-[10px] font-bold text-muted-foreground transition-colors hover:text-foreground"
               >
                 View all
@@ -241,7 +239,7 @@ function FeedBonusDealCard() {
         </div>
       </div>
       <Link
-        href="/acquire"
+        href={marketplacePath('/acquire')}
         className="mt-3 flex w-full items-center justify-center rounded-lg border border-border bg-card py-2 text-center text-xs font-bold text-foreground transition-colors hover:bg-muted"
       >
         See listing
@@ -267,12 +265,9 @@ function FeedDealFromStartup({ s }: { s: Startup }) {
           />
         </div>
         <div className="min-w-0 flex-1 text-right">
-          <Link
-            href={`/startup/${s.slug}`}
-            className="text-sm font-bold leading-tight line-clamp-2 hover:underline"
-          >
+          <StartupLink slug={s.slug} className="text-sm font-bold leading-tight line-clamp-2 hover:underline">
             {s.name}
-          </Link>
+          </StartupLink>
 
         </div>
       </div>
@@ -295,12 +290,12 @@ function FeedDealFromStartup({ s }: { s: Startup }) {
           </div>
         </div>
       </div>
-      <Link
-        href={`/startup/${s.slug}`}
+      <StartupLink
+        slug={s.slug}
         className="mt-3 flex w-full items-center justify-center rounded-lg border border-border bg-card py-2 text-center text-xs font-bold text-foreground transition-colors hover:bg-muted"
       >
         View deal
-      </Link>
+      </StartupLink>
     </div>
   );
 }

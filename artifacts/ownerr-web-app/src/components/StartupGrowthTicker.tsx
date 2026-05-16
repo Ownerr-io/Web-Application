@@ -37,7 +37,7 @@ function TickerStrip({ items, ariaHidden }: { items: TickerItem[]; ariaHidden?: 
       {items.map((item, i) => (
         <div
           key={`${item.slug}-${i}`}
-          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-border/60 bg-background/60 px-2.5 py-1 backdrop-blur-sm"
+          className="inline-flex shrink-0 items-center gap-1.5 rounded-md border border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] px-2.5 py-1 backdrop-blur-sm"
         >
           <span
             className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-sm"
@@ -51,13 +51,13 @@ function TickerStrip({ items, ariaHidden }: { items: TickerItem[]; ariaHidden?: 
               decoding="async"
             />
           </span>
-          <span className="max-w-[8rem] shrink-0 truncate text-[11px] font-bold text-foreground sm:max-w-[10rem] sm:text-xs">
+          <span className="max-w-[8rem] shrink-0 truncate text-[11px] font-bold text-[color:var(--terminal-fg)] sm:max-w-[10rem] sm:text-xs">
             {item.name}
           </span>
           <span
             className={cn(
               'shrink-0 text-[11px] font-bold tabular-nums sm:text-xs',
-              item.growth >= 0 ? 'text-emerald-600 dark:text-emerald-400' : 'text-red-500 dark:text-red-400'
+              item.growth >= 0 ? 'text-[color:var(--terminal-lime)]' : 'text-red-400',
             )}
           >
             {formatGrowthPct(item.growth)}
@@ -75,7 +75,7 @@ export function StartupGrowthTicker() {
 
   return (
     <div
-      className="pointer-events-none fixed inset-x-0 z-[35] hidden overflow-hidden border-b border-border/50 bg-background/80 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 lg:block"
+      className="pointer-events-none fixed inset-x-0 z-[35] hidden overflow-hidden border-b border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/92 backdrop-blur-md supports-[backdrop-filter]:bg-[color:var(--terminal-surface)]/88 lg:block"
       style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3.5rem)' }}
       role="region"
       aria-label="Top startup growth"

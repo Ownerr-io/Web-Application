@@ -3,6 +3,7 @@ import { Eye, Heart, BadgeCheck, Globe, BarChart3 } from 'lucide-react';
 import type { ReactNode } from 'react';
 import type { Startup } from '@/lib/mockData';
 import { cn, formatShortCurrency } from '@/lib/utils';
+import { marketplacePath } from '@/lib/appPaths';
 import { StartupTripleScores } from '@/components/StartupTripleScores';
 
 const SCORE_STRIP_CLASS =
@@ -64,7 +65,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
   return (
     <div className="shine-effect flex h-full flex-col overflow-hidden rounded-[14px] border border-border bg-card text-card-foreground transition-colors hover:border-muted-foreground/30 dark:border-[#2f3336] dark:bg-[#121212] dark:text-white dark:hover:border-[#536471]">
       <Link
-        href={`/startup/${startup.slug}`}
+        href={marketplacePath(`/startup/${startup.slug}`)}
         className="group flex min-h-[260px] flex-1 flex-col px-3 pb-3 pt-3.5 sm:min-h-[300px] sm:px-4 sm:pt-4"
       >
         <article className="flex min-h-0 flex-1 flex-col gap-3">

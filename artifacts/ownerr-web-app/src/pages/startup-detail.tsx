@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 
 import { mockFounders, mockStartups, leaderboardMetricValue, type Startup } from '@/lib/mockData';
+import { marketplacePath } from '@/lib/appPaths';
 import { getStartupDetailModel } from '@/lib/startupDetailContent';
 import { StartupScoresDetailGrid } from '@/components/StartupTripleScores';
 import { formatCurrency, formatShortCurrency, founderAvatarUrl } from '@/lib/utils';
@@ -65,7 +66,7 @@ function DiscoverCard({ s }: { s: Startup }) {
   const total = Math.round((s.peakMrr ?? s.revenue) * 16);
 
   return (
-    <Link href={`/startup/${s.slug}`} className="group block h-full min-w-0">
+    <Link href={marketplacePath(`/startup/${s.slug}`)} className="group block h-full min-w-0">
       <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-foreground/25 hover:bg-muted/15">
         <div className="p-4">
           <div className="flex items-start gap-3">
@@ -210,12 +211,12 @@ export default function StartupDetail() {
     return (
       <div className="flex flex-col gap-6 pb-10">
         <nav className="flex flex-wrap items-center gap-1 font-mono text-sm text-muted-foreground">
-          <Link href="/" className="hover:text-foreground">
+          <Link href={marketplacePath('/')} className="hover:text-foreground">
             Ownerr
           </Link>
           <ChevronRight className="h-4 w-4 opacity-50" />
           <span className="hover:text-foreground">
-            <Link href="/#leaderboard">Startup</Link>
+            <Link href={`${marketplacePath('/')}#leaderboard`}>Startup</Link>
           </span>
           <ChevronRight className="h-4 w-4 opacity-50" />
           <StartupLink slug={startup.slug} className="font-bold text-foreground">
@@ -419,7 +420,7 @@ export default function StartupDetail() {
           <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
             <h2 className="text-lg font-bold">Discover more startups</h2>
             <Link
-              href="/#leaderboard"
+              href={`${marketplacePath('/')}#leaderboard`}
               className="inline-flex items-center gap-0.5 text-sm font-bold text-muted-foreground hover:text-foreground"
             >
               Advanced Search
@@ -439,12 +440,12 @@ export default function StartupDetail() {
   return (
     <div className="flex flex-col gap-4 pb-8 sm:gap-6 sm:pb-10">
       <nav className="flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
-        <Link href="/" className="hover:text-foreground">
+        <Link href={marketplacePath('/')} className="hover:text-foreground">
           Ownerr
         </Link>
         <ChevronRight className="h-4 w-4 opacity-50" />
         <span className="hover:text-foreground">
-          <Link href="/acquire">Startup</Link>
+          <Link href={marketplacePath('/acquire')}>Startup</Link>
         </span>
         <ChevronRight className="h-4 w-4 opacity-50" />
         <StartupLink slug={startup.slug} className="font-bold text-foreground">
