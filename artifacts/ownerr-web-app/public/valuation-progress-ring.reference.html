@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>Valuation progress ring reference</title>
+    <style>
+      :root {
+        --bg: #0b0b0c;
+        --ochre: #e8c547;
+        --lime: #b7f542;
+        --border: #2a2a2e;
+        --size: min(92vw, 880px);
+        --stroke-min: 14px;
+        --stroke-max: 32px;
+        --duration: 3.2s;
+      }
+      * { box-sizing: border-box; }
+      body {
+        margin: 0;
+        min-height: 100dvh;
+        background: var(--bg);
+        font-family: system-ui, sans-serif;
+        color: #fff;
+      }
+      .stage {
+        position: fixed;
+        inset: 0;
+        overflow: hidden;
+      }
+      .ring-host {
+        position: absolute;
+        left: 50%;
+        width: var(--size);
+        height: var(--size);
+        transform: translate(-50%, -50%);
+        will-change: top, transform;
+      }
+      svg { display: block; overflow: visible; }
+      .controls {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        padding: 1rem;
+        background: rgba(11, 11, 12, 0.9);
+        border-top: 1px solid var(--border);
+      }
+      input[type='range'] { width: 100%; }
+    </style>
+  </head>
+  <body>
+    <div class="stage" id="stage">
+      <div
+        class="ring-host"
+        id="host"
+        role="progressbar"
+        aria-valuemin="0"
+        aria-valuemax="100"
+        aria-valuenow="0"
+        aria-label="Progress demonstration"
+      >
+        <svg id="svg" width="880" height="880" viewBox="0 0 880 880"></svg>
+      </div>
+    </div>
+    <div class="controls">
+      <label for="slider">Progress <span id="label">0</span>%</label>
+      <input id="slider" type="range" min="0" max="100" value="0" />
+      <button type="button" id="play">Play timeline</button>
+    </div>
+    <script>
+      const host = document.getElementById('host');
+      const svg = document.getElementById('svg');
+      const slider = document.getElementById('slider');
+      const label = document.getElementById('label');
+      const play = document.getElementById('play');
+
+      const SIZE = 880;
+      const STROKE_MIN = 14;
+      const STROKE_MAX = 32;
+      const DURATION = 3200;
+
+      const grad = document.createElementNS('http://www.w3.org/2000/svg', 'defs');
+      grad.innerHTML = `<linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+        <stop offset="0%" stop-color="#e8c547"/>
+        <stop offset="50%" stop-color="#b7f542"/>
+        <stop offset="100%" stop-color="#e8c547"/>
+      </linearGradient>`;
+      svg.appendChild(grad);
+
+      const track = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      const arc = document.createElementNS('http://www.w3.org/2000/svg', 'circle');
+      svg.append(track, arc);
+
+      function easeOutCubic(t) { return 1 - Math.pow(1 - t, 3); }
+
+      function render(p) {
+        const phase1 = Math.min(1, p / 50);
+        const phase2 = p <= 50 ? 0 : Math.min(1, (p - 50) / 50);
+        const centerY = 100 - phase1 * 50;
+        const stroke = STROKE_MIN + phase2 * (STROKE_MAX - STROKE_MIN);
+        const r = (SIZE - stroke) / 2;
+        const c = 2 * Math.PI * r;
+        const visible = phase1 * 0.5 + phase2 * 0.5;
+
+        host.style.top = centerY + '%';
+        host.setAttribute('aria-valuenow', String(Math.round(p)));
+        label.textContent = String(Math.round(p));
+        slider.value = String(p);
+
+        [track, arc].forEach((el) => {
+          el.setAttribute('cx', SIZE / 2);
+          el.setAttribute('cy', SIZE / 2);
+          el.setAttribute('r', r);
+          el.setAttribute('fill', 'none');
+          el.setAttribute('stroke-width', stroke);
+        });
+        track.setAttribute('stroke', '#2a2a2e');
+        arc.setAttribute('stroke', 'url(#g)');
+        arc.setAttribute('stroke-linecap', 'round');
+        arc.setAttribute('stroke-dasharray', c);
+        arc.setAttribute('stroke-dashoffset', c * (1 - visible));
+        arc.setAttribute('transform', `rotate(-90 ${SIZE / 2} ${SIZE / 2})`);
+      }
+
+      slider.addEventListener('input', () => render(Number(slider.value)));
+
+      play.addEventListener('click', () => {
+        const start = performance.now();
+        const tick = (now) => {
+          const t = Math.min(1, (now - start) / DURATION);
+          render(easeOutCubic(t) * 100);
+          if (t < 1) requestAnimationFrame(tick);
+        };
+        requestAnimationFrame(tick);
+      });
+
+      render(0);
+    </script>
+  </body>
+</html>

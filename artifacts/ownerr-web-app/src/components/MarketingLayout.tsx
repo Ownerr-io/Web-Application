@@ -6,10 +6,15 @@ import { cn } from '@/lib/utils';
 export function MarketingLayout({
   children,
   terminalPalette = true,
+  hideFooter = false,
+  fullBleedMain = false,
 }: {
   children: React.ReactNode;
   /** Terminal funnel styling (default: all marketing pages). */
   terminalPalette?: boolean;
+  hideFooter?: boolean;
+  /** Edge-to-edge main (valuation immersive flow). */
+  fullBleedMain?: boolean;
 }) {
   return (
     <div
@@ -33,14 +38,15 @@ export function MarketingLayout({
         </div>
       )}
       <main
-        className={
-          terminalPalette
-            ? 'min-w-0 overflow-x-hidden pb-[env(safe-area-inset-bottom,0px)] pt-0'
-            : 'min-w-0 overflow-x-hidden pb-[env(safe-area-inset-bottom,0px)] pt-6'
-        }
+        className={cn(
+          'min-w-0 overflow-x-hidden pb-[env(safe-area-inset-bottom,0px)]',
+          fullBleedMain ? 'pt-0' : terminalPalette ? 'pt-0' : 'pt-6',
+          fullBleedMain && 'max-w-none',
+        )}
       >
         {children}
       </main>
+      {!hideFooter ? (
       <footer
         className={cn(
           'mx-auto mt-12 max-w-[1200px] min-w-0 overflow-x-hidden border-t px-4 py-8 text-center text-xs sm:mt-20 sm:py-10',
@@ -76,6 +82,7 @@ export function MarketingLayout({
           </Link>
         </div>
       </footer>
+      ) : null}
     </div>
   );
 }

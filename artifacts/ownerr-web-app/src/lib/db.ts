@@ -9,7 +9,8 @@ import type {
 import type { AuthUser } from "./mockAuthService";
 
 const DB_NAME = "ownerr-web-app";
-const DB_VERSION = 7;
+const DB_VERSION = 8;
+const VALUATION_SESSION_STORE = "valuation-session";
 const USER_STARTUP_STORE = "user-startups";
 const CLAIM_SPOTS_STORE = "claim-spots";
 const MOCK_LISTING_BIDS_STORE = "mock-listing-bids";
@@ -46,11 +47,22 @@ interface OwnerrDB extends DBSchema {
     value: AuthUser;
     indexes: { "by-email": string };
   };
+  "valuation-session": {
+    key: string;
+    value: {
+      id: string;
+      phase: string;
+      questionIndex: number;
+      inputs: Record<string, unknown>;
+      meta: Record<string, unknown>;
+      updatedAt: number;
+    };
+  };
 }
 
 let dbPromise: Promise<IDBPDatabase<OwnerrDB>> | null = null; 
 
-function getDB(): Promise<IDBPDatabase<OwnerrDB>> { 
+export function getDB(): Promise<IDBPDatabase<OwnerrDB>> { 
   if (!dbPromise) {
     dbPromise = openDB<OwnerrDB>(DB_NAME, DB_VERSION, {
       upgrade(db) {
@@ -76,6 +88,9 @@ function getDB(): Promise<IDBPDatabase<OwnerrDB>> {
         if (!db.objectStoreNames.contains(AUTH_USERS_STORE)) {
           const store = db.createObjectStore(AUTH_USERS_STORE, { keyPath: "id" });
           store.createIndex("by-email", "email", { unique: true });
+        }
+        if (!db.objectStoreNames.contains(VALUATION_SESSION_STORE)) {
+          db.createObjectStore(VALUATION_SESSION_STORE, { keyPath: "id" });
         }
       },
     });

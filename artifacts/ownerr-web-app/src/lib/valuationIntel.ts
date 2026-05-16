@@ -46,8 +46,11 @@ function clamp(n: number, lo: number, hi: number): number {
 
 function roundMoney(n: number): number {
   if (!Number.isFinite(n) || n <= 0) return 0;
-  const mag = n >= 1e9 ? 1e8 : n >= 1e8 ? 1e7 : n >= 1e7 ? 1e6 : 1e5;
-  return Math.round(n / mag) * mag;
+  // Scale rounding to value size — fixed 1e5 steps zeroed out sub-$100k valuations.
+  const exponent = Math.floor(Math.log10(n));
+  const mag = Math.pow(10, Math.max(0, exponent - 1));
+  const rounded = Math.round(n / mag) * mag;
+  return rounded > 0 ? rounded : Math.max(1, Math.round(n));
 }
 
 export function computeValuationIntel(i: ValuationInputs): ValuationOutputs {
