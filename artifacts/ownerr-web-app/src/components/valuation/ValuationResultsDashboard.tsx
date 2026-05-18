@@ -1,15 +1,19 @@
 import { useMemo } from 'react';
 import { motion, useReducedMotion } from 'framer-motion';
 import type { StrategicInsightCard, ValuationInputs, ValuationOutputs } from '@/lib/valuationIntel';
-import { formatShortCurrency, cn } from '@/lib/utils';
+import { formatEnterpriseValuation } from '@/lib/utils';
 import { useAnimatedNumber } from './useAnimatedNumber';
 import { StrategicInsights } from '@/components/landing/StrategicInsights';
+import { ValuationGauge } from './ValuationGauge';
+import { ValuationCaptureSummary } from './ValuationCaptureSummary';
+import type { OnboardingMeta } from './types';
 
 type Props = {
   inputs: ValuationInputs;
   outputs: ValuationOutputs;
   insights: StrategicInsightCard[];
   startupName?: string;
+  meta: OnboardingMeta;
 };
 
 function valuationBand(mid: number, confidencePct: number): { low: number; high: number } {
@@ -17,7 +21,7 @@ function valuationBand(mid: number, confidencePct: number): { low: number; high:
   return { low: mid * (1 - spread), high: mid * (1 + spread) };
 }
 
-export function ValuationResultsDashboard({ inputs, outputs, insights, startupName }: Props) {
+export function ValuationResultsDashboard({ inputs, outputs, insights, startupName, meta }: Props) {
   const reduce = useReducedMotion();
   const band = useMemo(
     () => valuationBand(outputs.estimatedValuation, outputs.confidencePct),
@@ -25,139 +29,200 @@ export function ValuationResultsDashboard({ inputs, outputs, insights, startupNa
   );
   const animatedMid = useAnimatedNumber(outputs.estimatedValuation, 1000, !reduce);
 
-  const metricCards = useMemo(
-    () => [
-      { label: 'Acquisition heat', value: `${outputs.acquisitionHeat}/100`, accent: false },
-      { label: 'Investor interest', value: `${outputs.investorInterest}/100`, accent: false },
-      { label: 'Market timing', value: outputs.marketTiming, accent: false, wide: true },
-      {
-        label: 'Capital efficiency',
-        value: inputs.burnMultiple > 0 ? `${inputs.burnMultiple.toFixed(1)}× burn` : '—',
-        accent: false,
-      },
-      { label: 'Growth quality', value: `${outputs.growthQuality}/100`, accent: false },
-    ],
-    [inputs.burnMultiple, outputs],
-  );
-
   const narrative = useMemo(() => buildInvestorNarrative(inputs, outputs), [inputs, outputs]);
+
+  const efficiencyLabel = useMemo(() => {
+    return inputs.burnMultiple > 0 ? `${inputs.burnMultiple.toFixed(1)}× burn multiple` : '—';
+  }, [inputs.burnMultiple]);
 
   return (
     <motion.div
-      initial={reduce ? false : { opacity: 0, y: 10 }}
+      initial={reduce ? false : { opacity: 0, y: 15 }}
       animate={{ opacity: 1, y: 0 }}
-      transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
-      className="mx-auto max-w-[1200px] space-y-6 px-4 py-8 sm:space-y-8 sm:py-14"
+      transition={{ duration: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      className="valuation-executive-report mx-auto max-w-[1200px] space-y-12 px-4 py-8 sm:space-y-14 sm:py-10"
     >
-      <header className="space-y-2">
-        <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[color:var(--terminal-muted)]">
-          Intelligence report
-        </p>
-        <h2 className="text-2xl font-bold tracking-tight text-[color:var(--terminal-fg)] sm:text-3xl">
-          {startupName ? `${startupName} · ` : ''}Valuation synthesis
-        </h2>
-        <p className="max-w-2xl text-sm text-[color:var(--terminal-muted)]">
-          Desk model output for planning — not a fairness opinion. Pair with verified artifacts before outreach.
-        </p>
-      </header>
-
-      <motion.article
-        className="relative overflow-hidden rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4 shadow-sm sm:p-8"
-        initial={reduce ? false : { opacity: 0, scale: 0.98 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ delay: 0.05, duration: 0.4 }}
-      >
-        <motion.div
-          className="pointer-events-none absolute -right-20 -top-20 h-56 w-56 rounded-full blur-3xl"
-          style={{ background: 'color-mix(in srgb, var(--terminal-ochre) 14%, transparent)' }}
-          animate={reduce ? undefined : { opacity: [0.4, 0.7, 0.4] }}
-          transition={{ duration: 5, repeat: Infinity }}
-        />
-        <div className="relative grid gap-6 md:grid-cols-[1fr_auto] md:items-end">
-          <motion.div>
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]">
-              Implied enterprise range
-            </p>
-            {outputs.estimatedValuation <= 0 ? (
-              <p className="mt-2 text-sm leading-relaxed text-[color:var(--terminal-muted)]">
-                No implied range yet — add{' '}
-                <span className="font-semibold text-[color:var(--terminal-fg)]">MRR or ARR</span> in the
-                questionnaire so the model can anchor on revenue.
-              </p>
-            ) : (
-              <p className="mt-2 break-words font-mono text-2xl font-bold tabular-nums text-[color:var(--terminal-ochre)] sm:text-4xl">
-                {formatShortCurrency(band.low)} – {formatShortCurrency(band.high)}
-              </p>
-            )}
-            <p className="mt-2 text-xs text-[color:var(--terminal-muted)]">
-              Midpoint anchor{' '}
-              <span className="font-mono font-bold text-[color:var(--terminal-fg)]">
-                {formatShortCurrency(animatedMid)}
-              </span>
-            </p>
-          </motion.div>
-          <div className="rounded-[8px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] px-4 py-3 text-center">
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]">
-              Model confidence
-            </p>
-            <p className="mt-1 font-mono text-2xl font-bold tabular-nums text-[color:var(--terminal-lime)]">
-              {outputs.confidencePct}%
+      <header className="relative border-b border-white/10 pb-8">
+        <div className="flex flex-wrap items-start justify-between gap-6">
+          <div className="min-w-0 space-y-2.5">
+            <p className="report-kicker">Venture synthesis appraisal</p>
+            <h1 className="report-title text-balance">
+              {startupName ? `${startupName} · ` : ''}Executive report
+            </h1>
+            <p className="report-lead max-w-2xl">
+              Desk model output for institutional M&amp;A planning. Metrics are indexed against venture comparables and
+              your operating profile.
             </p>
           </div>
+          <p className="report-status shrink-0">Final · synthesized</p>
         </div>
-        <p className="relative mt-4 border-t border-[color:var(--terminal-border)] pt-4 text-xs leading-relaxed text-[color:var(--terminal-muted)]">
-          <span className="font-bold text-[color:var(--terminal-ochre)]">Strategic read · </span>
-          {outputs.strategicRecommendation}
-        </p>
-      </motion.article>
+      </header>
 
-      <motion.div
-        className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3"
+      {/* Primary Enterprise Value Section - Completely Cardless */}
+      <motion.article
+        className="relative grid w-full gap-10 border-b border-white/10 pb-12 md:grid-cols-[1fr_auto] md:items-center"
         initial={reduce ? false : { opacity: 0 }}
         animate={{ opacity: 1 }}
-        transition={{ delay: 0.12 }}
+        transition={{ delay: 0.05 }}
       >
-        {metricCards.map((card, idx) => (
+        <div className="min-w-0 flex-1 space-y-6">
+          <p className="report-kicker">Implied enterprise value range</p>
+          {outputs.estimatedValuation <= 0 ? (
+            <p className="text-base leading-relaxed text-[color:var(--terminal-muted)]">
+              No implied range yet — add{' '}
+              <span className="font-bold text-white">MRR or ARR</span> in the
+              questionnaire so the model can anchor on revenue.
+            </p>
+          ) : (
+            <p className="report-hero-amount" aria-live="polite">
+              {formatEnterpriseValuation(band.low)} – {formatEnterpriseValuation(band.high)}
+            </p>
+          )}
+          <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-3 pt-1">
+            <span className="report-midpoint-label">Midpoint anchor valuation</span>
+            <span className="report-midpoint-value tabular-nums">
+              {formatEnterpriseValuation(animatedMid)}
+            </span>
+          </div>
+        </div>
+
+        {/* Model Confidence Meter (Transparent, borderless) */}
+        <div className="flex justify-center shrink-0">
+          <ValuationGauge
+            value={outputs.confidencePct}
+            label="Model Confidence"
+            size={220}
+          />
+        </div>
+      </motion.article>
+
+      {/* Row 1: Core Value Drivers (Transparent dials side-by-side with vertical hairline separators) */}
+      <section className="space-y-6 border-b border-white/10 pb-10">
+        <h2 className="report-section-title">Core valuation drivers</h2>
+        <motion.div
+          className="grid gap-8 sm:grid-cols-3 w-full"
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.12 }}
+        >
           <motion.div
-            key={card.label}
             initial={reduce ? false : { opacity: 0, y: 8 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.08 + idx * 0.05 }}
-            className={cn(
-              'rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] px-4 py-3 hover-elevate',
-              card.wide && 'sm:col-span-2 lg:col-span-1',
-            )}
+            transition={{ delay: 0.15 }}
+            className="flex flex-col items-center justify-center text-center sm:border-r sm:border-white/10 sm:px-4 w-full"
           >
-            <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]">
-              {card.label}
-            </p>
-            <p className="mt-1 font-mono text-sm font-bold text-[color:var(--terminal-fg)]">{card.value}</p>
+            <ValuationGauge
+              value={outputs.acquisitionHeat}
+              label="Acquisition Appetite"
+              subtitle="Corporate M&A heat index"
+              size={230}
+            />
           </motion.div>
-        ))}
+
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="flex flex-col items-center justify-center text-center sm:border-r sm:border-white/10 sm:px-4 w-full"
+          >
+            <ValuationGauge
+              value={outputs.investorInterest}
+              label="Investor Demand"
+              subtitle="Equity backing likelihood"
+              size={230}
+            />
+          </motion.div>
+
+          <motion.div
+            initial={reduce ? false : { opacity: 0, y: 8 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="flex flex-col items-center justify-center text-center sm:px-4 w-full"
+          >
+            <ValuationGauge
+              value={outputs.growthQuality}
+              label="Growth Integrity"
+              subtitle="Revenue quality multiple"
+              size={230}
+            />
+          </motion.div>
+        </motion.div>
+      </section>
+
+      {/* Row 2: Capital Efficiency and Market Timing (Cardless, divided side-by-side) */}
+      <motion.div
+        className="grid gap-8 sm:grid-cols-2 border-b border-white/10 pb-10"
+        initial={reduce ? false : { opacity: 0 }}
+        animate={{ opacity: 1 }}
+        transition={{ delay: 0.3 }}
+      >
+        <motion.div
+          className="flex flex-col justify-between sm:border-r sm:border-white/10 sm:pr-8"
+          initial={reduce ? false : { opacity: 0, x: -8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.32 }}
+        >
+          <div>
+            <span className="report-section-title">Market timing index</span>
+            <h4 className="mt-3.5 font-mono text-3xl font-black text-white">
+              {outputs.marketTiming}
+            </h4>
+          </div>
+          <p className="mt-4 text-sm text-[color:var(--terminal-muted)] leading-relaxed font-medium">
+            Strategic liquidity events and private equity transaction volume currently shape this timing corridor.
+          </p>
+        </motion.div>
+
+        <motion.div
+          className="flex flex-col justify-between pt-6 sm:pt-0 sm:pl-6"
+          initial={reduce ? false : { opacity: 0, x: 8 }}
+          animate={{ opacity: 1, x: 0 }}
+          transition={{ delay: 0.36 }}
+        >
+          <div>
+            <span className="report-section-title">Capital efficiency anchor</span>
+            <h4 className="mt-3.5 font-mono text-3xl font-black text-white">
+              {efficiencyLabel}
+            </h4>
+          </div>
+          <p className="mt-4 text-sm text-[color:var(--terminal-muted)] leading-relaxed font-medium">
+            Appraises Net ARR returns relative to operating capital burn rate, scaling baseline exit multiples.
+          </p>
+        </motion.div>
       </motion.div>
 
-      <section className="space-y-3">
-        <h3 className="text-sm font-bold uppercase tracking-[0.16em] text-[color:var(--terminal-muted)]">
-          Dynamic strategic insights
-        </h3>
-        <ul className="space-y-2">
+      {/* Row 3: Strategic M&A Narrative Lines (Cardless borderless bullet list) */}
+      <section className="space-y-5 border-b border-white/10 pb-10">
+        <h2 className="report-section-title">Strategic deal narrative</h2>
+        <ul className="space-y-4">
           {narrative.map((line, i) => (
             <motion.li
               key={line}
               initial={reduce ? false : { opacity: 0, x: -6 }}
               animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.15 + i * 0.06 }}
-              className="rounded-[8px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] px-4 py-3 text-sm leading-relaxed text-[color:var(--terminal-muted)]"
+              transition={{ delay: 0.4 + i * 0.06 }}
+              className="px-0 py-2.5 text-sm font-semibold leading-relaxed text-[color:var(--terminal-muted)] flex items-start gap-3.5 bg-transparent border-0 shadow-none"
             >
-              {line}
+              <span className="text-[color:var(--terminal-lime)] shrink-0 font-extrabold font-mono select-none">&gt;&gt;</span>
+              <span className="text-white/80">{line}</span>
             </motion.li>
           ))}
         </ul>
       </section>
 
-      <section className="space-y-4">
-        <h3 className="text-lg font-bold text-[color:var(--terminal-fg)]">Deep intelligence cards</h3>
-        <StrategicInsights insights={insights} />
+      {/* Row 4: Verified Data Submission Matrix (Brings the audit matrix cleanly to bottom hierarchy) */}
+      <section className="border-b border-white/10 pb-10">
+        <ValuationCaptureSummary inputs={inputs} meta={meta} />
+      </section>
+
+      {/* Row 5: Deep Insights Section */}
+      <section className="space-y-6 pt-2">
+        <h2 className="report-section-title text-base tracking-[0.12em] sm:text-lg">
+          Deep portfolio intelligence
+        </h2>
+        <div className="border-t border-white/10 pt-6">
+          <StrategicInsights insights={insights} />
+        </div>
       </section>
     </motion.div>
   );
@@ -166,19 +231,19 @@ export function ValuationResultsDashboard({ inputs, outputs, insights, startupNa
 function buildInvestorNarrative(inputs: ValuationInputs, o: ValuationOutputs): string[] {
   const lines: string[] = [];
   if (inputs.cac > 0 && inputs.ltv > 0 && inputs.ltv / inputs.cac >= 3) {
-    lines.push('Low churn and strong LTV/CAC improve strategic acquisition attractiveness.');
+    lines.push('Favorable unit economics with sound LTV/CAC ratios structurally anchor strategic M&A valuation multiples.');
   }
   if (inputs.monthlyGrowthPct > 4 && inputs.burnMultiple <= 2) {
-    lines.push('Revenue growth materially outpaces burn expansion.');
+    lines.push('Consistent revenue growth velocity outpaces capital burn multiple expansion, showing exceptional leverage.');
   }
   if (o.investorInterest >= 65) {
-    lines.push('Investor formation scores suggest room for a priced round if data room quality is high.');
+    lines.push('Venture appetite models indicate strong institutional likelihood for supporting structured primary equity rounds.');
   }
   if (o.acquisitionHeat > o.investorInterest + 8) {
-    lines.push('Corporate development heat exceeds incremental venture demand — exit sequencing may dominate.');
+    lines.push('Corporate buy-side M&A appetite exceeds incremental venture financing interest, favoring strategic acquisition sequences.');
   }
   if (inputs.churnPctMonthly > 5) {
-    lines.push('Elevated churn compresses multiple expansion — stabilize NRR before optimizing for step-ups.');
+    lines.push('Elevated churn indices compress overall valuation multiples; priority focus recommended on stabilizing net revenue retention.');
   }
   if (lines.length === 0) {
     lines.push(o.strategicRecommendation);

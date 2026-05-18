@@ -22,7 +22,7 @@ export function DashboardLayout({ children }: Props) {
         <aside className="hidden border-r border-border bg-background lg:sticky lg:top-0 lg:block lg:h-[100dvh] lg:max-h-[100dvh] lg:self-start">
           <DashboardSidebar />
         </aside>
-        <main className="flex min-h-0 min-w-0 flex-col overflow-x-hidden">
+        <main data-scroll-reset className="flex min-h-0 min-w-0 flex-col overflow-x-hidden">
           <div className="flex-1 px-3 py-4 sm:p-6">{children}</div>
         </main>
       </div>

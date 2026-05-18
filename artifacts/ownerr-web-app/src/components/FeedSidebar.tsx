@@ -97,7 +97,7 @@ export function FeedSidebar() {
                       <div className="line-clamp-2 text-xs font-bold leading-tight">{row.name}</div>
                       <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 text-[11px]">
                         <span className="font-bold tabular-nums">{row.mrr}</span>
-                        <span className="font-bold text-emerald-500 tabular-nums">
+                        <span className="font-bold mp-text-positive tabular-nums">
                           +{row.growthPct.toLocaleString()}%
                         </span>
                       </div>

@@ -3,7 +3,7 @@ import { ValuationExperience } from '@/components/valuation/ValuationExperience'
 
 export default function ValuationPage() {
   return (
-    <MarketingLayout fullBleedMain>
+    <MarketingLayout fullBleedMain hideFooter>
       <ValuationExperience />
     </MarketingLayout>
   );

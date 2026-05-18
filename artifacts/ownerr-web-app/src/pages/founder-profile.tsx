@@ -220,13 +220,13 @@ export default function FounderProfile() {
                     className={cn(
                       'rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide',
                       claimSpot.role === 'founder'
-                        ? 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200'
-                        : 'bg-sky-500/15 text-sky-900 dark:bg-sky-500/20 dark:text-sky-100',
+                        ? 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/20'
+                        : 'mp-chip-info',
                     )}
                   >
                     {claimRoleLabel(claimSpot.role)}
                   </span>
-                  <span className="rounded-full border border-border bg-muted/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground dark:border-zinc-600 dark:bg-zinc-800/80">
+                  <span className="rounded-full border border-border bg-muted/60 px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide text-muted-foreground border-border bg-muted/60">
                     Spot roster
                   </span>
                 </div>
@@ -237,7 +237,7 @@ export default function FounderProfile() {
                   href={xUrl}
                   target="_blank"
                   rel="noreferrer"
-                  className="mt-1 inline-block font-mono text-sm font-bold text-sky-600 hover:text-sky-700 hover:underline dark:text-sky-400 dark:hover:text-sky-300"
+                  className="mt-1 inline-block font-mono text-sm font-bold mp-text-link hover:underline hover:text-[color:var(--terminal-ochre-hover)]"
                 >
                   @{claimSpot.handle}
                 </a>
@@ -365,7 +365,7 @@ export default function FounderProfile() {
               href={xUrl}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 inline-block font-mono text-sm font-bold text-sky-600 hover:text-sky-700 hover:underline dark:text-sky-400 dark:hover:text-sky-300"
+              className="mt-1 inline-block font-mono text-sm font-bold mp-text-link hover:underline hover:text-[color:var(--terminal-ochre-hover)]"
             >
               {founder.twitter}
             </a>
@@ -378,7 +378,7 @@ export default function FounderProfile() {
               {founder.skills.map((skill) => (
                 <span
                   key={skill}
-                  className="rounded-full border border-border bg-muted/60 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-foreground dark:border-zinc-600/80 dark:bg-zinc-800/80 dark:text-zinc-100"
+                  className="rounded-full border border-border bg-muted/60 px-3 py-1.5 text-xs font-bold uppercase tracking-wider text-foreground dark:border-zinc-600/80 dark:bg-zinc-800/80"
                 >
                   {skill}
                 </span>

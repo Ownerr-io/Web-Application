@@ -18,26 +18,18 @@ import {
   computeValuationIntel,
   type ValuationInputs,
 } from '@/lib/valuationIntel';
-import { EMPTY_ONBOARDING_META, type ValuationPhase } from './types';
+import { DEFAULT_OWNERR_ONBOARDING_META, type ValuationPhase } from './types';
 import { VALUATION_QUESTIONS, validateAllInputs } from './valuationQuestions';
+import { scrollPageToTop } from '@/lib/scrollPageToTop';
 
 const MRR_QUESTION_INDEX = VALUATION_QUESTIONS.findIndex((q) => q.id === 'mrr');
-
-const defaultInputs = (): ValuationInputs => ({
-  ...DEFAULT_VALUATION_INPUTS,
-  arr: 0,
-  mrr: 0,
-  profitMarginPct: 18,
-  operatingExpensesMonthly: 0,
-  runwayMonths: 18,
-});
 
 function defaultSession(): ValuationSessionState {
   return {
     phase: 'intro',
     questionIndex: 0,
-    inputs: defaultInputs(),
-    meta: { ...EMPTY_ONBOARDING_META, marketCategory: 'B2B SaaS' },
+    inputs: { ...DEFAULT_VALUATION_INPUTS },
+    meta: { ...DEFAULT_OWNERR_ONBOARDING_META },
   };
 }
 
@@ -55,6 +47,13 @@ export function ValuationExperience({ onPhaseChange }: Props) {
   useEffect(() => {
     if (status === 'ready') onPhaseChange?.(session.phase);
   }, [status, session.phase, onPhaseChange]);
+
+  useEffect(() => {
+    if (status !== 'ready') return;
+    scrollPageToTop();
+    const raf = requestAnimationFrame(() => scrollPageToTop());
+    return () => cancelAnimationFrame(raf);
+  }, [status, phase]);
 
   useEffect(() => {
     if (status !== 'ready') return;
@@ -111,7 +110,9 @@ export function ValuationExperience({ onPhaseChange }: Props) {
     <motion.div
       className={cn(
         'relative flex w-full flex-col',
-        (phase === 'intro' || phase === 'questions' || phase === 'analyzing') && VALUATION_STAGE_MIN_H,
+        phase === 'analyzing' &&
+          'h-[calc(100dvh-3.25rem)] max-h-[calc(100dvh-3.25rem)] overflow-hidden sm:h-[calc(100dvh-4rem)] sm:max-h-[calc(100dvh-4rem)]',
+        (phase === 'intro' || phase === 'questions') && VALUATION_STAGE_MIN_H,
       )}
     >
       <ValuationStageBackdrop intensity={backdropIntensity} calm={calmBackdrop || phase === 'analyzing'} />
@@ -139,9 +140,13 @@ export function ValuationExperience({ onPhaseChange }: Props) {
           )}
 
           {phase === 'analyzing' && (
-            <motion.div key="analyzing" className="flex min-h-0 w-full flex-1 flex-col">
+            <motion.div
+              key="analyzing"
+              className="valuation-analysis-stage flex h-full min-h-0 w-full flex-1 flex-col overflow-hidden"
+            >
               <AiAnalysisScreen
                 estimatedValuation={outputs.estimatedValuation}
+                inputs={inputs}
                 onComplete={showResults}
               />
             </motion.div>
@@ -155,24 +160,22 @@ export function ValuationExperience({ onPhaseChange }: Props) {
               animate={{ opacity: 1 }}
               transition={{ duration: 0.45 }}
             >
-              <div className="mx-auto max-w-[1200px] space-y-8 px-4 pt-10 sm:px-6">
-                <ValuationCaptureSummary inputs={inputs} meta={meta} />
-              </div>
               <ValuationResultsDashboard
                 inputs={inputs}
                 outputs={outputs}
                 insights={insights}
                 startupName={meta.startupName.trim() || undefined}
+                meta={meta}
               />
               <LeadConversionSection />
-              <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-4 pb-8 sm:flex-row sm:flex-wrap sm:gap-3 sm:px-6">
-                <Button asChild variant="outline" className="h-11 w-full rounded-full border-[color:var(--terminal-border)] font-bold sm:w-auto">
+              <div className="mx-auto flex max-w-[1200px] flex-col gap-2 px-4 pb-8 sm:flex-row sm:flex-wrap sm:gap-3 ">
+                <Button asChild variant="outline" className="h-11 w-full rounded-[10px] border-[color:var(--terminal-border)] font-bold sm:w-auto">
                   <Link href="/">Back to overview</Link>
                 </Button>
                 <Button
                   type="button"
                   variant="ghost"
-                  className="h-11 w-full font-bold text-[color:var(--terminal-muted)] sm:w-auto"
+                  className="h-11 w-full rounded-[10px] font-bold text-[color:var(--terminal-muted)] sm:w-auto"
                   onClick={() => void resetFlow()}
                 >
                   Run again

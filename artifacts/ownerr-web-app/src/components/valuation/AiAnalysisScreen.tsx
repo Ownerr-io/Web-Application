@@ -1,27 +1,38 @@
-import { useEffect, useRef, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
-import { ValuationFullViewport } from './ValuationFullViewport';
-import { ValuationLottieAnimation } from './ValuationLottieAnimation';
+import type { ValuationInputs } from '@/lib/valuationIntel';
 import { AnalysisValuationCounter } from './AnalysisValuationCounter';
-import { VALUATION_HERO_LOTTIE_CLASS } from './valuationHeroLottieSize';
+import { ValuationLottieAnimation } from './ValuationLottieAnimation';
+import { MARKETING_SHELL_CLASS } from '@/lib/marketingShell';
+import {
+  VALUATION_ANALYSIS_COUNTER_CLASS,
+  VALUATION_ANALYSIS_INTEL_CLASS,
+  VALUATION_ANALYSIS_LOTTIE_CLASS,
+} from './valuationHeroLottieSize';
 
 const ANALYSIS_LOTTIE_SRC = '/Valuation.lottie';
 
-const MESSAGES = [
-  'Analyzing growth trajectory…',
-  'Computing strategic valuation…',
-  'Evaluating acquisition heat…',
-  'Calculating investor appetite…',
+const INTELLIGENCE_LINES = [
+  'Analyzing MRR growth patterns…',
+  'Calculating ARR projections…',
+  'Evaluating capital efficiency…',
+  'Processing retention metrics…',
+  'Mapping funding trajectory…',
+  'Benchmarking sector multiples…',
+  'Running AI-driven comparables…',
+  'Estimating market positioning…',
+  'Simulating growth velocity…',
+  'Computing founder efficiency score…',
 ] as const;
 
-/** One shared timeline for Lottie + status copy (ms). */
-const ANALYSIS_SYNC_MS = 4000;
-const REDUCED_SYNC_MS = 1200;
-const EXIT_FADE_MS = 420;
+const ANALYSIS_SYNC_MS = 8200;
+const REDUCED_SYNC_MS = 1500;
+const EXIT_FADE_MS = 480;
 
 type Props = {
   estimatedValuation: number;
+  inputs: ValuationInputs;
   onComplete: () => void;
 };
 
@@ -31,26 +42,42 @@ type Phase = 'sync' | 'exit';
 
 export function AiAnalysisScreen({ estimatedValuation, onComplete }: Props) {
   const reduce = useReducedMotion();
-  const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('sync');
+  const [convergencePct, setConvergencePct] = useState(0);
   const finishedRef = useRef(false);
 
   const syncMs = reduce ? REDUCED_SYNC_MS : ANALYSIS_SYNC_MS;
-  const messageStepMs = syncMs / MESSAGES.length;
 
   useEffect(() => {
     finishedRef.current = false;
     setPhase('sync');
-    setIdx(0);
+    setConvergencePct(0);
 
     const timers: number[] = [];
-    for (let i = 1; i < MESSAGES.length; i++) {
-      timers.push(window.setTimeout(() => setIdx(i), Math.round(i * messageStepMs)));
-    }
     timers.push(window.setTimeout(() => setPhase('exit'), syncMs));
 
     return () => timers.forEach(clearTimeout);
-  }, [syncMs, messageStepMs]);
+  }, [syncMs]);
+
+  useEffect(() => {
+    if (phase !== 'sync') return;
+    const start = performance.now();
+    let frame = 0;
+    const tick = (now: number) => {
+      const t = Math.min(1, (now - start) / syncMs);
+      const eased = 1 - (1 - t) ** 2.1;
+      setConvergencePct(Math.round(eased * 100));
+      if (t < 1) frame = requestAnimationFrame(tick);
+    };
+    frame = requestAnimationFrame(tick);
+    return () => cancelAnimationFrame(frame);
+  }, [phase, syncMs]);
+
+  const lineIdx = useMemo(() => {
+    if (INTELLIGENCE_LINES.length <= 1) return 0;
+    const step = 100 / INTELLIGENCE_LINES.length;
+    return Math.min(INTELLIGENCE_LINES.length - 1, Math.floor(convergencePct / step));
+  }, [convergencePct]);
 
   useEffect(() => {
     if (phase !== 'exit' || finishedRef.current) return;
@@ -59,90 +86,132 @@ export function AiAnalysisScreen({ estimatedValuation, onComplete }: Props) {
     return () => clearTimeout(t);
   }, [phase, onComplete, reduce]);
 
+  useEffect(() => {
+    if (phase !== 'sync' && phase !== 'exit') return;
+    const prev = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      document.body.style.overflow = prev;
+    };
+  }, [phase]);
+
   const showHero = phase === 'sync';
-  const showLottie = showHero && !reduce;
 
   return (
     <motion.div
-      className="w-full"
+      className="relative flex h-full min-h-0 w-full flex-1 flex-col overflow-x-hidden overflow-y-visible"
       initial={false}
       animate={{ opacity: phase === 'exit' ? 0 : 1 }}
       transition={{ duration: reduce ? 0.15 : EXIT_FADE_MS / 1000, ease: easePremium }}
     >
-      <ValuationFullViewport center={false} className="grid grid-rows-[1fr_auto] px-4 sm:px-10">
-        <div className="flex min-h-0 flex-col items-center justify-center py-2 text-center sm:py-4">
+
+      <motion.div
+        className={cn(
+          MARKETING_SHELL_CLASS,
+          'relative z-10 flex h-full min-h-0 flex-col overflow-x-hidden overflow-y-visible pb-4 pt-5 sm:pt-6',
+        )}
+        initial={false}
+      >
+
+        <div className="flex min-h-0 flex-1 flex-col items-center justify-center overflow-x-hidden overflow-y-visible">
           <AnimatePresence mode="wait">
             {showHero ? (
               <motion.div
                 key="hero"
-                initial={reduce ? false : { opacity: 0, scale: 0.94 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.96 }}
-                transition={{ duration: 0.35, ease: easePremium }}
-                className={cn(
-                  'flex w-full justify-center',
-                  showLottie && 'relative',
-                )}
+                initial={reduce ? false : { opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0, filter: 'blur(4px)' }}
+                transition={{ duration: 0.45, ease: easePremium }}
+                className="analysis-hero flex w-full max-w-[min(100%,40rem)] flex-col items-center overflow-visible"
               >
-                {showLottie ? (
-                  <ValuationLottieAnimation
-                    src={ANALYSIS_LOTTIE_SRC}
-                    loop
-                    className={VALUATION_HERO_LOTTIE_CLASS}
-                    aria-label="Evaluating your startup"
+                <p className="analysis-kicker mb-2 shrink-0 text-center">Implied pricing anchor</p>
+
+                <motion.div className="analysis-counter-slot" layout={false}>
+                  <AnalysisValuationCounter
+                    estimatedValuation={estimatedValuation}
+                    progressPct={convergencePct}
+                    className={cn(
+                      VALUATION_ANALYSIS_COUNTER_CLASS,
+                      'font-bold text-[color:var(--terminal-ochre)]',
+                    )}
                   />
+                </motion.div>
+
+                {!reduce ? (
+                  <motion.div
+                    className={cn(
+                      'analysis-lottie-slot mt-[clamp(0.125rem,0.35dvh,0.25rem)]',
+                    )}
+                    aria-hidden
+                  >
+                    <motion.div
+                      className="flex w-full items-center justify-center"
+                      initial={{ opacity: 0, y: '22%' }}
+                      animate={{ opacity: 1, y: 0 }}
+                      transition={{ delay: 0.08, duration: 0.95, ease: easePremium }}
+                    >
+                      <ValuationLottieAnimation
+                        src={ANALYSIS_LOTTIE_SRC}
+                        loop
+                        decorative
+                        className={cn(
+                          VALUATION_ANALYSIS_LOTTIE_CLASS,
+                          'drop-shadow-[0_0_40px_color-mix(in_srgb,var(--terminal-lime)_18%,transparent)]',
+                        )}
+                      />
+                    </motion.div>
+                  </motion.div>
                 ) : null}
-                <motion.div
-                  className={cn(
-                    'flex items-center justify-center',
-                    showLottie
-                      ? 'absolute inset-0 pt-[8%] sm:pt-[6%]'
-                      : 'min-h-[8rem] py-6',
-                  )}
-                  initial={reduce ? false : { opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  transition={{ delay: 0.12, duration: 0.35, ease: easePremium }}
-                >
-                  <AnalysisValuationCounter estimatedValuation={estimatedValuation} />
+
+                <motion.div className="analysis-intel-slot mt-[clamp(0.5rem,1.5dvh,0.85rem)]">
+                  <AnimatePresence mode="wait">
+                    <motion.p
+                      key={lineIdx}
+                      className={cn(
+                        VALUATION_ANALYSIS_INTEL_CLASS,
+                        'text-pretty text-center font-mono line-clamp-2',
+                      )}
+                      initial={reduce ? false : { opacity: 0, y: 10, filter: 'blur(6px)' }}
+                      animate={{ opacity: 1, y: 0, filter: 'blur(0px)' }}
+                      exit={reduce ? undefined : { opacity: 0, y: -6, filter: 'blur(4px)' }}
+                      transition={{ duration: 0.5, ease: easePremium }}
+                      aria-live="polite"
+                    >
+                      {INTELLIGENCE_LINES[lineIdx]}
+                    </motion.p>
+                  </AnimatePresence>
                 </motion.div>
               </motion.div>
             ) : null}
           </AnimatePresence>
+        </div>
 
-          <p
-            className={cn(
-              'text-[11px] font-bold uppercase tracking-[0.28em] text-[color:var(--terminal-muted)]',
-              showHero ? 'mt-8 sm:mt-10' : 'mt-0',
-            )}
-          >
-            Evaluating
-          </p>
-
-          <div className="mt-4 min-h-[2.75rem] w-full max-w-lg">
-            <AnimatePresence mode="wait">
-              <motion.p
-                key={MESSAGES[idx]}
-                className="text-pretty px-1 text-lg font-semibold leading-snug text-[color:var(--terminal-fg)] sm:text-2xl"
-                initial={reduce ? false : { opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={reduce ? undefined : { opacity: 0, y: -10 }}
-                transition={{ duration: 0.28, ease: easePremium }}
-              >
-                {MESSAGES[idx]}
-              </motion.p>
-            </AnimatePresence>
+        <motion.div
+          className="mx-auto w-full max-w-md shrink-0 pt-2"
+          initial={reduce ? false : { opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ delay: 0.15, duration: 0.45 }}
+        >
+          <motion.div className="mb-2 flex items-center justify-between text-[9px] font-semibold uppercase tracking-[0.2em] text-[color:var(--terminal-muted)]">
+            <span>Model convergence</span>
+            <span className="tabular-nums text-[color:var(--terminal-lime)]">{convergencePct}%</span>
+          </motion.div>
+          <div className="relative h-[3px] overflow-hidden rounded-full bg-[color:var(--terminal-surface-2)]/90">
+            <motion.div
+              className="relative h-full overflow-hidden rounded-full"
+              style={{ width: `${convergencePct}%` }}
+              transition={{ duration: 0.35, ease: easePremium }}
+            >
+              <motion.div className="absolute inset-0 bg-[color:var(--terminal-lime)]/85" />
+              <motion.div
+                className="absolute inset-y-0 w-[45%] bg-gradient-to-r from-transparent via-[color:var(--terminal-fg)]/25 to-transparent"
+                animate={reduce ? undefined : { x: ['-120%', '280%'] }}
+                transition={{ duration: 2.4, repeat: Infinity, ease: 'linear' }}
+              />
+            </motion.div>
           </div>
-        </div>
-
-        <div className="mx-auto mb-6 h-px w-full max-w-md shrink-0 overflow-hidden bg-[color:var(--terminal-border)]/50 sm:mb-8">
-          <motion.div
-            className="h-full bg-gradient-to-r from-[color:var(--terminal-ochre)] to-[color:var(--terminal-lime)]"
-            initial={{ width: '0%' }}
-            animate={{ width: '100%' }}
-            transition={{ duration: syncMs / 1000, ease: easePremium }}
-          />
-        </div>
-      </ValuationFullViewport>
+        </motion.div>
+      </motion.div>
     </motion.div>
   );
 }

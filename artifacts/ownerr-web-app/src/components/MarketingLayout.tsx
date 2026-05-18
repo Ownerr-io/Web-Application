@@ -38,6 +38,7 @@ export function MarketingLayout({
         </div>
       )}
       <main
+        data-scroll-reset
         className={cn(
           'min-w-0 overflow-x-hidden pb-[env(safe-area-inset-bottom,0px)]',
           fullBleedMain ? 'pt-0' : terminalPalette ? 'pt-0' : 'pt-6',

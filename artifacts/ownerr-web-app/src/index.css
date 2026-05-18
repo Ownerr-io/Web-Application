@@ -171,6 +171,15 @@
   --terminal-lime: #b7f542;
   --terminal-glow: rgba(189, 252, 115, 0.12);
 
+  /** Valuation / marketing display type (excluded on `.acquire-terminal-palette` marketplace) */
+  --terminal-display: #ebfbbc;
+  --terminal-display-size-lg: clamp(1.875rem, 3.5vw, 3rem);
+  --terminal-display-size-xl: clamp(2.25rem, 4.2vw, 3rem);
+  --terminal-display-size-md: clamp(1.5rem, 2.8vw, 1.875rem);
+  --terminal-body-size: 0.875rem;
+  --terminal-eyebrow-size: 0.6875rem;
+  --terminal-eyebrow-tracking: 0.22em;
+
   /**
    * Brand accent — canonical lime (#d9f69d). Landing / marketplace remap `--terminal-ochre*` via
    * `.landing-terminal-palette` / `.acquire-terminal-palette`; authenticated desk uses `--desk-*` for `primary` / ring.
@@ -223,15 +232,15 @@
   box-shadow: 0 10px 28px hsl(0 0% 0% / 0.1);
 }
 .dark .startup-listing-card {
-  background: #1a1a1a;
-  border: 1px solid #333333;
-  color: #ffffff;
-  box-shadow: 0 1px 0 rgba(255, 255, 255, 0.04) inset;
+  background: var(--terminal-surface);
+  border: 1px solid var(--terminal-border);
+  color: var(--terminal-fg);
+  box-shadow: 0 1px 0 color-mix(in srgb, var(--terminal-fg) 4%, transparent) inset;
 }
 .dark .startup-listing-card:hover {
   box-shadow:
-    0 12px 28px rgba(0, 0, 0, 0.45),
-    0 1px 0 rgba(255, 255, 255, 0.05) inset;
+    0 12px 28px color-mix(in srgb, var(--terminal-bg) 45%, transparent),
+    0 1px 0 color-mix(in srgb, var(--terminal-fg) 5%, transparent) inset;
 }
 .startup-listing-for-sale {
   position: absolute;
@@ -248,7 +257,7 @@
   pointer-events: none;
 }
 .dark .startup-listing-for-sale {
-  color: #f5d08a;
+  color: var(--terminal-ochre);
 }
 .startup-listing-logo {
   width: 2.5rem;
@@ -258,12 +267,12 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  background: #2a2a2a;
-  font-family: Inconsolata, ui-monospace, monospace;
+  border: 1px solid color-mix(in srgb, var(--terminal-fg) 12%, transparent);
+  background: var(--terminal-surface-2);
+  font-family: var(--app-font-mono);
   font-size: 1rem;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.95);
+  color: var(--terminal-fg);
 }
 .startup-listing-metrics {
   border-top: 1px solid hsl(var(--border));
@@ -271,7 +280,7 @@
   padding-top: 0.65rem;
 }
 .dark .startup-listing-metrics {
-  border-top-color: #2e2e2e;
+  border-top-color: var(--terminal-border);
 }
 .startup-listing-metric-label {
   font-family: Inconsolata, ui-monospace, monospace;
@@ -283,7 +292,7 @@
   margin-bottom: 0.4rem;
 }
 .dark .startup-listing-metric-label {
-  color: #b4b4b4;
+  color: var(--terminal-muted);
 }
 .startup-listing-metric-value {
   font-family: Inconsolata, ui-monospace, monospace;
@@ -293,7 +302,7 @@
   line-height: 1.2;
 }
 .dark .startup-listing-metric-value {
-  color: #ffffff;
+  color: var(--terminal-fg);
 }
 .startup-listing-title {
   font-family: Inconsolata, ui-monospace, monospace;
@@ -302,7 +311,7 @@
   letter-spacing: -0.02em;
 }
 .dark .startup-listing-title {
-  color: #ffffff;
+  color: var(--terminal-fg);
 }
 .startup-listing-category {
   font-family: Inconsolata, ui-monospace, monospace;
@@ -310,7 +319,7 @@
   color: hsl(var(--muted-foreground));
 }
 .dark .startup-listing-category {
-  color: #b8b8b8;
+  color: var(--terminal-muted);
 }
 
 /* Primary CTA — light button on black (Ownerr search row) */
@@ -504,6 +513,125 @@
   min-height: 100vh;
   background-color: var(--terminal-bg);
   color: var(--terminal-fg);
+  font-size: var(--terminal-body-size);
+  line-height: 1.55;
+}
+
+/**
+ * Shared typography with `/valuation` (marketing + authenticated desk).
+ * Marketplace uses `.acquire-terminal-palette` only — intentionally not included here.
+ */
+.landing-terminal-palette h1,
+.desk-app-shell h1 {
+  font-weight: 300;
+  letter-spacing: -0.025em;
+  color: var(--terminal-display);
+  line-height: 1.15;
+  font-size: var(--terminal-display-size-xl);
+}
+
+.landing-terminal-palette h2,
+.desk-app-shell h2 {
+  font-weight: 300;
+  letter-spacing: -0.025em;
+  color: var(--terminal-display);
+  line-height: 1.2;
+  font-size: var(--terminal-display-size-lg);
+}
+
+.landing-terminal-palette h3,
+.desk-app-shell h3 {
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--terminal-display);
+  line-height: 1.25;
+  font-size: var(--terminal-display-size-md);
+}
+
+.landing-terminal-palette .terminal-eyebrow,
+.desk-app-shell .terminal-eyebrow {
+  font-size: var(--terminal-eyebrow-size);
+  font-weight: 700;
+  letter-spacing: var(--terminal-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--terminal-muted);
+}
+
+/* Valuation executive report — calmer type than global marketing h1/h2 */
+.valuation-executive-report {
+  color: var(--terminal-fg);
+}
+
+.valuation-executive-report h1,
+.valuation-executive-report h2,
+.valuation-executive-report h3 {
+  font-size: unset;
+  font-weight: unset;
+  letter-spacing: unset;
+  color: unset;
+  line-height: unset;
+}
+
+.valuation-executive-report .report-kicker {
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--terminal-muted);
+}
+
+.valuation-executive-report .report-title {
+  font-size: clamp(1.75rem, 3.5vw, 2.35rem);
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--terminal-display);
+  line-height: 1.15;
+}
+
+.valuation-executive-report .report-lead {
+  font-size: 0.9375rem;
+  font-weight: 400;
+  line-height: 1.6;
+  color: var(--terminal-muted);
+}
+
+.valuation-executive-report .report-status {
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--terminal-lime);
+}
+
+.valuation-executive-report .report-hero-amount {
+  font-family: var(--app-font-mono);
+  font-size: clamp(2.25rem, 7vw, 4.25rem);
+  font-weight: 700;
+  line-height: 1;
+  letter-spacing: -0.03em;
+  color: var(--terminal-ochre);
+  text-shadow: 0 0 28px color-mix(in srgb, var(--terminal-ochre) 35%, transparent);
+}
+
+.valuation-executive-report .report-midpoint-label {
+  font-size: 0.8125rem;
+  font-weight: 500;
+  color: var(--terminal-muted);
+}
+
+.valuation-executive-report .report-midpoint-value {
+  font-family: var(--app-font-mono);
+  font-size: clamp(1.5rem, 4vw, 2.25rem);
+  font-weight: 700;
+  color: var(--terminal-fg);
+}
+
+.valuation-executive-report .report-section-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--terminal-display);
 }
 
 .landing-terminal-palette .text-muted-foreground,
@@ -549,8 +677,129 @@
 }
 
 .acquire-terminal-palette {
+  min-height: 100vh;
   background-color: var(--terminal-bg);
   color: var(--terminal-fg);
+  font-family: var(--app-font-sans);
+  font-size: var(--terminal-body-size);
+  line-height: 1.55;
+}
+
+.acquire-terminal-palette h1,
+.acquire-terminal-palette h2 {
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--terminal-display);
+  line-height: 1.2;
+}
+
+.acquire-terminal-palette h1 {
+  font-size: var(--terminal-display-size-xl);
+}
+
+.acquire-terminal-palette h2,
+.acquire-terminal-palette .mp-section-title {
+  font-size: clamp(1.25rem, 2.4vw, 1.875rem);
+}
+
+.acquire-terminal-palette .mp-section-title {
+  font-weight: 300;
+  letter-spacing: -0.02em;
+  color: var(--terminal-display);
+}
+
+.acquire-terminal-palette .mp-kicker {
+  font-size: var(--terminal-eyebrow-size);
+  font-weight: 700;
+  letter-spacing: var(--terminal-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--terminal-muted);
+}
+
+.acquire-terminal-palette .mp-badge-for-sale {
+  background-color: var(--terminal-ochre);
+  color: var(--brand-accent-ink);
+}
+
+.acquire-terminal-palette .mp-trend-up {
+  color: var(--terminal-lime);
+}
+
+.acquire-terminal-palette .mp-trend-down {
+  color: hsl(var(--destructive));
+}
+
+.valuation-analysis-stage {
+  overflow-x: hidden;
+  overflow-y: visible;
+  /*
+   * Counter tracks hero Lottie footprint (52dvh / 72dvh caps) — ~20% of Lottie height.
+   * Lottie uses VALUATION_HERO_LOTTIE_CLASS in TS (same as loading animation.lottie).
+   */
+  --analysis-counter-size: clamp(2.65rem, min(11dvh, 4.75rem), 4.75rem);
+  --analysis-intel-size: clamp(1.0625rem, 4.2vw, 1.4375rem);
+  --analysis-intel-min-h: clamp(3.25rem, 7.5dvh, 5rem);
+}
+
+@media (min-width: 640px) {
+  .valuation-analysis-stage {
+    --analysis-counter-size: clamp(4.85rem, min(22dvh, 11.5rem), 11.5rem);
+    --analysis-intel-size: clamp(1.1875rem, 3.25vw, 1.5625rem);
+    --analysis-intel-min-h: clamp(3.25rem, 7.5dvh, 6rem);
+  }
+}
+
+.valuation-analysis-stage .analysis-counter-slot {
+  display: flex;
+  box-sizing: content-box;
+  min-height: 1.22em;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  overflow: visible;
+  padding-block: 0.12em 0.04em;
+  font-size: var(--analysis-counter-size);
+  line-height: 1.12;
+}
+
+.valuation-analysis-stage .analysis-counter-slot > * {
+  overflow: visible;
+  line-height: 1.12;
+  padding-block: 0;
+  text-shadow: none !important;
+}
+
+.valuation-analysis-stage .analysis-hero {
+  overflow: visible;
+}
+
+.valuation-analysis-stage .analysis-lottie-slot {
+  position: relative;
+  display: flex;
+  flex-shrink: 0;
+  width: 100%;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+}
+
+.valuation-analysis-stage .analysis-intel-slot {
+  display: flex;
+  min-height: var(--analysis-intel-min-h);
+  flex-shrink: 0;
+  width: 100%;
+  max-width: min(100%, 36rem);
+  align-items: center;
+  justify-content: center;
+  padding-inline: 0.5rem;
+}
+
+.valuation-analysis-stage .analysis-kicker {
+  font-size: var(--terminal-eyebrow-size);
+  font-weight: 800;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--terminal-display);
 }
 
 /**
@@ -568,6 +817,8 @@
   min-height: 100vh;
   background-color: var(--terminal-bg);
   color: var(--terminal-fg);
+  font-size: var(--terminal-body-size);
+  line-height: 1.55;
 }
 
 .desk-app-shell ::selection {
