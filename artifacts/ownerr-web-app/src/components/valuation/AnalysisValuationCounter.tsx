@@ -16,7 +16,7 @@ export function AnalysisValuationCounter({ estimatedValuation, className }: Prop
       aria-live="polite"
       aria-atomic
       className={cn(
-        'pointer-events-none select-none font-mono text-[clamp(2rem,9.5vw,2.75rem)] font-bold tabular-nums leading-none tracking-tight text-[color:var(--terminal-ochre)] sm:text-[clamp(2.5rem,7.5vw,3.75rem)] md:text-[clamp(3rem,6.25vw,4.5rem)]',
+        'pointer-events-none select-none font-mono text-[clamp(1.65rem,8vw,2.35rem)] font-bold tabular-nums leading-none tracking-tight text-[color:var(--terminal-ochre)] sm:text-[clamp(2rem,6.5vw,3.1rem)] md:text-[clamp(2.35rem,5.25vw,3.65rem)]',
         className,
       )}
       style={{
