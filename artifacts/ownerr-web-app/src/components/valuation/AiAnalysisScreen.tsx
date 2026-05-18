@@ -3,6 +3,8 @@ import { motion, AnimatePresence, useReducedMotion } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { ValuationFullViewport } from './ValuationFullViewport';
 import { ValuationLottieAnimation } from './ValuationLottieAnimation';
+import { AnalysisValuationCounter } from './AnalysisValuationCounter';
+import { VALUATION_HERO_LOTTIE_CLASS } from './valuationHeroLottieSize';
 
 const ANALYSIS_LOTTIE_SRC = '/Valuation.lottie';
 
@@ -19,6 +21,7 @@ const REDUCED_SYNC_MS = 1200;
 const EXIT_FADE_MS = 420;
 
 type Props = {
+  estimatedValuation: number;
   onComplete: () => void;
 };
 
@@ -26,7 +29,7 @@ const easePremium = [0.22, 1, 0.36, 1] as const;
 
 type Phase = 'sync' | 'exit';
 
-export function AiAnalysisScreen({ onComplete }: Props) {
+export function AiAnalysisScreen({ estimatedValuation, onComplete }: Props) {
   const reduce = useReducedMotion();
   const [idx, setIdx] = useState(0);
   const [phase, setPhase] = useState<Phase>('sync');
@@ -56,7 +59,8 @@ export function AiAnalysisScreen({ onComplete }: Props) {
     return () => clearTimeout(t);
   }, [phase, onComplete, reduce]);
 
-  const showLottie = phase === 'sync' && !reduce;
+  const showHero = phase === 'sync';
+  const showLottie = showHero && !reduce;
 
   return (
     <motion.div
@@ -68,21 +72,39 @@ export function AiAnalysisScreen({ onComplete }: Props) {
       <ValuationFullViewport center={false} className="grid grid-rows-[1fr_auto] px-4 sm:px-10">
         <div className="flex min-h-0 flex-col items-center justify-center py-2 text-center sm:py-4">
           <AnimatePresence mode="wait">
-            {showLottie ? (
+            {showHero ? (
               <motion.div
-                key="lottie"
+                key="hero"
                 initial={reduce ? false : { opacity: 0, scale: 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
                 exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.35, ease: easePremium }}
-                className="flex w-full justify-center"
+                className={cn(
+                  'flex w-full justify-center',
+                  showLottie && 'relative',
+                )}
               >
-                <ValuationLottieAnimation
-                  src={ANALYSIS_LOTTIE_SRC}
-                  loop
-                  className="h-[min(62dvh,560px)] w-[min(96vw,560px)] sm:h-[min(75dvh,720px)] sm:w-[min(98vw,720px)]"
-                  aria-label="Evaluating your startup"
-                />
+                {showLottie ? (
+                  <ValuationLottieAnimation
+                    src={ANALYSIS_LOTTIE_SRC}
+                    loop
+                    className={VALUATION_HERO_LOTTIE_CLASS}
+                    aria-label="Evaluating your startup"
+                  />
+                ) : null}
+                <motion.div
+                  className={cn(
+                    'flex items-center justify-center',
+                    showLottie
+                      ? 'absolute inset-0 pt-[8%] sm:pt-[6%]'
+                      : 'min-h-[8rem] py-6',
+                  )}
+                  initial={reduce ? false : { opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.12, duration: 0.35, ease: easePremium }}
+                >
+                  <AnalysisValuationCounter estimatedValuation={estimatedValuation} />
+                </motion.div>
               </motion.div>
             ) : null}
           </AnimatePresence>
@@ -90,7 +112,7 @@ export function AiAnalysisScreen({ onComplete }: Props) {
           <p
             className={cn(
               'text-[11px] font-bold uppercase tracking-[0.28em] text-[color:var(--terminal-muted)]',
-              showLottie ? 'mt-8 sm:mt-10' : 'mt-0',
+              showHero ? 'mt-8 sm:mt-10' : 'mt-0',
             )}
           >
             Evaluating
