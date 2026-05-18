@@ -26,6 +26,20 @@ export const EMPTY_ONBOARDING_META: OnboardingMeta = {
   phone: '',
 };
 
+/** Prefilled questionnaire demo — user can change any answer before running analysis. */
+export const DEFAULT_OWNERR_ONBOARDING_META: OnboardingMeta = {
+  startupName: 'Ownerr',
+  foundingYear: '2022',
+  teamSize: '28',
+  customerCount: '1240',
+  marketCategory: 'Marketplace',
+  founderName: 'Ownerr Team',
+  workEmail: 'hello@ownerr.com',
+  companyWebsite: 'https://ownerr.com',
+  linkedIn: 'https://www.linkedin.com/company/ownerr',
+  phone: '',
+};
+
 export const ONBOARDING_STEP_COUNT = 5;
 
 export const STEP_PROGRESS: Record<number, number> = {

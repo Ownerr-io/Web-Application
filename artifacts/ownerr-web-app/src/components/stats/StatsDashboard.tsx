@@ -391,7 +391,7 @@ export function StatsDashboard() {
             </ScatterChart>
           </ResponsiveContainer>
         </div>
-        <div className="mt-2 rounded-lg border border-sky-200/80 bg-sky-50 px-3 py-2 text-center text-xs text-sky-900 dark:border-sky-900/50 dark:bg-sky-950/30 dark:text-sky-200">
+        <div className="mt-2 rounded-lg border border-border bg-muted/30 px-3 py-2 text-center text-xs text-muted-foreground">
           Revenue outpaced followers in {growthCompare.pct}% of cases (n={growthCompare.n})
         </div>
       </section>

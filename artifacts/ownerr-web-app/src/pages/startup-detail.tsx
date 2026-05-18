@@ -830,8 +830,8 @@ function VerificationSection({ listing }: { listing: MarketplaceListing }) {
         </div>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3 dark:border-[#2f3336]">
-          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.revenue.status === 'verified' ? 'bg-emerald-500/15 text-emerald-600 dark:text-emerald-400' : 'bg-muted text-muted-foreground'}`}>
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3">
+          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.revenue.status === 'verified' ? 'bg-emerald-500/15 mp-text-positive' : 'bg-muted text-muted-foreground'}`}>
             <BadgeCheck className="h-4 w-4" />
           </div>
           <div className="min-w-0">
@@ -841,7 +841,7 @@ function VerificationSection({ listing }: { listing: MarketplaceListing }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3 dark:border-[#2f3336]">
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3">
           <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.domain.status === 'verified' ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400' : 'bg-muted text-muted-foreground'}`}>
             <Globe className="h-4 w-4" />
           </div>
@@ -852,7 +852,7 @@ function VerificationSection({ listing }: { listing: MarketplaceListing }) {
             </div>
           </div>
         </div>
-        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3 dark:border-[#2f3336]">
+        <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3">
           <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.traffic.status === 'verified' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-muted text-muted-foreground'}`}>
             <BarChart3 className="h-4 w-4" />
           </div>
@@ -1166,7 +1166,7 @@ function ContactSellerForm({
           className="border-border bg-background"
         />
       </div>
-      <Button type="submit" className="w-full bg-zinc-200 font-bold text-black hover:bg-white">
+      <Button type="submit" className="w-full bg-[color:var(--terminal-ochre)] font-bold text-[color:var(--mp-text-on-accent)] hover:bg-[color:var(--terminal-ochre-hover)]">
         Send message
       </Button>
       <p className="text-center text-xs text-muted-foreground">

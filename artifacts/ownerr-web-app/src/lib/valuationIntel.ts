@@ -1,3 +1,5 @@
+import { formatEnterpriseValuation } from '@/lib/utils';
+
 export type FounderGoal = 'exit' | 'raise' | 'hold' | 'unsure';
 
 export type ValuationInputs = {
@@ -170,10 +172,7 @@ export type StrategicInsightCard = {
 };
 
 function fmtEnterprise(n: number): string {
-  if (!Number.isFinite(n) || n <= 0) return '—';
-  if (n >= 1e9) return `$${(n / 1e9).toFixed(2)}B`;
-  if (n >= 1e6) return `$${(n / 1e6).toFixed(1)}M`;
-  return `$${Math.round(n / 1000)}k`;
+  return formatEnterpriseValuation(n);
 }
 
 export function buildStrategicInsights(

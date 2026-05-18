@@ -20,7 +20,7 @@ export default function Landing() {
       <HeroTerminal />
       <div className="mx-auto max-w-[1200px] space-y-10 px-4 py-10 sm:space-y-16 sm:py-16 md:py-20">
         <section className="space-y-4">
-          <h2 className="text-xl font-bold tracking-tight text-[color:var(--terminal-fg)] sm:text-2xl">Scenario engine</h2>
+          <h2 className="text-balance">Scenario engine</h2>
           <p className="max-w-2xl text-sm text-[color:var(--terminal-muted)]">
             Model your operating reality in a terminal-native layout. Outputs update as you stress inputs — mirroring
             how desks iterate live during a process.
@@ -29,7 +29,7 @@ export default function Landing() {
         </section>
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold tracking-tight text-[color:var(--terminal-fg)] sm:text-2xl">Strategic insights</h2>
+          <h2 className="text-balance">Strategic insights</h2>
           <p className="max-w-2xl text-sm text-[color:var(--terminal-muted)]">
             Narrative cards translate quantitative output into decision language — with explicit confidence and the
             metrics that drove each call.
@@ -42,7 +42,7 @@ export default function Landing() {
         <MarketplaceBridge />
 
         <section className="space-y-4">
-          <h2 className="text-xl font-bold tracking-tight text-[color:var(--terminal-fg)] sm:text-2xl">How it works</h2>
+          <h2 className="text-balance">How it works</h2>
           <AcquisitionFlow />
         </section>
 

@@ -1,17 +1,24 @@
 import { useLayoutEffect } from 'react';
 import { useLocation } from 'wouter';
+import { scrollPageToTop } from '@/lib/scrollPageToTop';
+
+let scrollRestorationPatched = false;
 
 /**
- * Scroll document to top on every client-side route change (marketing, marketplace, app).
+ * Scroll document (and nested scroll roots) to top on every client-side route change.
  */
 export function ScrollToTop() {
   const [location] = useLocation();
 
   useLayoutEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
-    document.documentElement.scrollTop = 0;
-    document.body.scrollTop = 0;
-    document.scrollingElement?.scrollTo(0, 0);
+    if (!scrollRestorationPatched && typeof history !== 'undefined' && 'scrollRestoration' in history) {
+      history.scrollRestoration = 'manual';
+      scrollRestorationPatched = true;
+    }
+
+    scrollPageToTop();
+    const raf = requestAnimationFrame(() => scrollPageToTop());
+    return () => cancelAnimationFrame(raf);
   }, [location]);
 
   return null;

@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { normalizeEnterpriseDollars } from '@/lib/utils';
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
@@ -11,11 +12,12 @@ function trianglePhase(linear: number): number {
 type Range = { floor: number; ceiling: number };
 
 function resolveRange(target: number): Range {
-  if (target > 0) {
-    const spread = Math.max(target * 0.22, 25_000);
+  const dollars = normalizeEnterpriseDollars(target);
+  if (dollars > 0) {
+    const spread = Math.max(dollars * 0.22, 25_000);
     return {
-      floor: Math.max(10_000, Math.round(target - spread)),
-      ceiling: target,
+      floor: Math.max(10_000, Math.round(dollars - spread)),
+      ceiling: dollars,
     };
   }
   return { floor: 180_000, ceiling: 2_400_000 };

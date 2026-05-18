@@ -56,8 +56,8 @@ function MarketplaceSaleCard({ startup }: { startup: Startup }) {
         'border-border bg-card text-card-foreground',
         'hover:border-muted-foreground/25',
         'focus:outline-none focus-visible:ring-2 focus-visible:ring-ring',
-        'dark:border-[#2f3336] dark:bg-gradient-to-b dark:from-[#1a1a1a] dark:to-[#141414] dark:text-white',
-        'dark:hover:border-[#536471]',
+        'border-border bg-gradient-to-b from-[color:var(--terminal-surface)] to-[color:var(--terminal-surface-2)] text-foreground',
+        ' hover:border-muted-foreground/30',
       )}
     >
 

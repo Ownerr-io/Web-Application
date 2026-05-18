@@ -14,6 +14,8 @@ type Props = {
   /** When false, the animation plays through once (default). */
   loop?: boolean;
   className?: string;
+  /** Decorative motion only — no visible caption from assistive labels. */
+  decorative?: boolean;
   'aria-label'?: string;
   onComplete?: () => void;
 };
@@ -22,7 +24,8 @@ export function ValuationLottieAnimation({
   src,
   loop = false,
   className,
-  'aria-label': ariaLabel = 'Loading animation',
+  decorative = false,
+  'aria-label': ariaLabel,
   onComplete,
 }: Props) {
   const reduce = useReducedMotion();
@@ -59,13 +62,17 @@ export function ValuationLottieAnimation({
     };
   }, []);
 
+  const a11yLabel = decorative ? undefined : ariaLabel ?? 'Loading animation';
+
   return (
     <DotLottieReact
       src={src}
       loop={loop}
       autoplay={!reduce}
       dotLottieRefCallback={dotLottieRefCallback}
-      aria-label={ariaLabel}
+      aria-hidden={decorative ? true : undefined}
+      aria-label={a11yLabel}
+      role={decorative ? 'presentation' : undefined}
       className={cn('mx-auto max-w-full', className)}
     />
   );

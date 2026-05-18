@@ -94,7 +94,7 @@ function OwnershipTransferVisual({
   return (
     <div
       className={cn(
-        'overflow-hidden rounded-xl border border-border bg-gradient-to-br from-muted/80 via-card to-sky-500/5 shadow-sm ring-1 ring-black/5 dark:border-[#2f3336] dark:from-zinc-900/90 dark:via-[#16181c] dark:to-sky-500/10 dark:ring-white/5',
+        'overflow-hidden rounded-xl border border-border bg-gradient-to-br from-muted/80 via-card to-sky-500/5 shadow-sm ring-1 ring-black/5 border-border from-[color:var(--terminal-surface)] via-[color:var(--terminal-surface-2)] to-sky-500/10 ring-white/5',
         compact ? 'mt-2 rounded-lg ring-0' : 'mt-3',
       )}
     >
@@ -134,7 +134,7 @@ function OwnershipTransferVisual({
             {sellerLabel}
           </p>
           {!compact ? (
-            <p className="text-[9px] font-medium text-muted-foreground dark:text-[#71767b]">On listing (unchanged)</p>
+            <p className="text-[9px] font-medium text-muted-foreground">On listing (unchanged)</p>
           ) : null}
         </div>
 
@@ -192,11 +192,11 @@ function OwnershipTransferVisual({
                 {buyerLabel}
               </p>
               {!compact ? (
-                <p className="text-[9px] font-medium text-muted-foreground dark:text-[#71767b]">
+                <p className="text-[9px] font-medium text-muted-foreground">
                   {mode === 'done' ? 'Mock transfer complete' : 'Tracked in IndexedDB only'}
                 </p>
               ) : (
-                <p className="text-[8px] text-muted-foreground dark:text-[#71767b]">
+                <p className="text-[8px] text-muted-foreground">
                   {mode === 'done' ? 'Complete' : 'Mock only'}
                 </p>
               )}
@@ -205,7 +205,7 @@ function OwnershipTransferVisual({
             <>
               <div
                 className={cn(
-                  'flex items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 bg-muted/50 font-bold text-muted-foreground dark:border-[#536471] dark:bg-zinc-800/80',
+                  'flex items-center justify-center rounded-full border-2 border-dashed border-muted-foreground/40 bg-muted/50 font-bold text-muted-foreground border-border bg-muted/80',
                   compact ? 'h-8 w-8 text-[9px]' : 'h-12 w-12 text-[10px]',
                 )}
               >
@@ -213,16 +213,16 @@ function OwnershipTransferVisual({
               </div>
               <p
                 className={cn(
-                  'font-bold text-muted-foreground dark:text-[#71767b]',
+                  'font-bold text-muted-foreground',
                   compact ? 'mt-1 text-[10px]' : 'mt-2 text-[11px]',
                 )}
               >
                 Bidder
               </p>
               {!compact ? (
-                <p className="text-[9px] text-muted-foreground dark:text-[#71767b]">Accept a bid to show here</p>
+                <p className="text-[9px] text-muted-foreground">Accept a bid to show here</p>
               ) : (
-                <p className="text-[8px] text-muted-foreground dark:text-[#71767b]">After accept</p>
+                <p className="text-[8px] text-muted-foreground">After accept</p>
               )}
             </>
           )}
@@ -231,7 +231,7 @@ function OwnershipTransferVisual({
 
       <div
         className={cn(
-          'border-t border-border/80 bg-muted/30 dark:border-[#2f3336] dark:bg-black/20',
+          'border-t border-border/80 bg-muted/30 border-border bg-muted/20',
           compact ? 'px-2 py-1.5' : 'px-3 py-2.5',
         )}
       >
@@ -249,7 +249,7 @@ function OwnershipTransferVisual({
           />
         </div>
         {!compact ? (
-          <p className="mt-1.5 text-[9px] leading-snug text-muted-foreground dark:text-[#71767b]">
+          <p className="mt-1.5 text-[9px] leading-snug text-muted-foreground">
             Listing data stays on the seller; buyer appears here for mock escrow steps only.
           </p>
         ) : (
@@ -267,7 +267,7 @@ function DealPipelineStepper({ stage }: { stage: DealStage }) {
   if (curIdx < 0) return null;
   const allComplete = stage === 'PAYMENT_RELEASED';
   return (
-    <div className="rounded-lg border border-border bg-muted/30 p-3 dark:border-[#2f3336] dark:bg-zinc-900/40">
+    <div className="rounded-lg border border-border bg-muted/30 p-3 border-border bg-muted/40">
       <p className="mb-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
         Mock closing — each approval is logged
       </p>
@@ -285,7 +285,7 @@ function DealPipelineStepper({ stage }: { stage: DealStage }) {
                 done && 'border-emerald-500/40 bg-emerald-500/10 text-emerald-900 dark:text-emerald-100',
                 active &&
                   'border-sky-500/50 bg-sky-500/10 text-sky-950 ring-1 ring-sky-500/30 dark:text-sky-100',
-                pending && 'border-border text-muted-foreground opacity-70 dark:border-[#2f3336]',
+                pending && 'border-border text-muted-foreground opacity-70 border-border',
               )}
             >
               <span
@@ -465,7 +465,7 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
       {compact ? (
         <div className="flex flex-col gap-2.5 font-mono text-[11px]">
           <div className="min-w-0">
-            <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground dark:text-[#71767b]">
+            <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
               Non-binding bids
             </div>
             <div className="mt-0.5 truncate text-sm font-bold tabular-nums text-foreground dark:text-white">
@@ -475,10 +475,10 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
                   <span className="text-emerald-600 dark:text-emerald-400">{formatShortCurrency(high)}</span>
                 </>
               ) : (
-                <span className="text-muted-foreground dark:text-[#71767b]">No bids yet</span>
+                <span className="text-muted-foreground">No bids yet</span>
               )}
             </div>
-            <p className="truncate text-[10px] text-muted-foreground dark:text-[#71767b]">
+            <p className="truncate text-[10px] text-muted-foreground">
               Floor {formatShortCurrency(basePrice)} · max 3 · local demo
             </p>
           </div>
@@ -498,7 +498,7 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
         <div className="flex flex-col gap-2 font-mono text-[11px]">
           <div className="flex flex-wrap items-end justify-between gap-2">
             <div className="min-w-0">
-              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground dark:text-[#71767b]">
+              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
                 Non-binding bids
               </div>
               <div className="mt-0.5 text-sm font-bold tabular-nums text-foreground dark:text-white">
@@ -508,13 +508,13 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
                     <span className="text-emerald-600 dark:text-emerald-400">{formatShortCurrency(high)}</span>
                   </>
                 ) : (
-                  <span className="text-muted-foreground dark:text-[#71767b]">No bids yet</span>
+                  <span className="text-muted-foreground">No bids yet</span>
                 )}
               </div>
-              <div className="text-[10px] text-muted-foreground dark:text-[#71767b]">
+              <div className="text-[10px] text-muted-foreground">
                 Floor {formatShortCurrency(basePrice)} · max 3 bidders · mock only
               </div>
-              <div className="mt-1 text-[10px] text-muted-foreground dark:text-[#71767b]">
+              <div className="mt-1 text-[10px] text-muted-foreground">
                 Ownerr does not handle payments. Deals happen off-platform.
               </div>
               <OwnershipTransferVisual
@@ -621,7 +621,7 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
               </span>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2 border-b border-border pb-2 dark:border-[#2f3336]">
+            <div className="flex flex-wrap items-center gap-2 border-b border-border pb-2 border-border">
               <Button
                 type="button"
                 size="sm"
@@ -653,8 +653,8 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
             </div>
 
             <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 md:grid-cols-2">
-              <div className="flex min-h-0 flex-col rounded-lg border border-border dark:border-[#2f3336]">
-                <div className="border-b border-border px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground dark:border-[#2f3336]">
+              <div className="flex min-h-0 flex-col rounded-lg border border-border border-border">
+                <div className="border-b border-border px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground border-border">
                   Bids
                 </div>
                 <ScrollArea className="h-[220px] md:h-[260px]">
@@ -675,7 +675,7 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
                                   'rounded-md border px-2 py-2 text-xs',
                                   isHigh
                                     ? 'border-emerald-500/50 bg-emerald-500/10 dark:border-emerald-500/40 dark:bg-emerald-500/10'
-                                    : 'border-border dark:border-[#2f3336]',
+                                    : 'border-border border-border',
                                 )}
                               >
                                 <div className="flex flex-wrap items-center justify-between gap-1">
@@ -735,8 +735,8 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
                 </ScrollArea>
               </div>
 
-              <div className="flex min-h-0 flex-col rounded-lg border border-border dark:border-[#2f3336]">
-                <div className="border-b border-border px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground dark:border-[#2f3336]">
+              <div className="flex min-h-0 flex-col rounded-lg border border-border border-border">
+                <div className="border-b border-border px-3 py-2 text-[10px] font-bold uppercase tracking-wide text-muted-foreground border-border">
                   Timeline
                 </div>
                 <ScrollArea className="h-[220px] md:h-[260px]">
@@ -747,7 +747,7 @@ export function MockAcquireBidPanel({ startup, compact }: { startup: Startup; co
                       record.activityLog.map((log) => (
                         <li
                           key={log.id}
-                          className="border-l-2 border-muted-foreground/30 pl-3 text-xs leading-snug text-foreground/90 dark:text-[#e7e9ea]"
+                          className="border-l-2 border-muted-foreground/30 pl-3 text-xs leading-snug text-foreground/90"
                         >
                           <time className="block text-[10px] text-muted-foreground">
                             {new Date(log.timestamp).toLocaleString()}

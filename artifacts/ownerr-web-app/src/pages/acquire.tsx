@@ -36,7 +36,7 @@ const FILTER_INPUT =
   'h-9 w-full min-w-0 rounded-md border border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] px-2 text-xs text-[color:var(--terminal-fg)] outline-none placeholder:text-[color:var(--terminal-muted)] focus:ring-1 focus:ring-[color:var(--terminal-ochre)]';
 const FILTER_MUTED = 'text-[color:var(--terminal-muted)]';
 const FILTER_DISABLED =
-  'h-9 w-full cursor-not-allowed rounded-md border border-[color:var(--terminal-border)] bg-[#181a1e] px-2 text-xs text-[color:var(--terminal-muted)] opacity-70';
+  'h-9 w-full cursor-not-allowed rounded-md border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface-2)] px-2 text-xs text-[color:var(--terminal-muted)] opacity-70';
 const SELECT_ITEM =
   'cursor-pointer focus:bg-[color:var(--terminal-surface-2)] focus:text-[color:var(--terminal-fg)]';
 const FILTER_ROW_BLOCK = 'w-[200px] max-w-full';

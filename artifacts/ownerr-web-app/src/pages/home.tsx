@@ -58,8 +58,8 @@ export default function Home() {
 
       {/* Recently listed */}
       <section className="min-w-0">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-bold sm:text-xl">Recently listed</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="mp-section-title">Recently listed</h2>
           <button
             onClick={() => setLocation(marketplacePath('/acquire'))}
             className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
@@ -79,8 +79,8 @@ export default function Home() {
 
       {/* Best deals */}
       <section className="min-w-0">
-        <div className="flex items-center justify-between mb-2">
-          <h2 className="text-lg font-bold sm:text-xl">Best deals this week</h2>
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="mp-section-title">Best deals this week</h2>
           <button
             onClick={() => setLocation(marketplacePath('/acquire'))}
             className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
@@ -100,8 +100,8 @@ export default function Home() {
 
       {/* Leaderboard */}
       <section id="leaderboard" className="min-w-0 scroll-mt-4">
-        <div className="flex items-center justify-between mb-2 gap-2 flex-wrap">
-          <h2 className="text-lg font-bold sm:text-xl">Leaderboard</h2>
+        <div className="flex items-center justify-between mb-3 gap-2 flex-wrap">
+          <h2 className="mp-section-title">Leaderboard</h2>
           <div className="flex gap-2">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -186,7 +186,7 @@ export default function Home() {
                               <div className="font-bold text-sm group-hover:underline flex items-center gap-1.5 flex-wrap">
                                 <span className="truncate">{startup.name}</span>
                                 {startup.forSale && (
-                                  <span className="text-[8px] bg-[#FFE9A8] text-black px-1 py-0.5 rounded font-bold uppercase tracking-wider whitespace-nowrap">FOR SALE</span>
+                                  <span className="mp-badge-for-sale text-[8px] px-1 py-0.5 rounded font-bold uppercase tracking-wider whitespace-nowrap">FOR SALE</span>
                                 )}
                               </div>
                               <div className="text-[10px] text-muted-foreground max-w-[240px] line-clamp-1">{startup.description}</div>
@@ -226,7 +226,7 @@ export default function Home() {
                       <td className="px-2 py-1.5 text-right font-bold text-sm tabular-nums">{formatCurrency(metricVal)}</td>
                       <td className="px-2 py-1.5 text-right">
                         <div className={`inline-flex items-center justify-end gap-1 text-[11px] font-bold ${
-                          startup.momGrowth > 0 ? 'text-green-500' : startup.momGrowth < 0 ? 'text-red-500' : 'text-muted-foreground'
+                          startup.momGrowth > 0 ? 'mp-trend-up' : startup.momGrowth < 0 ? 'mp-trend-down' : 'text-muted-foreground'
                         }`}>
                           {startup.momGrowth > 0 ? '↑' : startup.momGrowth < 0 ? '↓' : '—'}
                           {startup.momGrowth !== 0 && ` ${Math.abs(startup.momGrowth).toFixed(0)}%`}
@@ -246,7 +246,7 @@ export default function Home() {
 
       {/* Stats overview */}
       <section className="min-w-0">
-        <h2 className="mb-3 text-xl font-bold">Stats overview</h2>
+        <h2 className="mp-section-title mb-4">Stats overview</h2>
         <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:grid-cols-4 lg:gap-4">
           <KPI label="Total Verified MRR" value={formatCurrency(mergedStartups.reduce((s, x) => s + x.revenue, 0))} />
           <KPI label="Verified Startups" value={String(mockStartups.length)} />

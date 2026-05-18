@@ -7,7 +7,7 @@ import { marketplacePath } from '@/lib/appPaths';
 import { StartupTripleScores } from '@/components/StartupTripleScores';
 
 const SCORE_STRIP_CLASS =
-  'text-center [&>div:nth-child(2)]:border-l [&>div:nth-child(2)]:border-border/60 [&>div:nth-child(2)]:pl-1 [&>div:nth-child(3)]:border-l [&>div:nth-child(3)]:border-border/60 [&>div:nth-child(3)]:pl-1 dark:[&>div:nth-child(2)]:border-[#2f3336] dark:[&>div:nth-child(3)]:border-[#2f3336] sm:[&>div:nth-child(2)]:pl-2 sm:[&>div:nth-child(3)]:pl-2';
+  'text-center [&>div:nth-child(2)]:border-l [&>div:nth-child(2)]:border-border/60 [&>div:nth-child(2)]:pl-1 [&>div:nth-child(3)]:border-l [&>div:nth-child(3)]:border-border/60 [&>div:nth-child(3)]:pl-1 sm:[&>div:nth-child(2)]:pl-2 sm:[&>div:nth-child(3)]:pl-2';
 
 function startupGrowthValue(startup: Startup): number | null {
   const maybeGrowth = startup as Startup & { growthPct?: number };
@@ -44,7 +44,7 @@ function MetricCell({
 }) {
   return (
     <div className={cn('min-w-0 px-0.5 text-center', className)}>
-      <div className="mx-auto max-w-[28ch] font-mono text-[9px] font-bold leading-snug text-muted-foreground dark:text-[#71767b] sm:text-[10px]">
+      <div className="mx-auto max-w-[28ch] font-mono text-[9px] font-bold leading-snug text-muted-foreground sm:text-[10px]">
         {label}
       </div>
       <div className="mt-1.5 min-w-0 font-mono text-sm font-bold tabular-nums leading-tight text-foreground dark:text-white sm:text-[15px]">
@@ -63,7 +63,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
   const trust = startupTrust(startup);
 
   return (
-    <div className="shine-effect flex h-full flex-col overflow-hidden rounded-[14px] border border-border bg-card text-card-foreground transition-colors hover:border-muted-foreground/30 dark:border-[#2f3336] dark:bg-[#121212] dark:text-white dark:hover:border-[#536471]">
+    <div className="shine-effect flex h-full flex-col overflow-hidden rounded-[14px] border border-border bg-card text-card-foreground transition-colors hover:border-muted-foreground/30">
       <Link
         href={marketplacePath(`/startup/${startup.slug}`)}
         className="group flex min-h-[260px] flex-1 flex-col px-3 pb-3 pt-3.5 sm:min-h-[300px] sm:px-4 sm:pt-4"
@@ -87,7 +87,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                     <h3 className="truncate font-mono text-[15px] font-bold leading-tight group-hover:underline">
                       {startup.name}
                     </h3>
-                    <p className="mt-0.5 truncate font-mono text-[12px] text-muted-foreground dark:text-[#71767b]">
+                    <p className="mt-0.5 truncate font-mono text-[12px] text-muted-foreground">
                       {startup.category}
                     </p>
                     <div className="mt-1 flex flex-wrap gap-1">
@@ -111,7 +111,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                       ) : null}
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-0.5 text-[10px] tabular-nums text-muted-foreground dark:text-[#71767b]">
+                  <div className="flex shrink-0 flex-col items-end gap-0.5 text-[10px] tabular-nums text-muted-foreground">
                     <span className="inline-flex items-center gap-0.5 font-mono font-bold">
                       <Eye className="h-3 w-3" strokeWidth={2} aria-hidden />
                       {views >= 1000 ? `${(views / 1000).toFixed(1)}k` : views}
@@ -127,7 +127,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
           </div>
 
           <div className="flex min-h-0 flex-1 flex-col justify-center gap-3 py-1">
-            <div className="rounded-lg border border-border/80 bg-muted/15 px-2 py-3 dark:border-[#2f3336] dark:bg-zinc-900/35 sm:px-3">
+            <div className="rounded-lg border border-border/80 bg-muted/15 px-2 py-3 border-border bg-muted/35 sm:px-3">
               <div className="grid grid-cols-3 gap-x-1 gap-y-2 sm:gap-x-2">
                 <MetricCell label="Revenue (30 D)">
                   <span className="block truncate" title={formatShortCurrency(startup.revenue)}>
@@ -139,11 +139,11 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                     </div>
                   ) : null}
                 </MetricCell>
-                <MetricCell label="Asking price" className="border-l border-border/60 dark:border-[#2f3336]">
+                <MetricCell label="Asking price" className="border-l border-border/60 border-border">
                   <div className="mx-auto min-w-0 max-w-full space-y-0.5 text-center">
                     {strike != null ? (
                       <div
-                        className="truncate font-mono text-[11px] font-semibold text-muted-foreground line-through dark:text-[#71767b]"
+                        className="truncate font-mono text-[11px] font-semibold text-muted-foreground line-through"
                         title={formatShortCurrency(strike)}
                       >
                         {formatShortCurrency(strike)}
@@ -157,7 +157,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                     </span>
                   </div>
                 </MetricCell>
-                <MetricCell label="Revenue multiple" className="border-l border-border/60 dark:border-[#2f3336]">
+                <MetricCell label="Revenue multiple" className="border-l border-border/60 border-border">
                   <span className="block truncate">{startup.multiple != null ? `${startup.multiple.toFixed(1)}x` : '—'}</span>
                 </MetricCell>
               </div>
@@ -181,7 +181,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
             </div>
           </div>
 
-          <p className="line-clamp-2 shrink-0 font-mono text-[11px] leading-snug text-foreground/90 dark:text-[#e7e9ea]">
+          <p className="line-clamp-2 shrink-0 font-mono text-[11px] leading-snug text-foreground/90">
             {startup.description}
           </p>
           {nicheTags.length > 0 ? (
@@ -197,7 +197,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
       </Link>
       {footer ? (
         <div
-          className="border-t border-border bg-muted/10 px-3 pb-3 pt-2.5 dark:border-[#2f3336] dark:bg-black/25"
+          className="border-t border-border bg-muted/10 px-3 pb-3 pt-2.5 border-border bg-muted/25"
           onClick={(e) => e.stopPropagation()}
         >
           {footer}

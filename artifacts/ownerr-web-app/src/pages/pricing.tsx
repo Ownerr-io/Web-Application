@@ -28,10 +28,10 @@ export default function PricingPage() {
   return (
     <MarketingLayout>
       <div className="mx-auto max-w-[1200px] space-y-10 px-4 py-10 sm:py-14">
-        <header className="space-y-3">
-          <p className="text-[11px] font-bold uppercase tracking-[0.22em] text-[color:var(--terminal-muted)]">Pricing</p>
-          <h1 className="text-3xl font-bold tracking-tight text-[color:var(--terminal-fg)] sm:text-4xl">Transparent tiers</h1>
-          <p className="max-w-2xl text-sm leading-relaxed text-[color:var(--terminal-muted)]">
+        <header className="space-y-3.5 border-b border-white/10 pb-8">
+          <p className="terminal-eyebrow">Pricing</p>
+          <h1 className="text-balance leading-tight">Transparent tiers</h1>
+          <p className="max-w-2xl text-sm font-medium text-[color:var(--terminal-muted)] leading-relaxed mt-2">
             Start in the terminal workspace, graduate into execution when you need verified supply and structured
             workflows. Enterprise packaging follows your process — not the other way around.
           </p>

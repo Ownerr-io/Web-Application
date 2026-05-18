@@ -64,7 +64,7 @@ function StartupRailCard({ startup }: { startup: Startup }) {
         className="flex h-full min-h-0 w-full min-w-0 flex-1 flex-col no-underline"
       >
         <div
-          className="box-border flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center rounded-[10px] border border-border bg-card px-2 py-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:px-2.5 sm:py-3 dark:border-white/10 dark:bg-[#121212]"
+          className="box-border flex h-full min-h-0 w-full min-w-0 flex-1 flex-col items-center justify-center rounded-[10px] border border-border bg-card px-2 py-3 text-center shadow-sm transition-transform hover:-translate-y-0.5 sm:px-2.5 sm:py-3 border-border bg-card"
         >
           <div className="flex w-full max-w-full flex-col items-center justify-center gap-1.5 text-center">
             <div
@@ -375,7 +375,7 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
   }, []);
 
   return (
-    <div className="acquire-terminal-palette min-h-screen selection:bg-[color:var(--terminal-ochre)] selection:text-[#0b0b0c]">
+    <div className="acquire-terminal-palette min-h-screen selection:bg-[color:var(--terminal-ochre)] selection:text-[color:var(--brand-accent-ink)]">
       <MobileStartupChipRails
         pool={mockStartups}
         onAdvertise={() => setAdvertiseOpen(true)}
@@ -423,7 +423,7 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
           )}
         >
           <div className={`${LAYOUT_CENTER_GUTTER} pointer-events-none`}>
-            <main className="pointer-events-auto w-full min-w-0 max-w-full box-border">
+            <main data-scroll-reset className="pointer-events-auto w-full min-w-0 max-w-full box-border">
             {!isHome ? <PageBackRow className="mb-6 hidden lg:flex" /> : null}
             {isSlimChrome ? null : (
               <div

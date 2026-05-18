@@ -1,6 +1,5 @@
-import { useCallback, useMemo, useState } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import {
   Select,
@@ -11,6 +10,7 @@ import {
 } from '@/components/ui/select';
 import type { ValuationInputs } from '@/lib/valuationIntel';
 import { cn } from '@/lib/utils';
+import { MARKETING_SHELL_CLASS } from '@/lib/marketingShell';
 import { LivePreviewChips } from './LivePreviewChips';
 import { buildPreviewChips } from './previewInsights';
 import { ValuationFullViewport } from './ValuationFullViewport';
@@ -23,8 +23,9 @@ import {
   validateQuestion,
   type ValuationQuestion,
 } from './valuationQuestions';
+import { scrollPageToTop } from '@/lib/scrollPageToTop';
 
-const ease = [0.22, 1, 0.36, 1] as const;
+const easePremium = [0.16, 1, 0.3, 1] as const;
 
 type Props = {
   questionIndex: number;
@@ -85,58 +86,85 @@ export function ValuationClaudeFlow({
     setError(undefined);
   };
 
+  useEffect(() => {
+    scrollPageToTop();
+  }, [questionIndex]);
+
   if (!q) return null;
 
   return (
-    <ValuationFullViewport center={false} className="grid grid-rows-[auto_1fr_auto]">
-      <div className="relative z-20 shrink-0 px-4 pt-3 sm:px-10 sm:pt-6">
-        <div className="mx-auto flex max-w-xl items-center justify-between gap-2 text-[10px] font-medium uppercase tracking-[0.18em] text-[color:var(--terminal-muted)] sm:tracking-[0.22em]">
-          <span className="shrink-0">
-            {questionIndex + 1} / {VALUATION_QUESTIONS.length}
+    <ValuationFullViewport center={false} className="grid grid-rows-[auto_1fr_auto] py-4">
+      {/* Top Header & Minimal Progress Track */}
+      <div className={cn(MARKETING_SHELL_CLASS, 'relative z-20 shrink-0 pt-3 sm:pt-6')}>
+        <div className="mx-auto flex max-w-2xl items-center justify-between gap-2 text-xs font-black uppercase tracking-[0.25em] text-[#EBFBBC]">
+          <span>
+            Indicator {questionIndex + 1} / {VALUATION_QUESTIONS.length}
           </span>
-          <span className="tabular-nums">{progress}%</span>
+          <span className="tabular-nums text-[color:var(--terminal-lime)]">{progress}% Completed</span>
         </div>
-        <motion.div className="mx-auto mt-2 h-px max-w-xl bg-[color:var(--terminal-border)]/70 sm:mt-3">
+        <motion.div className="mx-auto mt-3.5 h-1.5 max-w-2xl rounded-full bg-white/10 overflow-hidden sm:mt-4">
           <motion.div
-            className="h-px bg-[color:var(--terminal-ochre)] transition-[width] duration-500 ease-out"
+            className="h-full bg-gradient-to-r from-[color:var(--terminal-ochre)] to-[color:var(--terminal-lime)] shadow-[0_0_8px_var(--terminal-lime)] transition-[width] duration-500 ease-out"
             style={{ width: `${progress}%` }}
           />
         </motion.div>
       </div>
 
-      <div className="relative z-20 flex min-h-0 items-center justify-center overflow-y-auto overscroll-y-contain px-4 py-6 sm:px-10">
+      {/* Main Expansive Questionnaire Area (Completely Cardless) */}
+      <div
+        data-scroll-reset
+        className={cn(
+          MARKETING_SHELL_CLASS,
+          'relative z-20 flex min-h-0 items-center justify-center overflow-y-auto overscroll-y-contain py-8',
+        )}
+      >
         <AnimatePresence mode="wait">
           <motion.div
             key={q.id}
-            className="relative mx-auto w-full max-w-xl"
-            initial={reduce ? false : { opacity: 0, y: 12 }}
+            className="relative mx-auto w-full max-w-2xl border-0 bg-transparent p-0 shadow-none flex flex-col"
+            initial={reduce ? false : { opacity: 0, y: 65 }}
             animate={{ opacity: 1, y: 0 }}
-            exit={reduce ? undefined : { opacity: 0, y: -8 }}
-            transition={{ duration: 0.32, ease }}
+            exit={reduce ? undefined : { opacity: 0, y: -45 }}
+            transition={{ duration: 0.55, ease: easePremium }}
           >
+            {/* Ambient background glow */}
+            <div
+              className="absolute -left-32 -top-32 h-[300px] w-[300px] rounded-full opacity-20 blur-[100px] pointer-events-none"
+              style={{ background: 'var(--terminal-glow)' }}
+            />
+
             <form
               id="valuation-step-form"
-              className="w-full scroll-mt-24"
+              className="w-full z-10"
               onSubmit={(e) => {
                 e.preventDefault();
                 goNext(false);
               }}
             >
-              <h2 className="text-balance text-xl font-semibold leading-snug tracking-tight text-[color:var(--terminal-fg)] sm:text-[1.75rem]">
-                {q.prompt}
-              </h2>
+              {/* Thin elegant luxury typography */}
+              <h2 className="text-balance leading-tight">{q.prompt}</h2>
               {q.hint ? (
-                <p className="mt-2 text-sm leading-relaxed text-[color:var(--terminal-muted)]">{q.hint}</p>
+                <p className="mt-3.5 text-sm font-semibold text-[color:var(--terminal-muted)] tracking-wide">{q.hint}</p>
               ) : null}
 
-              <div className="mt-6 sm:mt-8">
+              <div className="mt-10 sm:mt-12">
                 <QuestionField q={q} value={value} onChange={patchValue} error={error} />
                 {error ? (
-                  <p className="mt-2 text-sm text-[color:var(--terminal-ochre)]">{error}</p>
+                  <motion.p
+                    initial={{ opacity: 0, y: 2 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    className="mt-4 text-sm font-bold text-[color:var(--terminal-ochre)] flex items-center gap-1.5"
+                  >
+                    <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+                    </svg>
+                    {error}
+                  </motion.p>
                 ) : null}
               </div>
 
-              <div className="mt-8 hidden sm:block">
+              {/* Expansive chips display (no divider above insights) */}
+              <div className="mt-12">
                 <LivePreviewChips chips={chips} />
               </div>
             </form>
@@ -144,21 +172,23 @@ export function ValuationClaudeFlow({
         </AnimatePresence>
       </div>
 
+      {/* Bottom Sticky Action Row */}
       <div
         className={cn(
           'relative z-30 shrink-0',
           'bg-gradient-to-t from-[color:var(--terminal-bg)] via-[color:var(--terminal-bg)]/98 to-transparent',
-          'px-4 pt-4 sm:px-10 sm:pt-6',
+          MARKETING_SHELL_CLASS,
+          'pt-4 sm:pt-6',
           'pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))]',
         )}
       >
-        <div className="mx-auto flex max-w-xl items-center gap-2 sm:gap-3">
+        <div className="mx-auto flex max-w-2xl items-center gap-2 sm:gap-3">
           {questionIndex > 0 ? (
             <Button
               type="button"
               variant="ghost"
               onClick={goBack}
-              className="h-11 shrink-0 px-2 font-semibold text-[color:var(--terminal-muted)] hover:bg-transparent hover:text-[color:var(--terminal-fg)]"
+              className="h-12 shrink-0 rounded-[10px] border border-white/10 bg-transparent px-8 text-sm font-black uppercase tracking-widest text-[color:var(--terminal-muted)] hover:bg-white/[0.04] hover:text-white transition-all duration-300"
             >
               Back
             </Button>
@@ -171,7 +201,7 @@ export function ValuationClaudeFlow({
                 type="button"
                 variant="ghost"
                 onClick={() => goNext(true)}
-                className="h-11 shrink-0 px-2 font-semibold text-[color:var(--terminal-muted)] hover:bg-transparent sm:px-4"
+                className="h-12 shrink-0 rounded-[10px] px-8 text-sm font-black uppercase tracking-widest text-[color:var(--terminal-muted)] hover:bg-transparent hover:text-white transition-all duration-300"
               >
                 Skip
               </Button>
@@ -179,9 +209,9 @@ export function ValuationClaudeFlow({
             <Button
               type="submit"
               form="valuation-step-form"
-              className="h-11 shrink-0 rounded-full border-0 bg-[color:var(--terminal-ochre)] px-6 text-sm font-bold text-[#0b0b0c] hover:bg-[color:var(--terminal-ochre-hover)] sm:px-7"
+              className="h-12 shrink-0 rounded-[10px] border-0 bg-[color:var(--terminal-ochre)] px-10 text-sm font-black uppercase tracking-widest text-[#0b0b0c] shadow-[0_4px_20px_rgba(212,167,71,0.22)] transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
             >
-              {questionIndex >= VALUATION_QUESTIONS.length - 1 ? 'Run analysis' : 'Continue'}
+              {questionIndex >= VALUATION_QUESTIONS.length - 1 ? 'Run Analysis' : 'Continue'}
             </Button>
           </div>
         </div>
@@ -189,9 +219,6 @@ export function ValuationClaudeFlow({
     </ValuationFullViewport>
   );
 }
-
-const lineFieldClass =
-  'h-11 w-full min-w-0 rounded-none border-0 border-b border-[color:var(--terminal-border)]/80 bg-transparent px-0 text-left text-lg font-medium text-[color:var(--terminal-fg)] shadow-none ring-0 placeholder:text-[color:var(--terminal-muted)]/55 focus-visible:border-b-[color:var(--terminal-ochre)] focus-visible:ring-0 sm:text-2xl';
 
 function QuestionField({
   q,
@@ -205,24 +232,25 @@ function QuestionField({
   error?: string;
 }) {
   const invalid = Boolean(error);
-  const fieldClass = cn(lineFieldClass, invalid && 'border-b-[color:var(--terminal-ochre)]');
 
   if (q.kind === 'select' && q.selectOptions) {
     return (
       <Select value={value || undefined} onValueChange={onChange}>
-        <SelectTrigger
+        <SelectTrigger 
           className={cn(
-            fieldClass,
-            'h-auto min-h-11 py-2 [&>span]:line-clamp-2 [&>span]:text-left',
-            '[&>svg]:shrink-0 [&>svg]:opacity-60',
-            'data-[placeholder]:text-[color:var(--terminal-muted)]/55',
+            'h-16 w-full min-w-0 rounded-none border-0 border-b border-white/20 bg-transparent px-0 text-2xl font-bold tracking-tight text-white shadow-none ring-0 placeholder:text-white/25 focus:border-[color:var(--terminal-lime)] focus:ring-0 focus:border-b-2 transition-all duration-300 sm:text-4xl text-left flex justify-between items-center',
+            invalid && 'border-b-[color:var(--terminal-ochre)]'
           )}
         >
-          <SelectValue placeholder={q.placeholder ?? 'Choose one'} />
+          <SelectValue placeholder={q.placeholder ?? 'Select option'} />
         </SelectTrigger>
-        <SelectContent position="popper" className="max-h-[min(50dvh,280px)]">
+        <SelectContent className="border border-white/10 bg-[color:var(--terminal-bg)] text-white shadow-2xl rounded-xl p-1 max-h-80 overflow-y-auto">
           {q.selectOptions.map((opt) => (
-            <SelectItem key={opt} value={opt} className="text-base">
+            <SelectItem 
+              key={opt} 
+              value={opt} 
+              className="text-sm sm:text-base font-semibold uppercase tracking-wider text-white/70 hover:text-white focus:bg-white/5 focus:text-white cursor-pointer py-3 px-4 rounded-lg"
+            >
               {opt}
             </SelectItem>
           ))}
@@ -232,14 +260,17 @@ function QuestionField({
   }
 
   return (
-    <Input
+    <input
       autoFocus
       type={q.kind === 'email' ? 'email' : q.kind === 'url' ? 'url' : q.kind === 'tel' ? 'tel' : 'text'}
       inputMode={q.kind === 'number' ? 'decimal' : undefined}
       placeholder={q.placeholder ?? 'Type here'}
       value={value}
       onChange={(e) => onChange(e.target.value)}
-      className={fieldClass}
+      className={cn(
+        'h-16 w-full min-w-0 rounded-none border-0 border-b border-white/20 bg-transparent px-0 text-2xl font-bold tracking-tight text-white outline-none placeholder:text-white/25 focus:border-[color:var(--terminal-lime)] focus:border-b-2 transition-all duration-300 sm:text-4xl',
+        invalid && 'border-b-[color:var(--terminal-ochre)]'
+      )}
       aria-invalid={invalid}
     />
   );

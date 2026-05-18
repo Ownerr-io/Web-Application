@@ -307,7 +307,7 @@ export default function ClaimSpotsPage() {
         </div>
       </section>
 
-      <div className="overflow-hidden rounded-xl border border-border bg-card dark:border-[#2f3336] dark:bg-[#121212]">
+      <div className="overflow-hidden rounded-xl border border-border bg-card border-border bg-card">
         <ul className="divide-y divide-border md:hidden" role="list">
           {paginatedTableRows.map((entry) => (
             <li key={entry.id}>
@@ -439,7 +439,7 @@ export default function ClaimSpotsPage() {
             </TableBody>
           </Table>
         </div>
-        <div className="flex flex-col gap-3 border-t border-border px-3 py-3 sm:flex-row sm:items-center sm:justify-between dark:border-[#2f3336]">
+        <div className="flex flex-col gap-3 border-t border-border px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="min-w-0 break-words text-sm text-muted-foreground sm:pr-4">
             {tableRows.length === 0
               ? 'No rows'

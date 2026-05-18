@@ -27,26 +27,26 @@ export function StartupTripleScores({
     return (
       <div
         className={cn(
-          'flex items-center justify-between gap-1 rounded-lg border border-border/70 bg-muted/25 px-2 py-1.5 font-mono text-[10px] dark:border-[#2f3336] dark:bg-zinc-900/50',
+          'flex items-center justify-between gap-1 rounded-lg border border-border/70 bg-muted/25 px-2 py-1.5 font-mono text-[10px] border-border bg-muted/50',
           className,
         )}
       >
         <span className="min-w-0 shrink truncate">
-          <span className="font-bold uppercase tracking-wide text-muted-foreground dark:text-[#71767b]">Biz</span>{' '}
+          <span className="font-bold uppercase tracking-wide text-muted-foreground">Biz</span>{' '}
           <span className="font-bold tabular-nums text-foreground dark:text-white">{s.businessScore}</span>
         </span>
         <span className="shrink-0 text-muted-foreground/40" aria-hidden>
           ·
         </span>
         <span className="min-w-0 shrink truncate text-center">
-          <span className="font-bold uppercase tracking-wide text-muted-foreground dark:text-[#71767b]">Lend</span>{' '}
+          <span className="font-bold uppercase tracking-wide text-muted-foreground">Lend</span>{' '}
           <span className="font-bold tabular-nums text-foreground dark:text-white">{s.lendScore}</span>
         </span>
         <span className="shrink-0 text-muted-foreground/40" aria-hidden>
           ·
         </span>
         <span className="min-w-0 shrink truncate text-right">
-          <span className="font-bold uppercase tracking-wide text-muted-foreground dark:text-[#71767b]">Acq</span>{' '}
+          <span className="font-bold uppercase tracking-wide text-muted-foreground">Acq</span>{' '}
           <span className="font-bold tabular-nums text-foreground dark:text-white">{s.acquisitionPower}</span>
         </span>
       </div>

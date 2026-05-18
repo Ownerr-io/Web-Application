@@ -9,6 +9,18 @@ export function formatCurrency(value: number): string {
   return `$${Math.round(value).toLocaleString("en-US")}`;
 }
 
+/** Desk model outputs are full USD; compact anchors (< $1k) are shown as thousands. */
+export function normalizeEnterpriseDollars(value: number): number {
+  if (!Number.isFinite(value) || value <= 0) return 0;
+  if (value >= 1_000) return value;
+  return value * 1_000;
+}
+
+/** Enterprise value / implied range — always prefers $k / $M suffixes. */
+export function formatEnterpriseValuation(value: number): string {
+  return formatShortCurrency(normalizeEnterpriseDollars(value));
+}
+
 export function formatShortCurrency(value: number): string {
   if (!Number.isFinite(value)) return '—';
   const abs = Math.abs(value);

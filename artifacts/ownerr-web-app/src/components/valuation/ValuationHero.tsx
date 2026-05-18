@@ -85,7 +85,7 @@ export function ValuationHero({ onStart }: Props) {
           <Button
             type="button"
             onClick={onStart}
-            className="h-12 w-full rounded-full border-0 bg-[color:var(--terminal-ochre)] px-8 text-sm font-bold text-[#0b0b0c] shadow-[0_8px_32px_-8px_color-mix(in_srgb,var(--terminal-ochre)_55%,transparent)] hover:bg-[color:var(--terminal-ochre-hover)] sm:w-auto"
+            className="h-12 w-full rounded-[10px] border-0 bg-[color:var(--terminal-ochre)] px-8 text-sm font-bold text-[#0b0b0c] shadow-[0_8px_32px_-8px_color-mix(in_srgb,var(--terminal-ochre)_55%,transparent)] hover:bg-[color:var(--terminal-ochre-hover)] sm:w-auto"
           >
             Start valuation
           </Button>
