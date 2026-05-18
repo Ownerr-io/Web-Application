@@ -4,7 +4,7 @@ import { cn } from '@/lib/utils';
 import { ValuationFullViewport } from './ValuationFullViewport';
 import { ValuationLottieAnimation } from './ValuationLottieAnimation';
 
-const ANALYSIS_LOTTIE_SRC = '/loading.lottie';
+const ANALYSIS_LOTTIE_SRC = '/Valuation.lottie';
 
 const MESSAGES = [
   'Analyzing growth trajectory…',
@@ -66,21 +66,21 @@ export function AiAnalysisScreen({ onComplete }: Props) {
       transition={{ duration: reduce ? 0.15 : EXIT_FADE_MS / 1000, ease: easePremium }}
     >
       <ValuationFullViewport center={false} className="grid grid-rows-[1fr_auto] px-4 sm:px-10">
-        <div className="flex min-h-0 flex-col items-center justify-center py-6 text-center">
+        <div className="flex min-h-0 flex-col items-center justify-center py-2 text-center sm:py-4">
           <AnimatePresence mode="wait">
             {showLottie ? (
               <motion.div
                 key="lottie"
-                initial={reduce ? false : { opacity: 0, scale: 0.98 }}
+                initial={reduce ? false : { opacity: 0, scale: 0.94 }}
                 animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.98 }}
+                exit={{ opacity: 0, scale: 0.96 }}
                 transition={{ duration: 0.35, ease: easePremium }}
                 className="flex w-full justify-center"
               >
                 <ValuationLottieAnimation
                   src={ANALYSIS_LOTTIE_SRC}
                   loop
-                  className="h-[min(44dvh,340px)] w-[min(88vw,340px)] sm:h-[min(48dvh,440px)] sm:w-[min(92vw,440px)]"
+                  className="h-[min(62dvh,560px)] w-[min(96vw,560px)] sm:h-[min(75dvh,720px)] sm:w-[min(98vw,720px)]"
                   aria-label="Evaluating your startup"
                 />
               </motion.div>
@@ -90,7 +90,7 @@ export function AiAnalysisScreen({ onComplete }: Props) {
           <p
             className={cn(
               'text-[11px] font-bold uppercase tracking-[0.28em] text-[color:var(--terminal-muted)]',
-              showLottie ? 'mt-6' : 'mt-0',
+              showLottie ? 'mt-8 sm:mt-10' : 'mt-0',
             )}
           >
             Evaluating
