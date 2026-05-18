@@ -140,7 +140,10 @@ export function ValuationExperience({ onPhaseChange }: Props) {
 
           {phase === 'analyzing' && (
             <motion.div key="analyzing" className="flex min-h-0 w-full flex-1 flex-col">
-              <AiAnalysisScreen onComplete={showResults} />
+              <AiAnalysisScreen
+                estimatedValuation={outputs.estimatedValuation}
+                onComplete={showResults}
+              />
             </motion.div>
           )}
 

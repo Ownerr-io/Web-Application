@@ -1,4 +1,5 @@
 import { ValuationLottieAnimation } from './ValuationLottieAnimation';
+import { VALUATION_HERO_LOTTIE_CLASS } from './valuationHeroLottieSize';
 
 /** Public asset — filename contains a space */
 const LOTTIE_SRC = '/loading%20animation.lottie';
@@ -22,7 +23,7 @@ export function ValuationIntroLottie({ onFinished }: Props) {
         src={LOTTIE_SRC}
         loop={false}
         onComplete={onFinished}
-        className="h-[min(52dvh,440px)] w-[min(88vw,440px)] sm:h-[min(72dvh,640px)] sm:w-[min(92vw,640px)]"
+        className={VALUATION_HERO_LOTTIE_CLASS}
         aria-label="Loading valuation experience"
       />
     </div>
