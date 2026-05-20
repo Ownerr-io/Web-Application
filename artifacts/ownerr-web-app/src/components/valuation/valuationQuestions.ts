@@ -118,7 +118,7 @@ export const VALUATION_QUESTIONS: ValuationQuestion[] = [
     prompt: 'Phone number',
     kind: 'tel',
     optional: true,
-    placeholder: 'Optional',
+    placeholder: '+1 555 000 0000',
   },
 ];
 
