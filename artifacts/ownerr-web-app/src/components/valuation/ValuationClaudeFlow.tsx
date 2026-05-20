@@ -24,6 +24,7 @@ import {
   type ValuationQuestion,
 } from './valuationQuestions';
 import { scrollPageToTop } from '@/lib/scrollPageToTop';
+import { useKeyboardBottomInset } from './useKeyboardBottomInset';
 
 const easePremium = [0.16, 1, 0.3, 1] as const;
 
@@ -47,7 +48,9 @@ export function ValuationClaudeFlow({
   onComplete,
 }: Props) {
   const reduce = useReducedMotion();
+  const keyboardInset = useKeyboardBottomInset();
   const [error, setError] = useState<string | undefined>();
+  const mobileActionBarHeight = 76;
   const q = VALUATION_QUESTIONS[questionIndex];
   const chips = useMemo(() => buildPreviewChips(inputs), [inputs]);
   const progress = questionProgress(questionIndex);
@@ -115,8 +118,15 @@ export function ValuationClaudeFlow({
         data-scroll-reset
         className={cn(
           MARKETING_SHELL_CLASS,
-          'relative z-20 flex min-h-0 items-center justify-center overflow-y-auto overscroll-y-contain py-8',
+          'relative z-20 flex min-h-0 items-center justify-center overflow-y-auto overscroll-y-contain py-6 sm:py-8',
+          'max-sm:pb-28',
         )}
+        style={{
+          paddingBottom:
+            keyboardInset > 0
+              ? keyboardInset + mobileActionBarHeight + 12
+              : undefined,
+        }}
       >
         <AnimatePresence mode="wait">
           <motion.div
@@ -172,15 +182,17 @@ export function ValuationClaudeFlow({
         </AnimatePresence>
       </div>
 
-      {/* Bottom Sticky Action Row */}
+      {/* Bottom action row — fixed above keyboard on mobile */}
       <div
         className={cn(
-          'relative z-30 shrink-0',
-          'bg-gradient-to-t from-[color:var(--terminal-bg)] via-[color:var(--terminal-bg)]/98 to-transparent',
+          'z-30 shrink-0',
+          'bg-gradient-to-t from-[color:var(--terminal-bg)] via-[color:var(--terminal-bg)] to-[color:var(--terminal-bg)]/95',
           MARKETING_SHELL_CLASS,
-          'pt-4 sm:pt-6',
-          'pb-[max(1.25rem,env(safe-area-inset-bottom,0px))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))]',
+          'pt-3 sm:relative sm:pt-6',
+          'max-sm:fixed max-sm:left-0 max-sm:right-0',
+          'pb-[max(0.75rem,env(safe-area-inset-bottom,0px))] sm:pb-[max(1.5rem,env(safe-area-inset-bottom,0px))]',
         )}
+        style={{ bottom: keyboardInset }}
       >
         <div className="mx-auto flex max-w-2xl items-center gap-2 sm:gap-3">
           {questionIndex > 0 ? (
@@ -259,19 +271,32 @@ function QuestionField({
     );
   }
 
+  const isTel = q.kind === 'tel';
+  const isNumber = q.kind === 'number';
+
   return (
     <input
       autoFocus
-      type={q.kind === 'email' ? 'email' : q.kind === 'url' ? 'url' : q.kind === 'tel' ? 'tel' : 'text'}
-      inputMode={q.kind === 'number' ? 'decimal' : undefined}
-      placeholder={q.placeholder ?? 'Type here'}
+      type={q.kind === 'email' ? 'email' : q.kind === 'url' ? 'url' : isTel ? 'tel' : 'text'}
+      inputMode={isTel ? 'tel' : isNumber ? 'decimal' : q.kind === 'email' ? 'email' : 'text'}
+      autoComplete={isTel ? 'tel' : q.kind === 'email' ? 'email' : undefined}
+      enterKeyHint="next"
+      placeholder={q.placeholder ?? (isTel ? '+1 555 000 0000' : 'Type here')}
       value={value}
       onChange={(e) => onChange(e.target.value)}
+      onFocus={(e) => {
+        requestAnimationFrame(() => {
+          e.currentTarget.scrollIntoView({ block: 'center', behavior: 'smooth' });
+        });
+      }}
       className={cn(
-        'h-16 w-full min-w-0 rounded-none border-0 border-b border-white/20 bg-transparent px-0 text-2xl font-bold tracking-tight text-white outline-none placeholder:text-white/25 focus:border-[color:var(--terminal-lime)] focus:border-b-2 transition-all duration-300 sm:text-4xl',
-        invalid && 'border-b-[color:var(--terminal-ochre)]'
+        'h-14 w-full min-w-0 rounded-none border-0 border-b border-white/20 bg-transparent px-0 font-bold tracking-tight text-white outline-none placeholder:text-white/25 focus:border-[color:var(--terminal-lime)] focus:border-b-2 transition-all duration-300 sm:h-16',
+        'text-[17px] leading-snug sm:text-4xl',
+        isTel && 'font-mono tabular-nums tracking-normal',
+        invalid && 'border-b-[color:var(--terminal-ochre)]',
       )}
       aria-invalid={invalid}
+      aria-label={q.prompt}
     />
   );
 }
