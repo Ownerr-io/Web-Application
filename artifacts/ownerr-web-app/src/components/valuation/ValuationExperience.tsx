@@ -9,6 +9,7 @@ import { ValuationIntroScene } from './ValuationIntroScene';
 import { ValuationClaudeFlow } from './ValuationClaudeFlow';
 import { AiAnalysisScreen } from './AiAnalysisScreen';
 import { ValuationResultsDashboard } from './ValuationResultsDashboard';
+import { ValuationExportActions } from './ValuationExportActions';
 import { ValuationCaptureSummary } from './ValuationCaptureSummary';
 import { LeadConversionSection } from './LeadConversionSection';
 import { useValuationSessionPersist, type ValuationSessionState } from './useValuationSessionPersist';
@@ -153,9 +154,18 @@ export function ValuationExperience({ onPhaseChange }: Props) {
           )}
 
           {phase === 'results' && (
+            <>
+            <ValuationExportActions
+              layout="fab"
+              inputs={inputs}
+              outputs={outputs}
+              insights={insights}
+              meta={meta}
+              startupName={meta.startupName.trim() || undefined}
+            />
             <motion.div
               key="results"
-              className="w-full pb-16"
+              className="w-full pb-24 sm:pb-16"
               initial={reduce ? false : { opacity: 0 }}
               animate={{ opacity: 1 }}
               transition={{ duration: 0.45 }}
@@ -182,6 +192,7 @@ export function ValuationExperience({ onPhaseChange }: Props) {
                 </Button>
               </div>
             </motion.div>
+            </>
           )}
         </AnimatePresence>
       </motion.div>

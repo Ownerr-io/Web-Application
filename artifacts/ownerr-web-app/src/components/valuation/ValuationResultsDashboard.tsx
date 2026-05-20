@@ -6,6 +6,8 @@ import { useAnimatedNumber } from './useAnimatedNumber';
 import { StrategicInsights } from '@/components/landing/StrategicInsights';
 import { ValuationGauge } from './ValuationGauge';
 import { ValuationCaptureSummary } from './ValuationCaptureSummary';
+import { ValuationExportActions } from './ValuationExportActions';
+import { buildInvestorNarrative } from '@/lib/valuationExport';
 import type { OnboardingMeta } from './types';
 
 type Props = {
@@ -43,8 +45,8 @@ export function ValuationResultsDashboard({ inputs, outputs, insights, startupNa
       className="valuation-executive-report mx-auto max-w-[1200px] space-y-12 px-4 py-8 sm:space-y-14 sm:py-10"
     >
       <header className="relative border-b border-white/10 pb-8">
-        <div className="flex flex-wrap items-start justify-between gap-6">
-          <div className="min-w-0 space-y-2.5">
+        <div className="flex flex-col gap-5 sm:flex-row sm:items-start sm:justify-between sm:gap-6">
+          <div className="min-w-0 flex-1 space-y-2.5">
             <p className="report-kicker">Venture synthesis appraisal</p>
             <h1 className="report-title text-balance">
               {startupName ? `${startupName} · ` : ''}Executive report
@@ -54,7 +56,19 @@ export function ValuationResultsDashboard({ inputs, outputs, insights, startupNa
               your operating profile.
             </p>
           </div>
-          <p className="report-status shrink-0">Final · synthesized</p>
+          <div className="flex w-full min-w-0 flex-col gap-3 border-t border-white/10 pt-5 sm:w-auto sm:max-w-[min(100%,20rem)] sm:items-stretch sm:border-0 sm:pt-0">
+            <p className="report-status text-left sm:text-right">Final · synthesized</p>
+            <div className="hidden sm:block">
+              <ValuationExportActions
+                inputs={inputs}
+                outputs={outputs}
+                insights={insights}
+                meta={meta}
+                startupName={startupName}
+                className="w-full sm:w-auto"
+              />
+            </div>
+          </div>
         </div>
       </header>
 
@@ -226,27 +240,4 @@ export function ValuationResultsDashboard({ inputs, outputs, insights, startupNa
       </section>
     </motion.div>
   );
-}
-
-function buildInvestorNarrative(inputs: ValuationInputs, o: ValuationOutputs): string[] {
-  const lines: string[] = [];
-  if (inputs.cac > 0 && inputs.ltv > 0 && inputs.ltv / inputs.cac >= 3) {
-    lines.push('Favorable unit economics with sound LTV/CAC ratios structurally anchor strategic M&A valuation multiples.');
-  }
-  if (inputs.monthlyGrowthPct > 4 && inputs.burnMultiple <= 2) {
-    lines.push('Consistent revenue growth velocity outpaces capital burn multiple expansion, showing exceptional leverage.');
-  }
-  if (o.investorInterest >= 65) {
-    lines.push('Venture appetite models indicate strong institutional likelihood for supporting structured primary equity rounds.');
-  }
-  if (o.acquisitionHeat > o.investorInterest + 8) {
-    lines.push('Corporate buy-side M&A appetite exceeds incremental venture financing interest, favoring strategic acquisition sequences.');
-  }
-  if (inputs.churnPctMonthly > 5) {
-    lines.push('Elevated churn indices compress overall valuation multiples; priority focus recommended on stabilizing net revenue retention.');
-  }
-  if (lines.length === 0) {
-    lines.push(o.strategicRecommendation);
-  }
-  return lines.slice(0, 4);
 }
