@@ -1,40 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { useMockSession } from "@/context/MockSessionContext";
-import { fetchMarketplaceListings, getUserInterests } from "@/lib/mockMarketplaceService";
-import { mockStartups } from "@/lib/mockData";
+import { fetchMarketplaceListings } from "@/lib/marketplace/service";
+import { useMyInterests } from "@/hooks/marketplace/useInterests";
 import { formatCurrency } from "@/lib/utils";
 
 export default function BuyerInterestsPage() {
-  const { currentUser } = useMockSession();
-  const userId = currentUser?.id;
-  const interestsQuery = useQuery({
-    queryKey: ["buyer-interests-page", userId],
-    queryFn: () => getUserInterests(userId!),
-    enabled: !!userId,
-  });
+  const interestsQuery = useMyInterests();
   const listingsQuery = useQuery({
     queryKey: ["buyer-interests-listings"],
-    queryFn: () => fetchMarketplaceListings(mockStartups),
+    queryFn: () => fetchMarketplaceListings(),
   });
   const listingBySlug = new Map((listingsQuery.data ?? []).map((listing) => [listing.slug, listing] as const));
-  const fallbackInterests = [
-    {
-      id: "fallback-interest-1",
-      listingId: "sorio-ai",
-      stage: "negotiating",
-      offerAmount: 215000,
-      messages: [{ body: "Requested retention metrics and customer cohort breakdown." }],
-    },
-    {
-      id: "fallback-interest-2",
-      listingId: "oli-ai",
-      stage: "interested",
-      offerAmount: null,
-      messages: [{ body: "Asked for traffic source split and onboarding completion rate." }],
-    },
-  ];
-  const rows = (interestsQuery.data && interestsQuery.data.length > 0 ? interestsQuery.data : fallbackInterests) as Array<{
+  const rows = (interestsQuery.data ?? []) as Array<{
     id: string;
     listingId: string;
     stage: string;

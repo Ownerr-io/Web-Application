@@ -1,50 +1,89 @@
-import { Switch, Route, Router as WouterRouter, Redirect, useParams } from "wouter";
+import { Suspense } from "react";
+import { Switch, Route, Router as WouterRouter, Redirect } from "wouter";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { MarketplaceLayout } from "@/components/MarketplaceLayout";
 import { MarketingLayout } from "@/components/MarketingLayout";
-import { AuthDialog } from "@/components/AuthDialog";
 import { ScrollToTop } from "@/components/ScrollToTop";
 import NotFound from "@/pages/not-found";
+import { ProductAuthScreen } from "@/components/auth/ProductAuthScreen";
+import { ProductAuthCallbackPage } from "@/pages/products/ProductAuthCallbackPage";
+import { ProductForgotPasswordPage } from "@/pages/products/ProductForgotPasswordPage";
 
 import Landing from "@/pages/landing";
-import ValuationPage from "@/pages/valuation";
-import MarketIntelligencePage from "@/pages/market-intelligence";
-import HowItWorksPage from "@/pages/how-it-works";
+import ProductsPage from "@/pages/products";
 import PricingPage from "@/pages/pricing";
+import HowItWorksPage from "@/pages/how-it-works";
+import ContactPage from "@/pages/contact";
+import { MarketplaceStartupsRedirect } from "@/components/routing/MarketplaceStartupsRedirect";
+import { RouteLoadingFallback } from "@/components/routing/RouteLoadingFallback";
+import {
+  LazyAcquirePage,
+  LazyAdminFounderStatsPage,
+  LazyFounderOsFlowDialog,
+  LazyMarketIntelligencePage,
+  LazyStartupDetailPage,
+  LazyStatsPage,
+  LazyValuationPage,
+} from "@/routing/lazyPages";
+
+import ProductsOwnerrOsLanding from "@/pages/products/ownerr-os";
+import OwnerrOsJoinPage from "@/pages/ownerr-os/join";
+import ProductsOwnerrNetworkLanding from "@/pages/products/ownerr-network";
+
+import OwnerrOsAppIndex from "@/pages/ownerr-os/app";
+import OwnerrOsAppDashboard from "@/pages/ownerr-os/app/dashboard";
+import OwnerrOsAppReferrals from "@/pages/ownerr-os/app/referrals";
+import OwnerrOsAppAnalytics from "@/pages/ownerr-os/app/analytics";
+import OwnerrOsAppListings from "@/pages/ownerr-os/app/listings";
+import OwnerrOsListingNewPage from "@/pages/ownerr-os/app/listings/new";
+import OwnerrOsListingDetailPage from "@/pages/ownerr-os/app/listings/detail";
+import OwnerrOsAppSettings from "@/pages/ownerr-os/app/settings";
+
+import OwnerrNetworkAppIndex from "@/pages/ownerr-network/app";
+import OwnerrNetworkAppDashboard from "@/pages/ownerr-network/app/dashboard";
+import OwnerrNetworkAppOnboarding from "@/pages/ownerr-network/app/onboarding";
+import OwnerrNetworkAppProfile from "@/pages/ownerr-network/app/profile";
+import OwnerrNetworkAppDiscover from "@/pages/ownerr-network/app/discover";
+import OwnerrNetworkAppReferrals from "@/pages/ownerr-network/app/referrals";
+import OwnerrNetworkAppWallet from "@/pages/ownerr-network/app/wallet";
+import OwnerrNetworkAppSettings from "@/pages/ownerr-network/app/settings";
+import OwnerrNetworkAppLeaderboard from "@/pages/ownerr-network/app/leaderboard";
+import OwnerrNetworkSharePage from "@/pages/share/network/[username]";
+import FounderSharePage from "@/pages/share/founder/[code]";
+
+import MarketplaceAppSettings from "@/pages/marketplace/app/settings";
 
 import Home from "@/pages/home";
-import Acquire from "@/pages/acquire";
 import Feed from "@/pages/feed";
-import Stats from "@/pages/stats";
 import Cofounders from "@/pages/cofounders";
-import StartupDetail from "@/pages/startup-detail";
 import FounderProfile from "@/pages/founder-profile";
 import ClaimSpots from "@/pages/claim-spots";
 
-import { DashboardLayout } from '@/components/DashboardLayout';
+import { AuthenticatedShellRoute } from '@/components/DashboardLayout';
+import { RouteGuard } from '@/components/routing/RouteGuard';
+import { DeskRoleGuard } from '@/components/routing/DeskRoleGuard';
+import { OwnerrNetworkProtectedRoute } from '@/components/ownerr-network/OwnerrNetworkProtectedRoute';
+import { DemoMarketplaceShellGuard } from "@/components/routing/DemoMarketplaceShellGuard";
+import { ProductShellEnforcer } from "@/components/routing/ProductShellEnforcer";
 import BuyerDashboard from '@/pages/buyer';
 import BuyerInterestsPage from '@/pages/buyer/interests';
 import BuyerBidsPage from '@/pages/buyer/bids';
-import BuyerProfilePage from '@/pages/buyer/profile';
-import SellerDashboard from '@/pages/seller';
 import SellerListingsPage from '@/pages/seller/listings';
 import SellerInboxPage from '@/pages/seller/inbox';
 import SellerVerificationPage from '@/pages/seller/verification';
 import SellerProfilePage from '@/pages/seller/profile';
-import DashboardHubPage from '@/pages/dashboard-hub';
-import AppSettingsPage from '@/pages/app-settings';
-import AppMessagesPage from '@/pages/app-messages';
-import AppBidsPage from '@/pages/app-bids';
-
+import SellerDashboard from '@/pages/seller';
 import { applyTheme } from "@/components/ThemeToggle";
 import { AddStartupProvider } from "@/context/AddStartupContext";
-import { MockBiddingProvider } from "@/context/MockBiddingContext";
-import { MockSessionProvider, useMockSession } from "@/context/MockSessionContext";
-import { AuthRole } from "./lib/mockAuthService";
-import { appPath, marketplacePath } from "@/lib/appPaths";
-import { appDeskHrefForRole } from "@/routes/navConfig";
+import { FounderOsProvider } from "@/context/FounderOsContext";
+import { AuthProvider } from "@/context/AuthContext";
+import { ActiveProductProvider } from "@/context/ActiveProductContext";
+import MarketplaceAppEntryPage from "@/pages/marketplace/app/index";
+import AuthStartPage from "@/pages/auth/start";
+import ForbiddenPage from "@/pages/forbidden";
+import { AUTH_ROUTES, MARKETPLACE_ROUTES, PRODUCT_ROUTES, PUBLIC_ROUTES } from "@/routing/routeRegistry";
 
 if (typeof document !== "undefined") {
   applyTheme();
@@ -52,305 +91,413 @@ if (typeof document !== "undefined") {
 
 const queryClient = new QueryClient();
 
-type ProtectedRouteProps = {
-  role: AuthRole;
-  component: React.ComponentType;
-};
-
-function ProtectedAuthenticated({ component: Component }: { component: React.ComponentType }) {
-  const { currentUser } = useMockSession();
-  if (!currentUser) return <Redirect to={marketplacePath('/')} />;
-  return <Component />;
-}
-
-function ProtectedRoute({ role, component: Component }: ProtectedRouteProps) {
-  const { currentUser } = useMockSession();
-
-  if (!currentUser) {
-    return <Redirect to={marketplacePath('/')} />;
-  }
-
-  if (currentUser.role !== role) {
-    return <Redirect to={appPath('/')} />;
-  }
-
-  return <Component />;
-}
-
-/** Signed-in users skip public marketing / marketplace and go straight to the private desk. */
-function RedirectIfAuthenticated({ children }: { children: React.ReactNode }) {
-  const { currentUser } = useMockSession();
-  if (currentUser) {
-    return <Redirect to={appDeskHrefForRole(currentUser.role)} />;
-  }
-  return <>{children}</>;
-}
-
-function RedirectLegacyStartup() {
-  const { slug } = useParams<{ slug: string }>();
-  return <Redirect to={marketplacePath(`/startup/${slug ?? ""}`)} />;
-}
-
-function RedirectLegacyFounder() {
-  const { handle } = useParams<{ handle: string }>();
-  return <Redirect to={marketplacePath(`/founder/${handle ?? ""}`)} />;
-}
-
-function RedirectAppStartupToMarketplace() {
-  const { slug } = useParams<{ slug: string }>();
-  return <Redirect to={marketplacePath(`/startup/${slug ?? ""}`)} />;
-}
-
-function RedirectAppFounderToMarketplace() {
-  const { handle } = useParams<{ handle: string }>();
-  return <Redirect to={marketplacePath(`/founder/${handle ?? ""}`)} />;
-}
-
 function Router() {
   return (
     <Switch>
-      <Route path="/">
-        <RedirectIfAuthenticated>
-          <MarketingLayout>
-            <Landing />
-          </MarketingLayout>
-        </RedirectIfAuthenticated>
+      <Route path={PUBLIC_ROUTES.home}>
+        <MarketingLayout>
+          <Landing />
+        </MarketingLayout>
       </Route>
-      <Route path="/valuation">
-        <RedirectIfAuthenticated>
-          <ValuationPage />
-        </RedirectIfAuthenticated>
+      <Route path={PUBLIC_ROUTES.products}>
+        <ProductsPage />
       </Route>
-      <Route path="/market-intelligence">
-        <RedirectIfAuthenticated>
-          <MarketIntelligencePage />
-        </RedirectIfAuthenticated>
+      <Route path={PUBLIC_ROUTES.pricing}>
+        <PricingPage />
       </Route>
-      <Route path="/how-it-works">
-        <RedirectIfAuthenticated>
-          <HowItWorksPage />
-        </RedirectIfAuthenticated>
+      <Route path={PUBLIC_ROUTES.valuation}>
+        <Suspense fallback={<RouteLoadingFallback label="Loading valuation…" />}>
+          <LazyValuationPage />
+        </Suspense>
       </Route>
-      <Route path="/pricing">
-        <RedirectIfAuthenticated>
-          <PricingPage />
-        </RedirectIfAuthenticated>
+      <Route path={PUBLIC_ROUTES.marketIntelligence}>
+        <Suspense fallback={<RouteLoadingFallback label="Loading intelligence…" />}>
+          <LazyMarketIntelligencePage />
+        </Suspense>
       </Route>
-
-      <Route path="/feed">
-        <Redirect to={marketplacePath("/feed")} />
+      <Route path={PUBLIC_ROUTES.howItWorks}>
+        <HowItWorksPage />
       </Route>
-      <Route path="/stats">
-        <Redirect to={marketplacePath("/stats")} />
+      <Route path={PUBLIC_ROUTES.contact}>
+        <ContactPage />
       </Route>
-      <Route path="/cofounders">
-        <Redirect to={marketplacePath("/cofounders")} />
-      </Route>
-      <Route path="/claim">
-        <Redirect to={marketplacePath("/claim")} />
-      </Route>
-      <Route path="/acquire">
-        <Redirect to={marketplacePath("/acquire")} />
-      </Route>
-      <Route path="/startup/:slug">
-        <RedirectLegacyStartup />
-      </Route>
-      <Route path="/founder/:handle">
-        <RedirectLegacyFounder />
+      <Route path={PUBLIC_ROUTES.adminFounderStats}>
+        <MarketingLayout terminalPalette={false}>
+          <RouteGuard pathname={PUBLIC_ROUTES.adminFounderStats}>
+            <Suspense fallback={<RouteLoadingFallback label="Loading admin…" />}>
+              <LazyAdminFounderStatsPage />
+            </Suspense>
+          </RouteGuard>
+        </MarketingLayout>
       </Route>
 
-      <Route path="/buyer">
-        <Redirect to={appPath("/buyer")} />
-      </Route>
-      <Route path="/buyer/interests">
-        <Redirect to={appPath("/buyer/interests")} />
-      </Route>
-      <Route path="/buyer/acquire">
-        <Redirect to={appPath("/buyer/acquire")} />
-      </Route>
-      <Route path="/buyer/bids">
-        <Redirect to={appPath("/buyer/bids")} />
-      </Route>
-      <Route path="/buyer/profile">
-        <Redirect to={appPath("/buyer/profile")} />
-      </Route>
-      <Route path="/seller">
-        <Redirect to={appPath("/seller")} />
-      </Route>
-      <Route path="/seller/listings">
-        <Redirect to={appPath("/seller/listings")} />
-      </Route>
-      <Route path="/seller/inbox">
-        <Redirect to={appPath("/seller/inbox")} />
-      </Route>
-      <Route path="/seller/verification">
-        <Redirect to={appPath("/seller/verification")} />
-      </Route>
-      <Route path="/seller/profile">
-        <Redirect to={appPath("/seller/profile")} />
+      <Route path={PRODUCT_ROUTES.ownerrOsJoin}>
+        <OwnerrOsJoinPage />
       </Route>
 
-      {/* Legacy public marketplace URLs → `/marketplace` */}
-      <Route path="/app/feed">
-        <Redirect to={marketplacePath("/feed")} />
+      <Route path={PRODUCT_ROUTES.ownerrOsLanding}>
+        <ProductsOwnerrOsLanding />
       </Route>
-      <Route path="/app/stats">
-        <Redirect to={marketplacePath("/stats")} />
+      <Route path={PRODUCT_ROUTES.ownerrNetworkLanding}>
+        <ProductsOwnerrNetworkLanding />
       </Route>
-      <Route path="/app/cofounders">
-        <Redirect to={marketplacePath("/cofounders")} />
+      <Route path={PRODUCT_ROUTES.marketplaceLanding}>
+        <Redirect to={MARKETPLACE_ROUTES.root} replace />
       </Route>
-      <Route path="/app/claim">
-        <Redirect to={marketplacePath("/claim")} />
+
+      <Route path="/products/ownerr-os/login">
+        <ProductAuthScreen appSlug="ownerr_os" mode="signin" />
       </Route>
-      <Route path="/app/startup/:slug">
-        <RedirectAppStartupToMarketplace />
+      <Route path="/products/ownerr-os/register">
+        <ProductAuthScreen appSlug="ownerr_os" mode="signup" />
       </Route>
-      <Route path="/app/founder/:handle">
-        <RedirectAppFounderToMarketplace />
+      <Route path="/products/ownerr-os/callback">
+        <ProductAuthCallbackPage />
       </Route>
-      <Route path="/app/acquire">
-        <Redirect to={marketplacePath("/acquire")} />
+      <Route path="/products/ownerr-os/forgot-password">
+        <ProductForgotPasswordPage appSlug="ownerr_os" />
       </Route>
-      <Route path="/app/">
-        <Redirect to={marketplacePath("/")} />
+
+      <Route path="/products/marketplace/login">
+        <Redirect to={MARKETPLACE_ROUTES.portalLogin} replace />
+      </Route>
+      <Route path="/products/marketplace/register">
+        <Redirect to={MARKETPLACE_ROUTES.portalRegister} replace />
+      </Route>
+      <Route path="/products/marketplace/callback">
+        <Redirect to={MARKETPLACE_ROUTES.portalCallback} replace />
+      </Route>
+      <Route path="/products/marketplace/forgot-password">
+        <Redirect to={MARKETPLACE_ROUTES.portalForgotPassword} replace />
+      </Route>
+
+      <Route path={MARKETPLACE_ROUTES.portalLogin}>
+        <ProductAuthScreen appSlug="marketplace" mode="signin" />
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.portalRegister}>
+        <ProductAuthScreen appSlug="marketplace" mode="signup" />
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.portalCallback}>
+        <ProductAuthCallbackPage />
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.portalForgotPassword}>
+        <ProductForgotPasswordPage appSlug="marketplace" />
+      </Route>
+
+      <Route path="/products/ownerr-network/login">
+        <ProductAuthScreen appSlug="ownerr_network" mode="signin" />
+      </Route>
+      <Route path="/products/ownerr-network/register">
+        <ProductAuthScreen appSlug="ownerr_network" mode="signup" />
+      </Route>
+      <Route path="/products/ownerr-network/callback">
+        <ProductAuthCallbackPage />
+      </Route>
+      <Route path="/products/ownerr-network/forgot-password">
+        <ProductForgotPasswordPage appSlug="ownerr_network" />
+      </Route>
+
+      <Route path={AUTH_ROUTES.start}>
+        <AuthStartPage />
+      </Route>
+      <Route path={AUTH_ROUTES.forbidden}>
+        <ForbiddenPage />
+      </Route>
+      <Route path="/auth/login">
+        <Redirect to={AUTH_ROUTES.start} replace />
+      </Route>
+      <Route path="/auth/register">
+        <Redirect to={AUTH_ROUTES.start} replace />
+      </Route>
+      <Route path="/auth/forgot-password">
+        <Redirect to={AUTH_ROUTES.start} replace />
+      </Route>
+      <Route path="/auth/callback">
+        <Redirect to={AUTH_ROUTES.start} replace />
+      </Route>
+
+      <Route path={MARKETPLACE_ROUTES.settings}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.settings}>
+          <MarketplaceAppSettings />
+        </AuthenticatedShellRoute>
+      </Route>
+
+      <Route path={PRODUCT_ROUTES.ownerrOsSettings}>
+        <AuthenticatedShellRoute product="ownerr_os" pathname={PRODUCT_ROUTES.ownerrOsSettings}>
+          <OwnerrOsAppSettings />
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrOsListingNew}>
+        <AuthenticatedShellRoute product="ownerr_os" pathname={PRODUCT_ROUTES.ownerrOsListingNew}>
+          <OwnerrOsListingNewPage />
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={`${PRODUCT_ROUTES.ownerrOsListings}/:id`}>
+        <AuthenticatedShellRoute product="ownerr_os" pathname={PRODUCT_ROUTES.ownerrOsListings}>
+          <OwnerrOsListingDetailPage />
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrOsListings}>
+        <AuthenticatedShellRoute product="ownerr_os" pathname={PRODUCT_ROUTES.ownerrOsListings}>
+          <OwnerrOsAppListings />
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrOsAnalytics}>
+        <AuthenticatedShellRoute product="ownerr_os" pathname={PRODUCT_ROUTES.ownerrOsAnalytics}>
+          <OwnerrOsAppAnalytics />
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrOsReferrals}>
+        <AuthenticatedShellRoute product="ownerr_os" pathname={PRODUCT_ROUTES.ownerrOsReferrals}>
+          <OwnerrOsAppReferrals />
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrOsDashboard}>
+        <AuthenticatedShellRoute product="ownerr_os" pathname={PRODUCT_ROUTES.ownerrOsDashboard}>
+          <OwnerrOsAppDashboard />
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrOsApp}>
+        <AuthenticatedShellRoute product="ownerr_os" pathname={PRODUCT_ROUTES.ownerrOsApp}>
+          <OwnerrOsAppIndex />
+        </AuthenticatedShellRoute>
+      </Route>
+
+      <Route path={PRODUCT_ROUTES.ownerrNetworkSettings}>
+        <AuthenticatedShellRoute product="ownerr_network" pathname={PRODUCT_ROUTES.ownerrNetworkSettings}>
+          <OwnerrNetworkProtectedRoute>
+            <OwnerrNetworkAppSettings />
+          </OwnerrNetworkProtectedRoute>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrNetworkLeaderboard}>
+        <AuthenticatedShellRoute product="ownerr_network" pathname={PRODUCT_ROUTES.ownerrNetworkLeaderboard}>
+          <OwnerrNetworkProtectedRoute>
+            <OwnerrNetworkAppLeaderboard />
+          </OwnerrNetworkProtectedRoute>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrNetworkWallet}>
+        <AuthenticatedShellRoute product="ownerr_network" pathname={PRODUCT_ROUTES.ownerrNetworkWallet}>
+          <OwnerrNetworkProtectedRoute>
+            <OwnerrNetworkAppWallet />
+          </OwnerrNetworkProtectedRoute>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrNetworkReferrals}>
+        <AuthenticatedShellRoute product="ownerr_network" pathname={PRODUCT_ROUTES.ownerrNetworkReferrals}>
+          <OwnerrNetworkProtectedRoute>
+            <OwnerrNetworkAppReferrals />
+          </OwnerrNetworkProtectedRoute>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrNetworkDiscover}>
+        <AuthenticatedShellRoute product="ownerr_network" pathname={PRODUCT_ROUTES.ownerrNetworkDiscover}>
+          <OwnerrNetworkProtectedRoute>
+            <OwnerrNetworkAppDiscover />
+          </OwnerrNetworkProtectedRoute>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrNetworkProfile}>
+        <AuthenticatedShellRoute product="ownerr_network" pathname={PRODUCT_ROUTES.ownerrNetworkProfile}>
+          <OwnerrNetworkProtectedRoute>
+            <OwnerrNetworkAppProfile />
+          </OwnerrNetworkProtectedRoute>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrNetworkOnboarding}>
+        <AuthenticatedShellRoute product="ownerr_network" pathname={PRODUCT_ROUTES.ownerrNetworkOnboarding} fullBleedMain>
+          <OwnerrNetworkProtectedRoute requireOnboardingComplete={false}>
+            <OwnerrNetworkAppOnboarding />
+          </OwnerrNetworkProtectedRoute>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrNetworkDashboard}>
+        <AuthenticatedShellRoute product="ownerr_network" pathname={PRODUCT_ROUTES.ownerrNetworkDashboard}>
+          <OwnerrNetworkProtectedRoute>
+            <OwnerrNetworkAppDashboard />
+          </OwnerrNetworkProtectedRoute>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={PRODUCT_ROUTES.ownerrNetworkApp}>
+        <AuthenticatedShellRoute product="ownerr_network" pathname={PRODUCT_ROUTES.ownerrNetworkApp}>
+          <OwnerrNetworkProtectedRoute>
+            <OwnerrNetworkAppIndex />
+          </OwnerrNetworkProtectedRoute>
+        </AuthenticatedShellRoute>
+      </Route>
+
+      <Route path="/share/network/:username">
+        <OwnerrNetworkSharePage />
+      </Route>
+      <Route path="/share/founder/:code">
+        <FounderSharePage />
       </Route>
 
       <Route path="/marketplace/startup/:slug">
-        <RedirectIfAuthenticated>
-          <MarketplaceLayout>
-            <StartupDetail />
-          </MarketplaceLayout>
-        </RedirectIfAuthenticated>
+        <MarketplaceLayout>
+          <Suspense fallback={<RouteLoadingFallback label="Loading listing…" />}>
+            <LazyStartupDetailPage />
+          </Suspense>
+        </MarketplaceLayout>
       </Route>
       <Route path="/marketplace/founder/:handle">
-        <RedirectIfAuthenticated>
-          <MarketplaceLayout>
-            <FounderProfile />
-          </MarketplaceLayout>
-        </RedirectIfAuthenticated>
+        <MarketplaceLayout>
+          <FounderProfile />
+        </MarketplaceLayout>
       </Route>
-      <Route path="/marketplace/acquire">
-        <RedirectIfAuthenticated>
-          <MarketplaceLayout>
-            <Acquire />
-          </MarketplaceLayout>
-        </RedirectIfAuthenticated>
+      <Route path={MARKETPLACE_ROUTES.startups}>
+        <MarketplaceStartupsRedirect />
       </Route>
-      <Route path="/marketplace/feed">
-        <RedirectIfAuthenticated>
-          <MarketplaceLayout>
-            <Feed />
-          </MarketplaceLayout>
-        </RedirectIfAuthenticated>
+      <Route path={MARKETPLACE_ROUTES.acquire}>
+        <MarketplaceLayout>
+          <Suspense fallback={<RouteLoadingFallback label="Loading acquire…" />}>
+            <LazyAcquirePage />
+          </Suspense>
+        </MarketplaceLayout>
       </Route>
-      <Route path="/marketplace/stats">
-        <RedirectIfAuthenticated>
-          <MarketplaceLayout>
-            <Stats />
-          </MarketplaceLayout>
-        </RedirectIfAuthenticated>
+      <Route path={MARKETPLACE_ROUTES.feed}>
+        <MarketplaceLayout>
+          <Feed />
+        </MarketplaceLayout>
       </Route>
-      <Route path="/marketplace/cofounders">
-        <RedirectIfAuthenticated>
-          <MarketplaceLayout>
-            <Cofounders />
-          </MarketplaceLayout>
-        </RedirectIfAuthenticated>
+      <Route path={MARKETPLACE_ROUTES.stats}>
+        <MarketplaceLayout>
+          <Suspense fallback={<RouteLoadingFallback label="Loading stats…" />}>
+            <LazyStatsPage />
+          </Suspense>
+        </MarketplaceLayout>
       </Route>
-      <Route path="/marketplace/claim">
-        <RedirectIfAuthenticated>
-          <MarketplaceLayout>
-            <ClaimSpots />
-          </MarketplaceLayout>
-        </RedirectIfAuthenticated>
+      <Route path={MARKETPLACE_ROUTES.cofounders}>
+        <MarketplaceLayout>
+          <Cofounders />
+        </MarketplaceLayout>
       </Route>
-      <Route path="/marketplace/">
-        <RedirectIfAuthenticated>
-          <MarketplaceLayout>
-            <Home />
-          </MarketplaceLayout>
-        </RedirectIfAuthenticated>
+      <Route path={MARKETPLACE_ROUTES.claim}>
+        <MarketplaceLayout>
+          <ClaimSpots />
+        </MarketplaceLayout>
       </Route>
-      <Route path="/marketplace">
-        <RedirectIfAuthenticated>
-          <MarketplaceLayout>
-            <Home />
-          </MarketplaceLayout>
-        </RedirectIfAuthenticated>
+      <Route path={MARKETPLACE_ROUTES.root}>
+        <MarketplaceLayout>
+          <Home />
+        </MarketplaceLayout>
       </Route>
 
-      <Route path="/app/buyer/interests">
-        <DashboardLayout>
-          <ProtectedRoute role="buyer" component={BuyerInterestsPage} />
-        </DashboardLayout>
+      <Route path={MARKETPLACE_ROUTES.buyerInterests}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.buyerInterests}>
+          <DeskRoleGuard role="buyer">
+            <BuyerInterestsPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
       </Route>
-      <Route path="/app/buyer/acquire">
-        <DashboardLayout>
-          <ProtectedRoute role="buyer" component={Acquire} />
-        </DashboardLayout>
+      <Route path={MARKETPLACE_ROUTES.buyerAcquire}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.buyerAcquire}>
+          <DeskRoleGuard role="buyer">
+            <Suspense fallback={<RouteLoadingFallback label="Loading acquire…" />}>
+              <LazyAcquirePage />
+            </Suspense>
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
       </Route>
-      <Route path="/app/buyer/bids">
-        <DashboardLayout>
-          <ProtectedRoute role="buyer" component={BuyerBidsPage} />
-        </DashboardLayout>
+      <Route path={MARKETPLACE_ROUTES.buyerBids}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.buyerBids}>
+          <DeskRoleGuard role="buyer">
+            <BuyerBidsPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
       </Route>
-      <Route path="/app/buyer/profile">
-        <DashboardLayout>
-          <ProtectedRoute role="buyer" component={BuyerProfilePage} />
-        </DashboardLayout>
-      </Route>
-      <Route path="/app/buyer">
-        <DashboardLayout>
-          <ProtectedRoute role="buyer" component={BuyerDashboard} />
-        </DashboardLayout>
-      </Route>
-
-      <Route path="/app/seller/listings">
-        <DashboardLayout>
-          <ProtectedRoute role="founder" component={SellerListingsPage} />
-        </DashboardLayout>
-      </Route>
-      <Route path="/app/seller/inbox">
-        <DashboardLayout>
-          <ProtectedRoute role="founder" component={SellerInboxPage} />
-        </DashboardLayout>
-      </Route>
-      <Route path="/app/seller/verification">
-        <DashboardLayout>
-          <ProtectedRoute role="founder" component={SellerVerificationPage} />
-        </DashboardLayout>
-      </Route>
-      <Route path="/app/seller/profile">
-        <DashboardLayout>
-          <ProtectedRoute role="founder" component={SellerProfilePage} />
-        </DashboardLayout>
-      </Route>
-      <Route path="/app/seller">
-        <DashboardLayout>
-          <ProtectedRoute role="founder" component={SellerDashboard} />
-        </DashboardLayout>
+      <Route path={MARKETPLACE_ROUTES.buyer}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.buyer}>
+          <DeskRoleGuard role="buyer">
+            <BuyerDashboard />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
       </Route>
 
-      <Route path="/app/settings">
-        <DashboardLayout>
-          <ProtectedAuthenticated component={AppSettingsPage} />
-        </DashboardLayout>
+      <Route path={MARKETPLACE_ROUTES.founderVerification}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.founderVerification}>
+          <DeskRoleGuard role="founder">
+            <SellerVerificationPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
       </Route>
-      <Route path="/app/messages">
-        <DashboardLayout>
-          <ProtectedAuthenticated component={AppMessagesPage} />
-        </DashboardLayout>
+      <Route path={MARKETPLACE_ROUTES.sellerProfile}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.sellerProfile}>
+          <DeskRoleGuard role="founder">
+            <SellerProfilePage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
       </Route>
-      <Route path="/app/bids">
-        <DashboardLayout>
-          <ProtectedAuthenticated component={AppBidsPage} />
-        </DashboardLayout>
+      <Route path={MARKETPLACE_ROUTES.founderInbox}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.founderInbox}>
+          <DeskRoleGuard role="founder">
+            <SellerInboxPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
       </Route>
-      <Route path="/app">
-        <DashboardLayout>
-          <ProtectedAuthenticated component={DashboardHubPage} />
-        </DashboardLayout>
+      <Route path={MARKETPLACE_ROUTES.founderListings}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.founderListings}>
+          <DeskRoleGuard role="founder">
+            <SellerListingsPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.founderHub}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.founderHub}>
+          <DeskRoleGuard role="founder">
+            <SellerDashboard />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.buyerDashboard}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.buyerDashboard}>
+          <DeskRoleGuard role="buyer">
+            <BuyerDashboard />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.buyerBrowse}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.buyerBrowse}>
+          <DeskRoleGuard role="buyer">
+            <Suspense fallback={<RouteLoadingFallback label="Loading browse…" />}>
+              <LazyAcquirePage />
+            </Suspense>
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.sellerDashboard}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.sellerDashboard}>
+          <DeskRoleGuard role="founder">
+            <SellerDashboard />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.sellerListings}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.sellerListings}>
+          <DeskRoleGuard role="founder">
+            <SellerListingsPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.sellerInbox}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.sellerInbox}>
+          <DeskRoleGuard role="founder">
+            <SellerInboxPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.sellerVerification}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.sellerVerification}>
+          <DeskRoleGuard role="founder">
+            <SellerVerificationPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.app}>
+        <AuthenticatedShellRoute product="marketplace" pathname={MARKETPLACE_ROUTES.app}>
+          <MarketplaceAppEntryPage />
+        </AuthenticatedShellRoute>
       </Route>
 
       <Route component={NotFound} />
@@ -361,20 +508,26 @@ function Router() {
 function App() {
   return (
     <QueryClientProvider client={queryClient}>
-      <MockSessionProvider>
-        <AddStartupProvider>
-          <MockBiddingProvider>
-            <TooltipProvider>
-              <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
-                <ScrollToTop />
-                <Router />
-              </WouterRouter>
-              <AuthDialog />
-              <Toaster />
-            </TooltipProvider>
-          </MockBiddingProvider>
-        </AddStartupProvider>
-      </MockSessionProvider>
+      <AddStartupProvider>
+          <TooltipProvider>
+            <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
+              <AuthProvider>
+                <ActiveProductProvider>
+                <FounderOsProvider>
+                  <DemoMarketplaceShellGuard />
+                  <ProductShellEnforcer />
+                  <ScrollToTop />
+                  <Router />
+                  <Suspense fallback={null}>
+                    <LazyFounderOsFlowDialog />
+                  </Suspense>
+                  <Toaster />
+                </FounderOsProvider>
+                </ActiveProductProvider>
+              </AuthProvider>
+            </WouterRouter>
+          </TooltipProvider>
+      </AddStartupProvider>
     </QueryClientProvider>
   );
 }

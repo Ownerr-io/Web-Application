@@ -1,10 +1,10 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { useMockSession } from "@/context/MockSessionContext";
-import { getUserListings } from "@/lib/mockMarketplaceService";
+import { useAuth } from "@/context/AuthContext";
+import { getUserListings } from "@/lib/marketplace/service";
 
 export default function SellerVerificationPage() {
-  const { currentUser } = useMockSession();
+  const { currentUser } = useAuth();
   const ownerId = currentUser?.id;
   const { data: listings = [] } = useQuery({
     queryKey: ["seller-verification-page", ownerId],

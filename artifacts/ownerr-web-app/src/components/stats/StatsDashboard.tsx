@@ -14,7 +14,8 @@ import {
 } from 'recharts';
 import { Link } from 'wouter';
 import { Switch } from '@/components/ui/switch';
-import { mockStartups } from '@/lib/mockData';
+import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
+import { buildFoundersFromStartups } from '@/lib/marketplace/founders';
 import { marketplacePath } from '@/lib/appPaths';
 import {
   aggregateByCategory,
@@ -33,8 +34,8 @@ import { FounderLink, StartupLink } from '@/components/EntityLink';
 import { useIsDark } from '@/components/ThemeToggle';
 
 const card = 'rounded-xl border border-border bg-card p-4 text-card-foreground sm:p-5';
-const h2 = 'font-mono text-sm font-bold tracking-tight text-foreground';
-const sub = 'text-xs text-muted-foreground';
+const h2 = 'font-mono text-sm font-bold tracking-tight text-[color:var(--terminal-display)]';
+const sub = 'mp-body text-xs';
 /** Recharts needs generous bottom/left room so x-axis title + tick labels are not clipped */
 const M_SCATTER = { top: 20, right: 28, left: 60, bottom: 72 };
 
@@ -57,8 +58,8 @@ function yAxisTitle(text: string, labelFill: string) {
 }
 const tableWrap = 'mt-3 overflow-x-auto rounded-lg border border-border';
 const th =
-  'border-b border-border bg-muted/50 px-3 py-2 text-left text-[10px] font-mono font-bold uppercase text-muted-foreground';
-const td = 'border-b border-border/80 px-3 py-2 text-xs text-foreground';
+  'mp-label border-b border-border bg-muted/50 px-3 py-2 text-left text-[10px] font-mono uppercase';
+const td = 'mp-body border-b border-border/80 px-3 py-2 text-xs';
 
 function numberTickK(n: number) {
   if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(0)}M`;
@@ -67,7 +68,9 @@ function numberTickK(n: number) {
 }
 
 export function StatsDashboard() {
-  const rows = useMemo(() => buildStatsDataset(mockStartups), []);
+  const { data: publicStartups = [] } = usePublicStartups();
+  const founders = useMemo(() => buildFoundersFromStartups(publicStartups), [publicStartups]);
+  const rows = useMemo(() => buildStatsDataset(publicStartups), [publicStartups]);
   const techRows = useMemo(() => aggregateMrrByTech(rows), [rows]);
   const categoryRows = useMemo(() => aggregateByCategory(rows), [rows]);
   const olympics = useMemo(() => olympicsByCountry(rows), [rows]);
@@ -123,7 +126,7 @@ export function StatsDashboard() {
   const dataRevVsX = useMemo(
     () =>
       rows.map((r) => {
-        const f = getFounderByHandle(r.founderHandle);
+        const f = getFounderByHandle(r.founderHandle, founders);
         return {
           x: r.xFollowers,
           y: r.arr,
@@ -135,7 +138,7 @@ export function StatsDashboard() {
           founderAvatarSeed: f?.avatarSeed ?? r.founderHandle,
         };
       }),
-    [rows],
+    [rows, founders],
   );
 
   const dataGrowthVsGrowth = useMemo(
@@ -146,9 +149,9 @@ export function StatsDashboard() {
         name: r.name,
         slug: r.slug,
         founderHandle: r.founderHandle,
-        founderAvatarSeed: getFounderByHandle(r.founderHandle)?.avatarSeed ?? r.founderHandle,
+        founderAvatarSeed: getFounderByHandle(r.founderHandle, founders)?.avatarSeed ?? r.founderHandle,
       })),
-    [rows],
+    [rows, founders],
   );
 
   const dataRevVsTime = useMemo(
@@ -164,10 +167,10 @@ export function StatsDashboard() {
   );
 
   return (
-    <div className="mx-auto max-w-6xl space-y-10 pb-16 font-sans text-foreground">
+    <div className="mx-auto max-w-6xl space-y-10 pb-16 font-sans text-[color:var(--terminal-fg)]">
       <div>
-        <h1 className="font-mono text-2xl font-bold text-foreground">Stats</h1>
-        <p className="mt-1 text-sm text-muted-foreground">Verified revenue, founders, and markets across Ownerr</p>
+        <h1 className="font-mono text-2xl font-bold text-[color:var(--terminal-display)]">Stats</h1>
+        <p className="mp-body mt-1 text-sm">Verified revenue, founders, and markets across Ownerr</p>
       </div>
 
       {/* 1 */}
@@ -568,7 +571,7 @@ export function StatsDashboard() {
             </thead>
             <tbody>
               {highLow.map((r, i) => {
-                const f = getFounderByHandle(r.founderHandle);
+                const f = getFounderByHandle(r.founderHandle, founders);
                 return (
                   <tr key={r.slug} className="hover:bg-muted/50">
                     <td className={td}>{i + 1}</td>
@@ -627,7 +630,7 @@ type RevXTip = {
   founderHandle: string;
 };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function TipRevVsFollowers({ active, payload }: any) {
   if (!active || !payload?.[0]) return null;
   const p = payload[0].payload as RevXTip;
@@ -661,7 +664,7 @@ function TipRevVsFollowers({ active, payload }: any) {
 
 type AvPayload = { founderAvatarSeed: string; slug: string };
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function AvatarShape(props: any) {
   const { cx, cy, payload, index } = props;
   if (cx == null || cy == null) return <g />;
@@ -689,7 +692,7 @@ function AvatarShape(props: any) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function LogoShape(props: any) {
   const { cx, cy, payload, index } = props;
   if (cx == null || cy == null) return <g />;
@@ -717,7 +720,7 @@ function LogoShape(props: any) {
   );
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function TipGrowth({ active, payload }: any) {
   if (!active || !payload?.[0]) return null;
   const p = payload[0].payload as { x: number; y: number; name: string; slug: string; founderHandle: string };
@@ -732,7 +735,7 @@ function TipGrowth({ active, payload }: any) {
     </div>
   );
 }
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
+ 
 function TipTime({ active, payload }: any) {
   if (!active || !payload?.[0]) return null;
   const p = payload[0].payload as { x: number; y: number; name: string; slug: string; founderHandle: string };

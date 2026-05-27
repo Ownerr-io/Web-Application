@@ -11,7 +11,7 @@ export default function Stats() {
   if (!isMounted) return <div className="min-h-[500px] bg-background" />;
 
   return (
-    <div className="w-full min-w-0 bg-background px-0 py-1 text-foreground">
+    <div className="w-full min-w-0 px-0 py-1 text-[color:var(--terminal-fg)]">
       <StatsDashboard />
     </div>
   );

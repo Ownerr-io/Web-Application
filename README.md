@@ -408,7 +408,19 @@ Additional scripts:
 npm run build
 npm run serve
 npm run typecheck
+npm run lint
+npm run lint:fix
 ```
+
+Before a release or merge-ready handoff, run locally (see [docs/local-verification.md](docs/local-verification.md)):
+
+```bash
+npm run typecheck
+npm run lint
+npm run build
+```
+
+There is no GitHub Actions CI in this repo during active development.
 
 ---
 

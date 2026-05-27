@@ -1,7 +1,4 @@
 import { MarketingLayout } from '@/components/MarketingLayout';
-import { Link } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { marketplacePath } from '@/lib/appPaths';
 import { MARKETING_SHELL_CLASS } from '@/lib/marketingShell';
 import { cn } from '@/lib/utils';
 

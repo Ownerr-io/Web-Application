@@ -10,14 +10,12 @@ import { ValuationClaudeFlow } from './ValuationClaudeFlow';
 import { AiAnalysisScreen } from './AiAnalysisScreen';
 import { ValuationResultsDashboard } from './ValuationResultsDashboard';
 import { ValuationExportActions } from './ValuationExportActions';
-import { ValuationCaptureSummary } from './ValuationCaptureSummary';
 import { LeadConversionSection } from './LeadConversionSection';
 import { useValuationSessionPersist, type ValuationSessionState } from './useValuationSessionPersist';
 import {
   DEFAULT_VALUATION_INPUTS,
   buildStrategicInsights,
   computeValuationIntel,
-  type ValuationInputs,
 } from '@/lib/valuationIntel';
 import { DEFAULT_OWNERR_ONBOARDING_META, type ValuationPhase } from './types';
 import { VALUATION_QUESTIONS, validateAllInputs } from './valuationQuestions';
@@ -41,7 +39,7 @@ type Props = {
 export function ValuationExperience({ onPhaseChange }: Props) {
   const reduce = useReducedMotion();
   const defaults = useMemo(() => defaultSession(), []);
-  const { status, session, patchSession, clearSession } = useValuationSessionPersist(defaults);
+  const { status, session, patchSession, clearSession, resumeQuestionFlow } = useValuationSessionPersist(defaults);
 
   const { phase, questionIndex, inputs, meta } = session;
 
@@ -78,7 +76,14 @@ export function ValuationExperience({ onPhaseChange }: Props) {
   const outputs = useMemo(() => computeValuationIntel(inputs), [inputs]);
   const insights = useMemo(() => buildStrategicInsights(inputs, outputs), [inputs, outputs]);
 
-  const startQuestions = useCallback(() => setPhaseSync('questions'), [setPhaseSync]);
+  const startQuestions = useCallback(() => {
+    const resumed = resumeQuestionFlow();
+    if (resumed) {
+      onPhaseChange?.('questions');
+      return;
+    }
+    setPhaseSync('questions');
+  }, [resumeQuestionFlow, setPhaseSync, onPhaseChange]);
 
   const finishQuestions = useCallback(() => {
     if (!validateAllInputs(inputs)) return;
@@ -92,8 +97,8 @@ export function ValuationExperience({ onPhaseChange }: Props) {
     setPhaseSync('intro');
   }, [clearSession, setPhaseSync]);
 
-  const calmBackdrop = phase === 'questions';
-  const backdropIntensity = phase === 'intro' ? 'intro' : phase === 'results' ? 'results' : 'flow';
+  const calmBackdrop = phase === 'intro' || phase === 'questions';
+  const backdropIntensity = phase === 'results' ? 'results' : 'flow';
 
   if (status === 'loading') {
     return (
@@ -113,7 +118,7 @@ export function ValuationExperience({ onPhaseChange }: Props) {
         'relative flex w-full flex-col',
         phase === 'analyzing' &&
           'h-[calc(100dvh-3.25rem)] max-h-[calc(100dvh-3.25rem)] overflow-hidden sm:h-[calc(100dvh-4rem)] sm:max-h-[calc(100dvh-4rem)]',
-        (phase === 'intro' || phase === 'questions') && VALUATION_STAGE_MIN_H,
+        phase === 'questions' && VALUATION_STAGE_MIN_H,
       )}
     >
       <ValuationStageBackdrop intensity={backdropIntensity} calm={calmBackdrop || phase === 'analyzing'} />
@@ -121,7 +126,7 @@ export function ValuationExperience({ onPhaseChange }: Props) {
       <motion.div className="relative z-10 flex min-h-0 w-full flex-1 flex-col">
         <AnimatePresence mode="wait">
           {phase === 'intro' && (
-            <motion.div key="intro" className="flex min-h-0 w-full flex-1 flex-col">
+            <motion.div key="intro" className="flex w-full flex-col">
               <ValuationIntroScene onContinue={startQuestions} />
             </motion.div>
           )}

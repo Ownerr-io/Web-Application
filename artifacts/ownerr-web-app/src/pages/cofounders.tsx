@@ -1,12 +1,15 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Link } from 'wouter';
-import { mockFounders } from '@/lib/mockData';
+import { buildFoundersFromStartups } from '@/lib/marketplace/founders';
+import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
 import { marketplacePath } from '@/lib/appPaths';
 import { founderAvatarUrl } from '@/lib/utils';
 import { Search } from 'lucide-react';
 
 export default function Cofounders() {
+  const { data: publicStartups = [] } = usePublicStartups();
+  const mockFounders = useMemo(() => buildFoundersFromStartups(publicStartups), [publicStartups]);
   const [isMounted, setIsMounted] = useState(false);
   const [search, setSearch] = useState('');
 
@@ -14,7 +17,7 @@ export default function Cofounders() {
     setIsMounted(true);
   }, []);
 
-  const lookingForCofounder = mockFounders.filter(f => f.lookingForCofounder);
+  const lookingForCofounder = mockFounders.filter((f) => f.lookingForCofounder);
   
   const q = search.trim().toLowerCase();
   const filtered = lookingForCofounder.filter((f) => {
@@ -35,7 +38,7 @@ export default function Cofounders() {
       <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
         <div>
           <h1 className="text-3xl font-bold mb-2">Co-founders directory</h1>
-          <p className="text-muted-foreground">Verified founders looking for their next partner.</p>
+          <p className="mp-body">Verified founders looking for their next partner.</p>
         </div>
         
         <div className="relative w-full max-w-md md:max-w-lg md:shrink-0 md:ml-auto">

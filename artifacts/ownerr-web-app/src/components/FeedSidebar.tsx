@@ -3,7 +3,8 @@ import { Link } from 'wouter';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ChevronRight, Flame, Plus } from 'lucide-react';
 
-import { mockStartups, type Startup } from '@/lib/mockData';
+import type { Startup } from '@/lib/marketplace/types';
+import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
 import { mergeWithUserStartups } from '@/lib/userStartups';
 import { useAddStartup } from '@/context/AddStartupContext';
 import { FEED_BONUS_DEAL, FEED_POSTING_STREAKS, FEED_TOP_STARTUPS } from '@/lib/feedSidebarData';
@@ -17,11 +18,12 @@ type RotatingItem =
 
 export function FeedSidebar() {
   const { openAddStartup } = useAddStartup();
+  const { data: publicStartups = [] } = usePublicStartups();
 
   const rotation = useMemo<RotatingItem[]>(() => {
-    const fromStartups = mergeWithUserStartups(mockStartups).map((s) => ({ kind: 'startup' as const, startup: s }));
+    const fromStartups = mergeWithUserStartups(publicStartups).map((s) => ({ kind: 'startup' as const, startup: s }));
     return [...fromStartups, { kind: 'bonus' as const, deal: FEED_BONUS_DEAL }];
-  }, []);
+  }, [publicStartups]);
 
   const [dealIdx, setDealIdx] = useState(0);
 

@@ -1,0 +1,150 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1" />
+    <title>Ownerr — The database of verified startup revenues</title>
+    <meta name="description" content="Ownerr - the database of verified startup revenues." />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inconsolata:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+    <style>
+      @keyframes splash-pulse {
+        0%, 100% { opacity: 1; transform: scale(1); }
+        50% { opacity: 0.5; transform: scale(0.98); }
+      }
+    </style>
+    <script type="module" crossorigin src="/assets/index-B-37iCee.js"></script>
+    <link rel="stylesheet" crossorigin href="/assets/index-RrH6s91m.css">
+  </head>
+  <body>
+    <!-- Click to Start Overlay (Required for Audio Autoplay) -->
+    <div id="start-overlay" style="position: fixed; inset: 0; z-index: 10000; background-color: #000000; display: flex; flex-direction: column; align-items: center; justify-content: center; cursor: pointer; transition: opacity 0.3s ease-in-out; font-family: 'Inconsolata', monospace;">
+      <p style="color: #D9F69D; font-size: 1.25rem; font-weight: 500; letter-spacing: 0.1em; text-transform: uppercase; animation: splash-pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;">Click anywhere to enter</p>
+    </div>
+
+    <!-- Splash Screen overlay -->
+    <div id="global-splash" style="position: fixed; inset: 0; z-index: 9999; background-color: #000000; display: flex; flex-direction: column; align-items: center; justify-content: center; transition: opacity 0.6s ease-in-out; font-family: 'Inconsolata', monospace;">
+      <div style="display: flex; flex-direction: column; align-items: center;">
+        <img src="/favicon.svg" alt="Ownerr Logo" style="width: 140px; height: 140px; margin-bottom: 32px;" />
+        <h1 style="color: #ffffff; font-size: 2.5rem; font-weight: 700; margin: 0 0 16px 0; letter-spacing: -0.02em;">Ownerr</h1>
+        <div style="display: flex; flex-direction: column; gap: 8px; text-align: center; min-height: 80px;">
+          <p id="splash-line1" style="color: rgb(191,253,113); font-size: 1.125rem; margin: 0; font-weight: 500; letter-spacing: 0.05em; padding: 0 20px; min-height: 1.5rem;"></p>
+          <p id="splash-line2" style="color: rgb(253,189,89); font-size: 1.125rem; margin: 0; font-weight: 500; letter-spacing: 0.05em; padding: 0 20px; min-height: 1.5rem;"></p>
+          <p id="splash-line3" style="color: rgb(252,87,86); font-size: 1.125rem; margin: 0; font-weight: 500; letter-spacing: 0.05em; padding: 0 20px; min-height: 1.5rem;"></p>
+        </div>
+      </div>
+      
+      <div id="splash-pct" style="position: absolute; bottom: 40px; right: 48px; font-size: 2rem; font-weight: 700; color: #D9F69D; font-family: 'Inconsolata', monospace;">0%</div>
+    </div>
+
+    <script>
+      // Instantly hide overlays if splash has already been shown this session
+      if (sessionStorage.getItem("splashShown")) {
+        document.getElementById('start-overlay').style.display = 'none';
+        document.getElementById('global-splash').style.display = 'none';
+      }
+    </script>
+
+    <div id="root"></div>
+
+    <script>
+      window.addEventListener('load', () => {
+        if (sessionStorage.getItem("splashShown")) return;
+        sessionStorage.setItem("splashShown", "true");
+
+        const AudioContext = window.AudioContext || window.webkitAudioContext;
+        const audioCtx = AudioContext ? new AudioContext() : null;
+
+        const startOverlay = document.getElementById('start-overlay');
+        
+        startOverlay.addEventListener('click', () => {
+          // Resume audio context on user gesture
+          if(audioCtx && audioCtx.state === 'suspended') {
+            audioCtx.resume();
+          }
+          
+          startOverlay.style.opacity = '0';
+          setTimeout(() => {
+            startOverlay.style.display = 'none';
+            startSplash();
+          }, 300);
+        });
+
+        function startSplash() {
+          // Percentage indicator
+          let pct = 0;
+          const pctEl = document.getElementById('splash-pct');
+          const interval = setInterval(() => {
+            pct += 2;
+            if (pct > 100) pct = 100;
+            if (pctEl) pctEl.innerText = pct + '%';
+            if (pct === 100) clearInterval(interval);
+          }, 100);
+
+          // Typing animation with sound
+          const lines = [
+            { id: 'splash-line1', text: 'The database of verified startup revenues' },
+            { id: 'splash-line2', text: 'Discover accurate market intelligence' },
+            { id: 'splash-line3', text: 'Buy and sell with confidence' }
+          ];
+          
+          const typingAudio = new Audio('/dragon-studio-keyboard-typing-sound-effect-335503.mp3');
+          typingAudio.loop = true;
+
+          let lineIdx = 0;
+          let charIdx = 0;
+          
+          function typeLine() {
+            if (lineIdx >= lines.length) return;
+            const currentLine = lines[lineIdx];
+            const el = document.getElementById(currentLine.id);
+            
+            // Wait for audio to physically start playing before drawing text
+            const playPromise = typingAudio.play();
+            if (playPromise !== undefined) {
+              playPromise.then(() => {
+                charIdx = 0;
+                typeNextChar(currentLine, el);
+              }).catch(() => {
+                charIdx = 0;
+                typeNextChar(currentLine, el);
+              });
+            } else {
+              charIdx = 0;
+              typeNextChar(currentLine, el);
+            }
+          }
+
+          function typeNextChar(currentLine, el) {
+            if (charIdx < currentLine.text.length) {
+              if (el) el.innerHTML += currentLine.text.charAt(charIdx);
+              charIdx++;
+              // Fixed 45ms delay for perfectly consistent audio synchronization
+              setTimeout(() => typeNextChar(currentLine, el), 45);
+            } else {
+              // Immediately pause audio exact moment line finishes
+              typingAudio.pause();
+              lineIdx++;
+              setTimeout(typeLine, 300); // 300ms pause between sentences
+            }
+          }
+          
+          typeLine();
+
+          // Overall splash screen duration increased to allow for realistic typing speed
+          setTimeout(() => {
+            const splash = document.getElementById('global-splash');
+            if (splash) {
+              splash.style.opacity = '0';
+              setTimeout(() => {
+                splash.style.display = 'none';
+              }, 600);
+            }
+          }, 5500);
+        }
+      });
+    </script>
+  </body>
+</html>

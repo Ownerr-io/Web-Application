@@ -2,12 +2,15 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { Link, useLocation } from 'wouter';
 import { ChevronRight, Megaphone, Plus } from 'lucide-react';
 import { motion, useReducedMotion } from 'framer-motion';
-import { mockStartups, Startup } from '@/lib/mockData';
-import { CLAIM_SPOTS_CLAIMED, CLAIM_SPOTS_TOTAL } from '@/lib/claimSpotsMockData';
+import type { Startup } from '@/lib/marketplace/types';
+import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
+import { CLAIM_SPOTS_TOTAL } from '@/lib/marketplace/claimService';
+import { useClaimStats } from '@/hooks/marketplace/useClaims';
 import { applyTheme } from './ThemeToggle';
 import { ProductNav } from '@/components/ProductNav';
 import { useAddStartup } from '@/context/AddStartupContext';
-import { useMockSession } from '@/context/MockSessionContext';
+import { useAuth } from '@/context/AuthContext';
+import { useRequireAuth } from '@/lib/platform/requireAuth';
 import { AddStartupDialog } from '@/components/AddStartupDialog';
 import { HeaderStartupSearch } from '@/components/HeaderStartupSearch';
 import { AdvertiseDialog } from '@/components/AdvertiseDialog';
@@ -44,6 +47,7 @@ function sliceWrap<T>(items: T[], start: number, count: number): T[] {
 }
 
 function expandPool<T>(pool: T[], minCount: number): T[] {
+  if (pool.length === 0) return [];
   if (pool.length >= minCount) return pool;
   const out = [...pool];
   let i = 0;
@@ -169,9 +173,11 @@ function MobileRibbonMarquee({
 }) {
   const strip = (keyPrefix: string, ariaHidden?: boolean) => (
     <div className="flex shrink-0 items-center gap-x-1" aria-hidden={ariaHidden ? true : undefined}>
-      {startups.map((s, i) => (
-        <MobileStartupChipLink key={`${keyPrefix}-${s.slug}-${i}`} startup={s} />
-      ))}
+      {startups
+        .filter((s): s is Startup => Boolean(s?.slug))
+        .map((s, i) => (
+          <MobileStartupChipLink key={`${keyPrefix}-${s.slug}-${i}`} startup={s} />
+        ))}
       {footer ?? null}
     </div>
   );
@@ -200,20 +206,31 @@ function MobileStartupChipRails({
   onAdvertise: () => void;
   scrollIdle: boolean;
 }) {
-  const base = useMemo(() => {
-    const forSale = pool.filter((s) => s.forSale);
-    return forSale.length > 0 ? forSale : pool;
-  }, [pool]);
+  const safePool = useMemo(
+    () => pool.filter((s): s is Startup => Boolean(s?.slug)),
+    [pool],
+  );
 
-  const coreForChips = useMemo(() => expandPool(base, Math.min(20, Math.max(12, base.length))), [base]);
+  const base = useMemo(() => {
+    const forSale = safePool.filter((s) => s.forSale);
+    return forSale.length > 0 ? forSale : safePool;
+  }, [safePool]);
+
+  const coreForChips = useMemo(
+    () => (base.length === 0 ? [] : expandPool(base, Math.min(20, Math.max(12, base.length)))),
+    [base],
+  );
 
   const topSequence = useMemo(() => [...coreForChips, ...coreForChips], [coreForChips]);
 
   const bottomSequence = useMemo(() => {
+    if (coreForChips.length === 0) return [];
     const start = Math.max(1, Math.floor(coreForChips.length / 3));
     const rotated = sliceWrap(coreForChips, start, coreForChips.length);
     return [...rotated, ...rotated];
   }, [coreForChips]);
+
+  if (base.length === 0) return null;
 
   const advertiseChip = (
     <button
@@ -326,9 +343,13 @@ function StartupRail({
 }
 
 export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
+  const { data: pool = [] } = usePublicStartups();
+  const { data: claimStats } = useClaimStats();
+  const claimSpotsClaimed = claimStats?.claimed ?? 0;
   const [location] = useLocation();
   const { addOpen, setAddOpen, openAddStartup } = useAddStartup();
-  const { isAuthenticated, openAuthDialog } = useMockSession();
+  const { isAuthenticated } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const [advertiseOpen, setAdvertiseOpen] = useState(false);
   const [mobileNavOpen, setMobileNavOpen] = useState(false);
   const [mobileScrollIdle, setMobileScrollIdle] = useState(true);
@@ -377,7 +398,7 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
   return (
     <div className="acquire-terminal-palette min-h-screen selection:bg-[color:var(--terminal-ochre)] selection:text-[color:var(--brand-accent-ink)]">
       <MobileStartupChipRails
-        pool={mockStartups}
+        pool={pool}
         onAdvertise={() => setAdvertiseOpen(true)}
         scrollIdle={mobileScrollIdle}
       />
@@ -447,7 +468,11 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
                   <HeaderStartupSearch className="min-w-0 w-full sm:flex-1" />
                   <button
                     type="button"
-                    onClick={() => (isAuthenticated ? openAddStartup() : openAuthDialog())}
+                    onClick={() =>
+                      isAuthenticated
+                        ? openAddStartup()
+                        : requireAuth({ action: 'add_startup', onAllowed: openAddStartup })
+                    }
                     className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] px-5 font-bold text-[color:var(--terminal-fg)] shadow-sm transition-transform hover:-translate-y-0.5 sm:w-auto sm:justify-center"
                   >
                     <Plus className="h-4 w-4 shrink-0" /> Add startup
@@ -461,32 +486,32 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
             {!isSlimChrome && (
             <Link
               href={marketplacePath('/claim')}
-              className={`group promo-strip flex w-full cursor-pointer flex-col items-stretch gap-3 rounded-[10px] border border-dashed border-border p-3 text-inherit no-underline shadow-sm transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-ring sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4 dark:border-emerald-500/25 transform -rotate-[0.5deg] hover:rotate-0 ${isHome ? 'mb-4' : 'mb-6'}`}
+              className={`group promo-strip flex w-full cursor-pointer flex-col items-stretch gap-3 rounded-[10px] border border-dashed border-[color:var(--terminal-border)] p-3 text-inherit no-underline shadow-sm transition-transform focus:outline-none focus-visible:ring-2 focus-visible:ring-[color:var(--terminal-ochre)] sm:flex-row sm:items-center sm:justify-between sm:gap-4 sm:p-4 transform -rotate-[0.5deg] hover:rotate-0 ${isHome ? 'mb-4' : 'mb-6'}`}
             >
               <div className="flex min-w-0 items-start gap-2.5 sm:items-center sm:gap-3">
-                <div className="mt-1.5 h-2 w-2 shrink-0 animate-pulse rounded-full bg-emerald-600 sm:mt-0 dark:bg-emerald-400" />
-                <span className="min-w-0 text-left text-xs font-bold leading-snug text-foreground sm:text-sm dark:text-emerald-50">
+                <div className="platform-gradient-bg mt-1.5 h-2 w-2 shrink-0 animate-pulse rounded-full sm:mt-0" />
+                <span className="mp-body min-w-0 text-left text-xs font-bold leading-snug sm:text-sm">
                   First {CLAIM_SPOTS_TOTAL} Founders / Investors get a FREE listing + FREE explore for life
                 </span>
               </div>
               <div className="flex w-full min-w-0 flex-col gap-3 sm:w-auto sm:flex-row sm:items-center sm:gap-4">
                 <div className="flex w-full min-w-0 flex-col gap-1 sm:w-36">
-                  <div className="flex justify-between text-xs font-bold text-muted-foreground dark:text-emerald-200/90">
+                  <div className="mp-label flex justify-between text-xs font-bold">
                     <span>
-                      {CLAIM_SPOTS_CLAIMED} / {CLAIM_SPOTS_TOTAL}
+                      {claimSpotsClaimed} / {CLAIM_SPOTS_TOTAL}
                     </span>
                     <span>claimed</span>
                   </div>
-                  <div className="h-2 w-full overflow-hidden rounded-full bg-muted dark:bg-emerald-950/80">
+                  <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--terminal-surface-2)]">
                     <div
-                      className="h-full rounded-full bg-emerald-600 dark:bg-emerald-400"
+                      className="mp-progress-fill h-full rounded-full"
                       style={{
-                        width: `${Math.round((CLAIM_SPOTS_CLAIMED / CLAIM_SPOTS_TOTAL) * 100)}%`,
+                        width: `${Math.round((claimSpotsClaimed / CLAIM_SPOTS_TOTAL) * 100)}%`,
                       }}
                     />
                   </div>
                 </div>
-                <span className="inline-flex shrink-0 items-center justify-center gap-0.5 self-center text-sm font-bold text-foreground group-hover:underline sm:self-auto dark:text-amber-200">
+                <span className="mp-link inline-flex shrink-0 items-center justify-center gap-0.5 self-center text-sm font-bold group-hover:underline sm:self-auto">
                   Claim spot
                   <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-90" aria-hidden />
                 </span>
@@ -513,12 +538,12 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
         >
           <div className={`${LAYOUT_RAIL_ROW} pointer-events-none`}>
             <div className="pointer-events-auto flex w-[170px] shrink-0 flex-col min-h-0">
-              <StartupRail pool={mockStartups} railSide="left" />
+              <StartupRail pool={pool} railSide="left" />
             </div>
             <div className="pointer-events-none min-h-0 min-w-0 flex-1" />
             <div className="pointer-events-auto flex w-[170px] shrink-0 flex-col min-h-0">
               <StartupRail
-                pool={mockStartups}
+                pool={pool}
                 railSide="right"
                 showAdvertise
                 onAdvertise={() => setAdvertiseOpen(true)}

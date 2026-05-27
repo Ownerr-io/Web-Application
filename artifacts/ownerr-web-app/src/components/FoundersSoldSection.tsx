@@ -64,7 +64,7 @@ export function FoundersSoldSection() {
                         </Link>
                         {post.verified ? (
                           <span
-                            className="inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full bg-sky-500 text-[10px] text-white bg-[color:var(--terminal-lime)]"
+                            className="platform-gradient-bg inline-flex h-4 w-4 shrink-0 items-center justify-center rounded-full text-[10px] text-[color:var(--brand-accent-ink)]"
                             title="Verified"
                           >
                             ✓

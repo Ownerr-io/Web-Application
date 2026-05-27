@@ -1,108 +1,135 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useQuery } from "@tanstack/react-query";
-import { useMockSession } from "@/context/MockSessionContext";
-import { getAllThreadsForOwner, getUserListings } from "@/lib/mockMarketplaceService";
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { useQuery } from '@tanstack/react-query';
+import { useAuth } from '@/context/AuthContext';
+import { useInbox } from '@/hooks/marketplace/useInbox';
+import { getUserListings } from '@/lib/marketplace/service';
+import { Skeleton } from '@/components/ui/skeleton';
 
 export default function SellerDashboard() {
-  const { currentUser } = useMockSession();
-  const ownerId = currentUser?.id;
-  const { data: listings = [] } = useQuery({
-    queryKey: ["seller-overview-listings", ownerId],
-    queryFn: () => getUserListings(ownerId!),
-    enabled: !!ownerId,
+  const { session } = useAuth();
+  const authUserId = session?.user?.id;
+  const { data: listings = [], isLoading: listingsLoading } = useQuery({
+    queryKey: ['seller-overview-listings', authUserId],
+    queryFn: () => getUserListings(authUserId!),
+    enabled: !!authUserId,
   });
-  const { data: threads = [] } = useQuery({
-    queryKey: ["seller-overview-threads", ownerId],
-    queryFn: () => getAllThreadsForOwner(ownerId!),
-    enabled: !!ownerId,
-  });
-  const fallbackThreads = [
-    { id: "fallback-thread-1", buyerName: "Olivia Carter", stage: "negotiating", updatedAt: new Date("2026-03-12").toISOString() },
-    { id: "fallback-thread-2", buyerName: "Liam Brooks", stage: "contacted", updatedAt: new Date("2026-03-10").toISOString() },
-    { id: "fallback-thread-3", buyerName: "Noah Mills", stage: "interested", updatedAt: new Date("2026-03-08").toISOString() },
-  ];
-  const safeThreads = threads.length > 0 ? threads : fallbackThreads;
-  const verifiedCount = listings.filter((listing) => listing.revenueVerified && listing.domainVerified).length;
+  const { data: inbox = [], isLoading: inboxLoading } = useInbox();
+
+  const verifiedCount = listings.filter(
+    (listing) => listing.revenueVerified && listing.domainVerified,
+  ).length;
+  const unreadTotal = inbox.reduce((n, t) => n + t.unreadCount, 0);
+  const recent = [...inbox]
+    .sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime())
+    .slice(0, 4);
 
   return (
     <div className="grid gap-4">
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Total Listings</CardTitle>
+            <CardTitle>Total listings</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{listings.length}</div>
-            <p className="text-xs text-muted-foreground">Live listings</p>
+            {listingsLoading ? (
+              <Skeleton className="h-8 w-1/2" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{listings.length}</div>
+                <p className="text-xs text-muted-foreground">Linked to your seller desk</p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Verified Listings</CardTitle>
+            <CardTitle>Verified listings</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{verifiedCount}</div>
-            <p className="text-xs text-muted-foreground">Revenue + domain verified</p>
+            {listingsLoading ? (
+              <Skeleton className="h-8 w-1/2" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{verifiedCount}</div>
+                <p className="text-xs text-muted-foreground">Revenue + domain verified</p>
+              </>
+            )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Active Conversations</CardTitle>
+            <CardTitle>Inbox threads</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">{safeThreads.length}</div>
-            <p className="text-xs text-muted-foreground">Buyer conversations</p>
-          </CardContent>
-        </Card>
-      </div>
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Pipeline Health</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{safeThreads.filter((x) => x.stage === "negotiating").length}</p>
-            <p className="text-xs text-muted-foreground">Deals in negotiation</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>New Interest (7d)</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">{safeThreads.filter((x) => x.stage === "interested").length}</p>
-            <p className="text-xs text-muted-foreground">Fresh buyer leads</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Response Rate</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-bold">92%</p>
-            <p className="text-xs text-muted-foreground">Average within 24h</p>
+            {inboxLoading ? (
+              <Skeleton className="h-8 w-1/2" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{inbox.length}</div>
+                <p className="text-xs text-muted-foreground">Buyer conversations</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
-      <div>
+      <div className="grid gap-4 md:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
+            <CardTitle>Unread messages</CardTitle>
           </CardHeader>
           <CardContent>
+            {inboxLoading ? (
+              <Skeleton className="h-8 w-1/2" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{unreadTotal}</div>
+                <p className="text-xs text-muted-foreground">Across all threads</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader>
+            <CardTitle>Listings with buyers</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {inboxLoading ? (
+              <Skeleton className="h-8 w-1/2" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">
+                  {new Set(inbox.map((t) => t.startupSlug)).size}
+                </div>
+                <p className="text-xs text-muted-foreground">Startups in active conversations</p>
+              </>
+            )}
+          </CardContent>
+        </Card>
+      </div>
+      <Card>
+        <CardHeader>
+          <CardTitle>Recent inbox</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {inboxLoading ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : recent.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No conversations yet.</p>
+          ) : (
             <div className="space-y-2">
-              {safeThreads.slice(0, 4).map((thread) => (
-                <div key={thread.id} className="rounded-md border border-border px-3 py-2 text-sm">
-                  <p className="font-medium">{thread.buyerName}</p>
-                  <p className="text-xs text-muted-foreground capitalize">
-                    {thread.stage} · {new Date(thread.updatedAt).toLocaleDateString()}
+              {recent.map((thread) => (
+                <div key={thread.conversationId} className="rounded-md border border-border px-3 py-2 text-sm">
+                  <p className="font-medium">{thread.startupTitle}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {thread.buyerName} · {new Date(thread.updatedAt).toLocaleDateString()}
+                    {thread.unreadCount > 0 ? ` · ${thread.unreadCount} unread` : ''}
                   </p>
                 </div>
               ))}
             </div>
-          </CardContent>
-        </Card>
-      </div>
+          )}
+        </CardContent>
+      </Card>
     </div>
   );
 }

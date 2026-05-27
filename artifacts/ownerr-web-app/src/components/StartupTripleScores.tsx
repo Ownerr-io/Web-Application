@@ -32,29 +32,29 @@ export function StartupTripleScores({
         )}
       >
         <span className="min-w-0 shrink truncate">
-          <span className="font-bold uppercase tracking-wide text-muted-foreground">Biz</span>{' '}
-          <span className="font-bold tabular-nums text-foreground dark:text-white">{s.businessScore}</span>
+          <span className="mp-label font-bold uppercase tracking-wide">Biz</span>{' '}
+          <span className="mp-value font-bold tabular-nums">{s.businessScore}</span>
         </span>
-        <span className="shrink-0 text-muted-foreground/40" aria-hidden>
+        <span className="mp-muted shrink-0 opacity-40" aria-hidden>
           ·
         </span>
         <span className="min-w-0 shrink truncate text-center">
-          <span className="font-bold uppercase tracking-wide text-muted-foreground">Lend</span>{' '}
-          <span className="font-bold tabular-nums text-foreground dark:text-white">{s.lendScore}</span>
+          <span className="mp-label font-bold uppercase tracking-wide">Lend</span>{' '}
+          <span className="mp-value font-bold tabular-nums">{s.lendScore}</span>
         </span>
-        <span className="shrink-0 text-muted-foreground/40" aria-hidden>
+        <span className="mp-muted shrink-0 opacity-40" aria-hidden>
           ·
         </span>
         <span className="min-w-0 shrink truncate text-right">
-          <span className="font-bold uppercase tracking-wide text-muted-foreground">Acq</span>{' '}
-          <span className="font-bold tabular-nums text-foreground dark:text-white">{s.acquisitionPower}</span>
+          <span className="mp-label font-bold uppercase tracking-wide">Acq</span>{' '}
+          <span className="mp-value font-bold tabular-nums">{s.acquisitionPower}</span>
         </span>
       </div>
     );
   }
 
   const gridLabelClass = cn(
-    'font-bold text-muted-foreground dark:text-zinc-500',
+    'mp-label font-bold',
     fullScoreLabels
       ? 'mx-auto max-w-[22ch] text-[9px] leading-snug tracking-normal sm:text-[10px]'
       : cn(
@@ -75,7 +75,7 @@ export function StartupTripleScores({
         <div className={gridLabelClass}>{fullScoreLabels ? 'Business score' : 'Business'}</div>
         <div
           className={cn(
-            'font-mono font-bold tabular-nums text-foreground dark:text-zinc-50',
+            'mp-value font-mono tabular-nums',
             compact ? 'mt-0.5 text-sm' : 'mt-1 text-base',
           )}
         >
@@ -86,7 +86,7 @@ export function StartupTripleScores({
         <div className={gridLabelClass}>{fullScoreLabels ? 'Lend score' : 'Lend'}</div>
         <div
           className={cn(
-            'font-mono font-bold tabular-nums text-foreground dark:text-zinc-50',
+            'mp-value font-mono tabular-nums',
             compact ? 'mt-0.5 text-sm' : 'mt-1 text-base',
           )}
         >
@@ -97,7 +97,7 @@ export function StartupTripleScores({
         <div className={gridLabelClass}>{fullScoreLabels ? 'Acquisition power' : 'Acq. power'}</div>
         <div
           className={cn(
-            'font-mono font-bold tabular-nums text-foreground dark:text-zinc-50',
+            'mp-value font-mono tabular-nums',
             compact ? 'mt-0.5 text-sm' : 'mt-1 text-base',
           )}
         >
@@ -114,19 +114,19 @@ export function StartupScoresDetailGrid({ startup }: { startup: Startup }) {
   return (
     <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
       <div className="rounded-xl border border-border bg-card p-5 text-center">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Business score</div>
-        <div className="mt-2 text-2xl font-bold tabular-nums">{s.businessScore}</div>
-        <p className="mt-1 text-xs text-muted-foreground">Revenue quality and momentum (0–100).</p>
+        <div className="mp-label text-[10px]">Business score</div>
+        <div className="mp-value mt-2 text-2xl tabular-nums">{s.businessScore}</div>
+        <p className="mp-body mt-1 text-xs">Revenue quality and momentum (0–100).</p>
       </div>
       <div className="rounded-xl border border-border bg-card p-5 text-center">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Lend score</div>
-        <div className="mt-2 text-2xl font-bold tabular-nums">{s.lendScore}</div>
-        <p className="mt-1 text-xs text-muted-foreground">Lending / repayment capacity proxy (0–100).</p>
+        <div className="mp-label text-[10px]">Lend score</div>
+        <div className="mp-value mt-2 text-2xl tabular-nums">{s.lendScore}</div>
+        <p className="mp-body mt-1 text-xs">Lending / repayment capacity proxy (0–100).</p>
       </div>
       <div className="rounded-xl border border-border bg-card p-5 text-center">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Acquisition power</div>
-        <div className="mt-2 text-2xl font-bold tabular-nums">{s.acquisitionPower}</div>
-        <p className="mt-1 text-xs text-muted-foreground">M&amp;A and buyer attractiveness (0–100).</p>
+        <div className="mp-label text-[10px]">Acquisition power</div>
+        <div className="mp-value mt-2 text-2xl tabular-nums">{s.acquisitionPower}</div>
+        <p className="mp-body mt-1 text-xs">M&amp;A and buyer attractiveness (0–100).</p>
       </div>
     </div>
   );

@@ -1,5 +1,5 @@
 import { useMemo } from 'react';
-import { mockStartups } from '@/lib/mockData';
+import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
 import { cn } from '@/lib/utils';
 
 interface TickerItem {
@@ -15,8 +15,9 @@ function formatGrowthPct(g: number): string {
 }
 
 function useTickerItems(): TickerItem[] {
+  const { data: publicStartups = [] } = usePublicStartups();
   return useMemo(() => {
-    return mockStartups.map((s) => {
+    return publicStartups.map((s) => {
       const growth =
         typeof s.revenueGrowth30dPct === 'number'
           ? s.revenueGrowth30dPct
@@ -28,7 +29,7 @@ function useTickerItems(): TickerItem[] {
         logoColor: s.logoColor ?? '#E6EAFF',
       };
     });
-  }, []);
+  }, [publicStartups]);
 }
 
 function TickerStrip({ items, ariaHidden }: { items: TickerItem[]; ariaHidden?: boolean }) {

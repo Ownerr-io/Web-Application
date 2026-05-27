@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useMemo, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -24,7 +24,10 @@ export function ValuationExportActions({
   layout = 'inline',
 }: Props) {
   const [pdfBusy, setPdfBusy] = useState(false);
-  const bundle = { inputs, outputs, insights, meta, startupName };
+  const bundle = useMemo(
+    () => ({ inputs, outputs, insights, meta, startupName }),
+    [inputs, outputs, insights, meta, startupName],
+  );
 
   const onPdf = useCallback(async () => {
     if (pdfBusy) return;
@@ -34,7 +37,7 @@ export function ValuationExportActions({
     } finally {
       setPdfBusy(false);
     }
-  }, [inputs, outputs, insights, meta, startupName, pdfBusy]);
+  }, [bundle, pdfBusy]);
 
   const ariaLabel = pdfBusy ? 'Preparing PDF report' : 'Download report as PDF';
 

@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { useLocation } from 'wouter';
 import { Search } from 'lucide-react';
-import { mockStartups } from '@/lib/mockData';
+import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
 import { marketplacePath } from '@/lib/appPaths';
 import { mergeWithUserStartups, USER_STARTUPS_CHANGED_EVENT } from '@/lib/userStartups';
 import { cn } from '@/lib/utils';
 
 export function HeaderStartupSearch({ className }: { className?: string }) {
+  const { data: publicStartups = [] } = usePublicStartups();
   const [, setLocation] = useLocation();
   const [query, setQuery] = useState('');
   const [open, setOpen] = useState(false);
@@ -33,10 +34,12 @@ export function HeaderStartupSearch({ className }: { className?: string }) {
 
   const startups = useMemo(
     () =>
-      [...mergeWithUserStartups(mockStartups)].sort((a, b) =>
+      [...mergeWithUserStartups(publicStartups)].sort((a, b) =>
         a.name.localeCompare(b.name),
       ),
-    [userTick],
+    // userTick bumps when local user startups change (event listener above).
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional cache bust
+    [publicStartups, userTick],
   );
 
   const filtered = useMemo(() => {

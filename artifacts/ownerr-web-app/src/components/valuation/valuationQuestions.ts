@@ -123,7 +123,7 @@ export const VALUATION_QUESTIONS: ValuationQuestion[] = [
 ];
 
 function num(v: string, fallback: number): number {
-  let s = String(v).trim().replace(/[$,\s]/g, '');
+  const s = String(v).trim().replace(/[$,\s]/g, '');
   if (!s) return fallback;
   const suffix = s.match(/^([\d.]+)\s*([kKmMbB])$/i);
   if (suffix) {

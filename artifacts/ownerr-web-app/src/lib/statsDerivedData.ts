@@ -1,5 +1,5 @@
 import type { Startup } from '@/lib/mockData';
-import { mockFounders } from '@/lib/mockData';
+import type { Founder } from '@/lib/marketplace/types';
 
 export type CountryIso2 =
   | 'US' | 'GB' | 'DE' | 'FR' | 'CA' | 'AU' | 'IN' | 'NL' | 'SE' | 'BR' | 'JP' | 'ES' | 'IT' | 'PL' | 'IE';
@@ -49,11 +49,6 @@ function hashStr(s: string): number {
 
 function u01(s: string, salt: string): number {
   return (hashStr(s + salt) % 1_000_000) / 1_000_000;
-}
-
-/** Deterministic 1..max inclusive */
-function randInt(s: string, salt: string, max: number): number {
-  return 1 + (hashStr(s + salt) % max);
 }
 
 /**
@@ -141,8 +136,8 @@ export function enrichStartup(s: Startup): EnrichedStatsStartup {
   };
 }
 
-export function getFounderByHandle(handle: string) {
-  return mockFounders.find((f) => f.handle === handle);
+export function getFounderByHandle(handle: string, founders: Founder[]) {
+  return founders.find((f) => f.handle === handle);
 }
 
 export function buildStatsDataset(startups: Startup[]): EnrichedStatsStartup[] {

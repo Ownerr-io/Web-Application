@@ -1,122 +1,222 @@
 import { useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
+import { Link } from 'wouter';
+import { motion, useReducedMotion, useScroll, useTransform } from 'framer-motion';
+import { ArrowRight, BarChart3, Lock, Sparkles, Zap } from 'lucide-react';
 import { ValuationIntroLottie } from './ValuationIntroLottie';
-import { Button } from '@/components/ui/button';
+import { fadeUp } from '@/components/landing/saas/motion';
+import { marketingRoutes } from '@/routes/marketingRoutes';
+import { marketplacePath } from '@/lib/appPaths';
+import { cn } from '@/lib/utils';
 
 type Props = {
   onContinue: () => void;
 };
 
-const easePremium = [0.22, 1, 0.36, 1] as const;
+const PANEL_STATS = [
+  { k: 'IMPLIED_ARR', v: '$4.2M', tone: 'lime' as const },
+  { k: 'NET_REV_RET', v: '108%', tone: 'orange' as const },
+  { k: 'RULE_OF_40', v: '41', tone: 'orange' as const },
+  { k: 'CONFIDENCE', v: 'High', tone: 'lime' as const },
+] as const;
+
+const toneText = {
+  lime: 'text-brand-lime',
+  orange: 'text-brand-orange',
+};
+
+const FEATURES = [
+  {
+    icon: Lock,
+    title: 'Confidential inputs',
+    body: 'Your metrics stay on your session until you choose to share or list.',
+  },
+  {
+    icon: BarChart3,
+    title: 'Market comparables',
+    body: 'Ranges anchored to M&A multiples and venture pricing signals.',
+  },
+  {
+    icon: Zap,
+    title: 'Executive readout',
+    body: 'Strategic cards on efficiency, retention, and acquisition appetite.',
+  },
+] as const;
 
 export function ValuationIntroScene({ onContinue }: Props) {
   const reduce = useReducedMotion();
+  const { scrollY } = useScroll();
+  const orbY = useTransform(scrollY, [0, 400], [0, reduce ? 0 : 24]);
   const [hasStarted, setHasStarted] = useState(false);
 
   if (hasStarted) {
     return (
-      <div className="flex min-h-0 flex-1 items-center justify-center py-10">
+      <div className="flex min-h-[min(70vh,32rem)] w-full flex-1 items-center justify-center py-10">
         <ValuationIntroLottie onFinished={onContinue} />
       </div>
     );
   }
 
   return (
-    <motion.div className="mx-auto flex min-h-0 w-full max-w-[1200px] flex-1 items-center justify-center px-4 py-12">
-      <motion.div
-        className="relative w-full max-w-2xl border-0 bg-transparent p-0 shadow-none flex flex-col items-center"
-        initial={reduce ? false : { opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: easePremium }}
+    <div className="relative overflow-x-clip">
+      <section
+        id="valuation-overview"
+        className="landing-saas-hero relative overflow-hidden border-b border-[color:var(--terminal-border)]/80"
       >
-        {/* Massive Ambient Luxury Glow Backdrop */}
-        <div
-          className="absolute -top-32 left-1/2 h-[350px] w-[500px] -translate-x-1/2 rounded-full opacity-30 blur-[120px] pointer-events-none"
-          style={{
-            background:
-              'radial-gradient(circle, var(--terminal-glow) 0%, rgba(212,167,71,0.06) 50%, transparent 100%)',
-          }}
-        />
-
-        <div className="flex flex-col items-center text-center w-full z-10">
-          <h2 className="mt-8 text-balance text-4xl font-light tracking-tight text-[#EBFBBC] sm:text-6xl leading-[1.12]">
-            Discover Your Startup's <br />
-            <span className="font-extrabold bg-gradient-to-r from-[color:var(--terminal-ochre)] via-white to-[color:var(--terminal-lime)] bg-clip-text text-transparent">
-              True Enterprise Worth
-            </span>
-          </h2>
-
-          <p className="mt-6 text-base sm:text-lg text-[color:var(--terminal-muted)] max-w-xl leading-relaxed font-medium">
-            Calculate institutional-grade pricing bands, growth efficiency metrics, and corporate acquisition appetites in less than 3 minutes.
-          </p>
-
-          {/* Borderless Luxury Benefit Lines */}
-          <div className="mt-12 w-full max-w-lg space-y-7 text-left border-y border-white/10 py-10">
-            {[
-              {
-                title: 'PRIVATE VENTURE SAFEGUARD',
-                desc: 'Your financials are fully isolated, encrypted, and kept strictly confidential.',
-                icon: 'M12 15v2m-6 4h12a2 2 0 002-2v-6a2 2 0 00-2-2H6a2 2 0 00-2 2v6a2 2 0 002 2zm10-10V7a4 4 0 00-8 0v4h8z',
-              },
-              {
-                title: 'MARKET COMPARATIVE INDEX',
-                desc: 'Indexed in real-time against strategic M&A multiples and venture pricing data.',
-                icon: 'M7 12l3-3 3 3 4-4M8 21h8a2 2 0 002-2V5a2 2 0 00-2-2H8a2 2 0 00-2 2v14a2 2 0 002 2z',
-              },
-              {
-                title: 'EXECUTIVE INTELLIGENCE CARD',
-                desc: 'Receive tactical strategic readouts tailored to capital efficiency and NRR dynamics.',
-                icon: 'M13 10V3L4 14h7v7l9-11h-7z',
-              },
-            ].map((item, idx) => (
-              <motion.div
-                key={item.title}
-                initial={reduce ? false : { opacity: 0, x: -10 }}
-                animate={{ opacity: 1, x: 0 }}
-                transition={{ delay: 0.25 + idx * 0.1, duration: 0.4 }}
-                className="flex items-start gap-4"
-              >
-                <div className="mt-1 flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-white/[0.04] border border-white/10 text-[color:var(--terminal-lime)] shadow-[0_0_12px_rgba(217,246,157,0.06)]">
-                  <svg className="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.2" d={item.icon} />
-                  </svg>
-                </div>
-                <div>
-                  <h4 className="text-sm font-black tracking-widest text-[#EBFBBC] uppercase">
-                    {item.title}
-                  </h4>
-                  <p className="text-sm text-[color:var(--terminal-muted)] mt-2.5 font-medium leading-relaxed">
-                    {item.desc}
-                  </p>
-                </div>
-              </motion.div>
-            ))}
-          </div>
-
-          {/* Luxury Pulse Start Trigger */}
+        <div className="pointer-events-none absolute inset-0" aria-hidden>
           <motion.div
-            initial={reduce ? false : { opacity: 0, scale: 0.98 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.55, duration: 0.4 }}
-            className="mt-10 w-full max-w-md flex flex-col items-center"
+            className="saas-hero-orb left-[-12%] top-0 h-[min(400px,52vw)] w-[min(400px,52vw)] opacity-45"
+            style={{
+              y: orbY,
+              background: 'color-mix(in srgb, var(--brand-lime) 20%, transparent)',
+            }}
+          />
+          <motion.div
+            className="saas-hero-orb right-[-8%] bottom-[-8%] h-[min(340px,44vw)] w-[min(340px,44vw)] opacity-32"
+            style={{
+              background: 'color-mix(in srgb, var(--brand-orange) 16%, transparent)',
+            }}
+          />
+        </div>
+
+        <div className="saas-section-shell relative z-10 grid items-center gap-10 py-12 md:grid-cols-12 md:gap-8 md:py-16 lg:py-20">
+          <motion.div
+            initial={reduce ? false : 'hidden'}
+            animate="visible"
+            variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
+            className="md:col-span-6 lg:col-span-7"
           >
-            <Button
-              type="button"
-              onClick={() => setHasStarted(true)}
-              className="h-14 w-full rounded-[10px] border-0 bg-[color:var(--terminal-ochre)] px-10 text-sm font-black uppercase tracking-widest text-[#0b0b0c] shadow-[0_8px_32px_rgba(212,167,71,0.28)] hover:bg-[color:var(--terminal-ochre-hover)] transform hover:scale-[1.02] active:scale-[0.98] transition-all duration-300"
+            <motion.span variants={fadeUp} custom={0} className="luxury-hero-kicker">
+              Valuation
+            </motion.span>
+
+            <motion.h1 variants={fadeUp} custom={1} className="marketing-hero-title max-w-[24ch]">
+              <span className="text-[color:var(--terminal-display)]">Model your startup.</span>
+              <span className="mt-1.5 block platform-gradient-text">See defensible ranges.</span>
+            </motion.h1>
+
+            <motion.p
+              variants={fadeUp}
+              custom={2}
+              className="marketing-lead max-w-lg"
             >
-              Start Analysis Engine
-            </Button>
-            <div className="mt-4 flex items-center gap-2.5 text-xs font-black uppercase tracking-wider text-[color:var(--terminal-muted)]">
-              <span>Zero Cost</span>
-              <span className="h-1 w-1 rounded-full bg-white/20" />
-              <span>Fully Confidential</span>
-              <span className="h-1 w-1 rounded-full bg-white/20" />
-              <span>3 Min Synthesis</span>
+              Institutional-style valuation bands, growth efficiency metrics, and strategic readouts — in about three
+              minutes, on the same desk as marketplace and intelligence.
+            </motion.p>
+
+            <motion.div variants={fadeUp} custom={3} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+              <button
+                type="button"
+                onClick={() => setHasStarted(true)}
+                className="btn-platform-gradient group inline-flex h-11 items-center justify-center gap-2 rounded-[10px] px-6 text-sm font-bold tracking-wide transition-transform hover:scale-[1.01] active:scale-[0.99]"
+              >
+                Start valuation
+                <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" aria-hidden />
+              </button>
+              <Link
+                href={marketplacePath('/acquire')}
+                className="inline-flex h-11 items-center justify-center rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/30 px-6 text-sm font-semibold backdrop-blur-sm transition-colors hover:border-[color:var(--brand-orange)]/45"
+              >
+                Browse acquisitions
+              </Link>
+            </motion.div>
+
+            <motion.p variants={fadeUp} custom={4} className="mt-8 text-xs font-medium text-[color:var(--terminal-muted)]">
+              <span className="text-[color:var(--terminal-fg)]">Free in beta</span>
+              <span className="mx-2 text-[color:var(--terminal-border)]">·</span>
+              Confidential
+              <span className="mx-2 text-[color:var(--terminal-border)]">·</span>
+              <Link href={marketingRoutes.howItWorks} className="text-brand-orange hover:underline">
+                How it works
+              </Link>
+            </motion.p>
+          </motion.div>
+
+          <motion.div
+            initial={reduce ? false : { opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            transition={{ duration: 0.6, ease: [0.22, 1, 0.36, 1] }}
+            className="md:col-span-6 lg:col-span-5"
+          >
+            <div className="luxury-panel overflow-hidden rounded-[12px]">
+              <div className="flex items-center justify-between border-b border-[color:var(--terminal-border)]/80 px-4 py-3 sm:px-5">
+                <span className="text-[10px] font-bold uppercase tracking-[0.2em] text-[color:var(--terminal-muted)]">
+                  Scenario output
+                </span>
+                <span className="flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider">
+                  <span className="h-1.5 w-1.5 rounded-full bg-[color:var(--brand-lime)] shadow-[0_0_8px_var(--brand-lime)]" />
+                  Live preview
+                </span>
+              </div>
+              <div className="grid gap-px bg-[color:var(--terminal-border)]/50 p-px sm:grid-cols-2">
+                {PANEL_STATS.map((m) => (
+                  <div key={m.k} className="bg-[color:var(--terminal-bg)]/90 px-4 py-4 backdrop-blur-sm sm:px-5 sm:py-5">
+                    <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]">
+                      {m.k}
+                    </p>
+                    <p className={cn('mt-1.5 font-mono text-lg font-bold tabular-nums sm:text-xl', toneText[m.tone])}>
+                      {m.v}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <div className="border-t border-[color:var(--terminal-border)]/80 px-4 py-3.5 sm:px-5">
+                <p className="text-[11px] leading-snug text-[color:var(--terminal-muted)]">
+                  Outputs refresh as you edit inputs in the guided flow.
+                </p>
+              </div>
             </div>
           </motion.div>
         </div>
-      </motion.div>
-    </motion.div>
+      </section>
+
+      <section className="saas-section-shell py-12 md:pb-16">
+        <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
+          <div>
+            <p className="luxury-kicker">What you get</p>
+            <h2 className="marketing-section-heading">Built for operator-grade decisions</h2>
+          </div>
+          <p className="marketing-body-sm max-w-sm">
+            Same engine that powers listing readiness and acquisition screens on OWNERR.
+          </p>
+        </div>
+
+        <div className="mt-8 grid gap-4 md:grid-cols-3">
+          {FEATURES.map((f, i) => (
+            <motion.article
+              key={f.title}
+              initial={reduce ? false : { opacity: 0, y: 16 }}
+              whileInView={{ opacity: 1, y: 0 }}
+              viewport={{ once: true, margin: '-40px' }}
+              transition={{ delay: i * 0.06, duration: 0.45 }}
+              className="saas-glass-card saas-glass-card-hover rounded-[12px] border border-[color:var(--terminal-border)]/70 p-5"
+            >
+              <div className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[color:var(--terminal-border)]/80 bg-[color:var(--terminal-surface)]/80 text-brand-lime">
+                <f.icon className="h-4 w-4" aria-hidden />
+              </div>
+              <h3 className="mt-4 text-sm font-bold text-[color:var(--terminal-fg)]">{f.title}</h3>
+              <p className="marketing-body-sm mt-2">{f.body}</p>
+            </motion.article>
+          ))}
+        </div>
+
+        <div className="saas-glass-card mt-10 flex w-full flex-col gap-4 rounded-[14px] border border-[color:var(--terminal-border)]/80 p-6 sm:flex-row sm:items-center sm:justify-between sm:gap-8 sm:p-8">
+          <div className="flex min-w-0 flex-1 items-start gap-3">
+            <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-brand-orange" aria-hidden />
+            <p className="marketing-body-sm min-w-0">
+              <span className="font-bold text-[color:var(--terminal-fg)]">Ready?</span> Launch the analysis engine — a
+              short animation, then the guided questionnaire.
+            </p>
+          </div>
+          <button
+            type="button"
+            onClick={() => setHasStarted(true)}
+            className="btn-platform-gradient inline-flex h-11 w-full shrink-0 items-center justify-center gap-2 rounded-[10px] px-6 text-sm font-bold sm:w-auto"
+          >
+            Begin now
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </button>
+        </div>
+      </section>
+    </div>
   );
 }

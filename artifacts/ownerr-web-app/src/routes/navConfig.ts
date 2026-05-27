@@ -1,38 +1,54 @@
-import { marketingRoutes } from '@/routes/marketingRoutes';
-import { marketplaceRoutes } from '@/routes/marketplaceRoutes';
-import { appPath } from '@/lib/appPaths';
-import type { AuthRole } from '@/lib/mockAuthService';
+import {
+  NAV_ITEMS,
+  PRODUCT_ITEMS,
+  PUBLIC_NAV_CTA_ITEMS,
+  isNavLinkActive,
+  isProductsDropdownActive,
+  marketplaceWorkspaceForRole,
+  type PublicNavLink,
+  type ProductNavItem,
+} from '@/routing/navigationRegistry';
+import { PUBLIC_ROUTES } from '@/routing/routeRegistry';
+import type { AuthRole } from '@/lib/auth/types';
 
-/** Primary global navigation (order = display order). */
+export type NavLinkItem = {
+  id: string;
+  label: string;
+  href: string;
+  description?: string;
+};
+
+export const productsNavItems: NavLinkItem[] = PRODUCT_ITEMS.map((p) => ({
+  id: p.id,
+  label: p.label,
+  href: p.href,
+  description: p.description,
+}));
+
 export const primaryNavItems = [
-  { id: 'home', label: 'Home', href: marketingRoutes.home },
-  { id: 'marketplace', label: 'Marketplace', href: marketplaceRoutes.root },
-  { id: 'intelligence', label: 'Intelligence', href: marketingRoutes.marketIntelligence },
-  { id: 'valuation', label: 'Valuation', href: marketingRoutes.valuation },
-  { id: 'howItWorks', label: 'How It Works', href: marketingRoutes.howItWorks },
-  { id: 'pricing', label: 'Pricing', href: marketingRoutes.pricing },
+  { id: 'marketplace', label: 'Marketplace', href: NAV_ITEMS[0]!.href },
+  { id: 'pricing', label: 'Pricing', href: PUBLIC_ROUTES.pricing },
+  { id: 'howItWorks', label: 'How It Works', href: PUBLIC_ROUTES.howItWorks },
 ] as const;
 
-export const runValuationHref = marketingRoutes.valuation;
+export { NAV_ITEMS, PRODUCT_ITEMS, PUBLIC_NAV_CTA_ITEMS };
 
-/** Authenticated app entry: role overview inside `/app` (not public marketplace). */
+export const runValuationHref = PUBLIC_ROUTES.valuation;
+
 export function appDeskHrefForRole(role: AuthRole): string {
-  return role === 'buyer' ? appPath('/buyer') : appPath('/seller');
+  return marketplaceWorkspaceForRole(role);
 }
 
-/** Desk hub at `/app` (optional entry when role is unknown). */
 export function dashboardHref(): string {
-  return appPath('/');
+  return marketplaceWorkspaceForRole('buyer');
 }
 
-/** True when this primary item should show “active” styling. */
+export { isNavLinkActive, isProductsDropdownActive };
+
 export function isPrimaryNavActive(location: string, href: string): boolean {
-  if (href === marketingRoutes.home) return location === '/' || location === '';
-  if (href === marketplaceRoutes.root) {
-    return location === marketplaceRoutes.root || location === `${marketplaceRoutes.root}/`;
-  }
-  if (href.startsWith(marketplaceRoutes.root + '/')) {
-    return location === href || location.startsWith(`${href}/`);
-  }
-  return location === href || location.startsWith(`${href}?`);
+  return isNavLinkActive(location, href);
+}
+
+export function isNavItemActive(location: string, item: PublicNavLink | ProductNavItem): boolean {
+  return isNavLinkActive(location, item.href);
 }

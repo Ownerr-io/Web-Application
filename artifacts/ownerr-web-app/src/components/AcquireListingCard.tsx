@@ -44,10 +44,10 @@ function MetricCell({
 }) {
   return (
     <div className={cn('min-w-0 px-0.5 text-center', className)}>
-      <div className="mx-auto max-w-[28ch] font-mono text-[9px] font-bold leading-snug text-muted-foreground sm:text-[10px]">
+      <div className="mp-label mx-auto max-w-[28ch] font-mono text-[9px] leading-snug sm:text-[10px]">
         {label}
       </div>
-      <div className="mt-1.5 min-w-0 font-mono text-sm font-bold tabular-nums leading-tight text-foreground dark:text-white sm:text-[15px]">
+      <div className="mp-value mt-1.5 min-w-0 font-mono text-sm tabular-nums leading-tight sm:text-[15px]">
         {children}
       </div>
     </div>
@@ -87,31 +87,31 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                     <h3 className="truncate font-mono text-[15px] font-bold leading-tight group-hover:underline">
                       {startup.name}
                     </h3>
-                    <p className="mt-0.5 truncate font-mono text-[12px] text-muted-foreground">
+                    <p className="mp-muted mt-0.5 truncate font-mono text-[12px]">
                       {startup.category}
                     </p>
                     <div className="mt-1 flex flex-wrap gap-1">
                       {startup.revenueVerified ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-emerald-500/10 px-1.5 py-px text-[9px] font-bold text-emerald-600 dark:text-emerald-400">
+                        <span className="mp-badge-lime inline-flex items-center gap-0.5 rounded-full px-1.5 py-px text-[9px] font-bold">
                           <BadgeCheck className="h-2.5 w-2.5" />
                           Verified {startup.revenueProvider ?? 'Revenue'}
                         </span>
                       ) : null}
                       {startup.domainVerified ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-blue-500/10 px-1.5 py-px text-[9px] font-bold text-blue-600 dark:text-blue-400">
+                        <span className="mp-badge-orange inline-flex items-center gap-0.5 rounded-full px-1.5 py-px text-[9px] font-bold">
                           <Globe className="h-2.5 w-2.5" />
                           Domain
                         </span>
                       ) : null}
                       {startup.trafficVerified ? (
-                        <span className="inline-flex items-center gap-0.5 rounded-full bg-amber-500/10 px-1.5 py-px text-[9px] font-bold text-amber-600 dark:text-amber-400">
+                        <span className="mp-badge-amber inline-flex items-center gap-0.5 rounded-full px-1.5 py-px text-[9px] font-bold">
                           <BarChart3 className="h-2.5 w-2.5" />
                           {('verification' in startup && (startup as Startup & { verification?: { traffic?: { sourceLabel?: string } } }).verification?.traffic?.sourceLabel) ?? 'Traffic'}
                         </span>
                       ) : null}
                     </div>
                   </div>
-                  <div className="flex shrink-0 flex-col items-end gap-0.5 text-[10px] tabular-nums text-muted-foreground">
+                  <div className="mp-muted flex shrink-0 flex-col items-end gap-0.5 text-[10px] tabular-nums">
                     <span className="inline-flex items-center gap-0.5 font-mono font-bold">
                       <Eye className="h-3 w-3" strokeWidth={2} aria-hidden />
                       {views >= 1000 ? `${(views / 1000).toFixed(1)}k` : views}
@@ -134,7 +134,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                     {formatShortCurrency(startup.revenue)}
                   </span>
                   {growth != null ? (
-                    <div className="mt-1 truncate font-mono text-[10px] font-semibold text-emerald-500 dark:text-emerald-400">
+                    <div className="mp-trend-up mt-1 truncate font-mono text-[10px] font-semibold">
                       {growth}
                     </div>
                   ) : null}
@@ -171,23 +171,23 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
               className={SCORE_STRIP_CLASS}
             />
             <div className="rounded-lg border border-border/80 bg-muted/20 px-3 py-2">
-              <div className="flex items-center justify-between text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
+              <div className="mp-label flex items-center justify-between text-[10px]">
                 <span>{trust.label}</span>
                 <span>{trust.score}/100</span>
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
-                <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-sky-500" style={{ width: `${trust.score}%` }} />
+                <div className="platform-gradient-bg h-full rounded-full" style={{ width: `${trust.score}%` }} />
               </div>
             </div>
           </div>
 
-          <p className="line-clamp-2 shrink-0 font-mono text-[11px] leading-snug text-foreground/90">
+          <p className="mp-body line-clamp-2 shrink-0 font-mono text-[11px] leading-snug">
             {startup.description}
           </p>
           {nicheTags.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {nicheTags.slice(0, 3).map((tag) => (
-                <span key={tag} className="rounded-full border border-border px-2 py-0.5 text-[9px] font-bold text-muted-foreground">
+                <span key={tag} className="mp-muted rounded-full border border-border px-2 py-0.5 text-[9px] font-bold">
                   {tag}
                 </span>
               ))}

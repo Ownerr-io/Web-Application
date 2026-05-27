@@ -1,0 +1,32 @@
+# Append these paths/schemas to openapi.yaml when regenerating the API client.
+paths:
+  /founders:
+    post:
+      operationId: createFounderSubmission
+      tags: [founders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/CreateFounderSubmission"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/FounderSubmission"
+  /founders/track:
+    post:
+      operationId: trackFounderReferral
+      tags: [founders]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TrackReferral"
+      responses:
+        "200":
+          description: OK

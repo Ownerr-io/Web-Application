@@ -2,13 +2,12 @@ import { useEffect, useMemo, useState, useCallback } from 'react';
 import { useParams, Link } from 'wouter';
 import { ChevronRight, Share2, ExternalLink } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { mockFounders, mockStartups, leaderboardMetricValue, type Startup } from '@/lib/mockData';
-import {
-  CLAIM_SPOTS_TOTAL,
-  findClaimSpotEntryByHandle,
-  type ClaimSpotEntry,
-} from '@/lib/claimSpotsMockData';
-import { getClaimSpotEntriesDB } from '@/lib/db';
+import { leaderboardMetricValue, type Startup } from '@/lib/mockData';
+import { buildFoundersFromStartups } from '@/lib/marketplace/founders';
+import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
+import { CLAIM_SPOTS_TOTAL, findClaimByHandle } from '@/lib/marketplace/claimService';
+import type { ClaimSpotEntry } from '@/lib/marketplace/types';
+import { usePublicClaims } from '@/hooks/marketplace/useClaims';
 import { StartupCard } from '@/components/StartupCard';
 import { cn, formatCurrency, formatShortCurrency, founderAvatarUrl } from '@/lib/utils';
 import { FounderLink } from '@/components/EntityLink';
@@ -51,15 +50,18 @@ function StatCard({
 }) {
   return (
     <div className="rounded-xl border border-border bg-card p-4 ring-1 ring-inset ring-black/5 dark:border-zinc-700/80 dark:bg-zinc-900/50 dark:ring-white/5">
-      <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{label}</div>
-      <div className="mt-2 text-2xl font-bold tabular-nums text-foreground">{value}</div>
-      <p className="mt-1.5 text-xs leading-snug text-muted-foreground">{hint}</p>
+      <div className="mp-label text-[10px]">{label}</div>
+      <div className="mp-value mt-2 text-2xl tabular-nums">{value}</div>
+      <p className="mp-body mt-1.5 text-xs leading-snug">{hint}</p>
     </div>
   );
 }
 
 export default function FounderProfile() {
   const { handle = '' } = useParams();
+  const { data: publicStartups = [] } = usePublicStartups();
+  const { data: publicClaims = [] } = usePublicClaims();
+  const mockFounders = useMemo(() => buildFoundersFromStartups(publicStartups), [publicStartups]);
   const [isMounted, setIsMounted] = useState(false);
   const { toast } = useToast();
   const founder = mockFounders.find((f) => f.handle === handle);
@@ -81,32 +83,21 @@ export default function FounderProfile() {
       setClaimSpotResolved(true);
       return;
     }
-    let cancelled = false;
     setClaimSpotResolved(false);
     setClaimSpot(null);
-    (async () => {
-      try {
-        const idb = await getClaimSpotEntriesDB();
-        if (cancelled) return;
-        const found = findClaimSpotEntryByHandle(handle, idb);
-        setClaimSpot(found ?? null);
-      } finally {
-        if (!cancelled) setClaimSpotResolved(true);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [handle]);
+    const found = findClaimByHandle(handle, publicClaims);
+    setClaimSpot(found ?? null);
+    setClaimSpotResolved(true);
+  }, [handle, mockFounders, publicClaims]);
 
   const startups = useMemo(
     () =>
       founder
         ? (founder.startupSlugs
-            .map((slug) => mockStartups.find((s) => s.slug === slug))
+            .map((slug) => publicStartups.find((s) => s.slug === slug))
             .filter(Boolean) as Startup[])
         : [],
-    [founder],
+    [founder, publicStartups],
   );
 
   const stats = useMemo(() => {
@@ -220,7 +211,7 @@ export default function FounderProfile() {
                     className={cn(
                       'rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide',
                       claimSpot.role === 'founder'
-                        ? 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/20'
+                        ? 'mp-badge-lime'
                         : 'mp-chip-info',
                     )}
                   >
@@ -349,7 +340,7 @@ export default function FounderProfile() {
               className="relative z-10 h-32 w-32 rounded-full border-4 border-border bg-muted shadow-md dark:border-zinc-800 dark:bg-zinc-900"
             />
             {founder.lookingForCofounder && (
-              <div className="absolute -bottom-0.5 -right-0.5 z-20 max-w-[9.5rem] rounded-full border border-emerald-800/60 bg-emerald-200 px-2 py-1 text-center text-[0.65rem] font-bold leading-tight text-zinc-900 shadow-sm sm:max-w-none sm:whitespace-nowrap sm:text-[10px]">
+              <div className="btn-platform-gradient absolute -bottom-0.5 -right-0.5 z-20 max-w-[9.5rem] rounded-full px-2 py-1 text-center text-[0.65rem] font-bold leading-tight shadow-sm sm:max-w-none sm:whitespace-nowrap sm:text-[10px]">
                 Open to co-founding
               </div>
             )}

@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'wouter';
 import { MARKETPLACE_BASE, marketplacePath } from '@/lib/appPaths';
+import { PlatformFooter } from '@/components/navigation/PlatformFooter';
 
 const FOOTER_LINKS = [
   { href: marketplacePath('/acquire'), label: 'Buy/sell' },
@@ -15,10 +16,9 @@ export function SiteFooter() {
     location === MARKETPLACE_BASE || location === `${MARKETPLACE_BASE}/`;
 
   return (
-    <footer
-      className="mt-16 w-full min-w-0 border-t border-border pt-8 pb-2"
-      role="contentinfo"
-    >
+    <footer className="mt-16 w-full min-w-0" role="contentinfo">
+      <PlatformFooter terminal={false} />
+      <div className="mx-auto max-w-[1200px] border-t border-border px-4 pt-8 pb-2">
       <nav className="mb-6 hidden flex-wrap items-center justify-center gap-x-1 gap-y-2 text-sm lg:flex lg:justify-start">
         <Link
           href={homeHref}
@@ -47,28 +47,9 @@ export function SiteFooter() {
           </Link>,
         ])}
       </nav>
-      <div className="flex flex-col items-stretch justify-between gap-4 border-t border-border pt-6 text-xs text-muted-foreground sm:flex-row sm:items-center">
-        <p className="text-center sm:text-left">
-          Built with care by indie founders. Not affiliated with Stripe. © {new Date().getFullYear()}{' '}
-          Ownerr
-        </p>
-        <div className="flex flex-wrap items-center justify-center gap-x-3 gap-y-2 sm:justify-end">
-          <a href="#" className="hover:text-foreground">
-            About
-          </a>
-          <a href="#" className="hover:text-foreground">
-            Methodology
-          </a>
-          <a href="#" className="hover:text-foreground">
-            Twitter
-          </a>
-          <a href="#" className="hover:text-foreground">
-            RSS
-          </a>
-          <a href="#" className="hover:text-foreground">
-            Privacy
-          </a>
-        </div>
+      <p className="border-t border-border pt-6 text-xs text-muted-foreground">
+        Marketplace shortcuts — use the platform footer above for all products and account links.
+      </p>
       </div>
     </footer>
   );

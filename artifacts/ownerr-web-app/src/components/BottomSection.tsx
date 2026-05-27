@@ -1,20 +1,68 @@
 import { Link } from 'wouter';
-import * as Icons from 'lucide-react';
+import type { LucideIcon } from 'lucide-react';
+import {
+  Banknote,
+  BarChart3,
+  Brain,
+  CheckSquare,
+  Circle,
+  GraduationCap,
+  Headphones,
+  HeartPulse,
+  Home,
+  Layers,
+  Megaphone,
+  Package,
+  Palette,
+  PenLine,
+  Plane,
+  Plus,
+  Search,
+  Share2,
+  Shield,
+  ShoppingBag,
+  Terminal,
+  TrendingUp,
+  Users,
+} from 'lucide-react';
 import { BROWSE_LABEL_TO_ACQUIRE_CATEGORY } from '@/lib/acquireBrowseCategoryMap';
 import { browseCategories } from '@/lib/mockData';
-import { useMockSession } from '@/context/MockSessionContext';
+import { useAuth } from '@/context/AuthContext';
+import { useRequireAuth } from '@/lib/platform/requireAuth';
 import { useAddStartup } from '@/context/AddStartupContext';
 import { marketplacePath } from '@/lib/appPaths';
 
-function getIcon(name: string) {
-  const Lib = Icons as unknown as Record<string, React.ComponentType<{ className?: string }>>;
-  const Comp = Lib[name] ?? Icons.Circle;
-  return Comp;
+const ICON_MAP: Record<string, LucideIcon> = {
+  Brain,
+  Package,
+  Terminal,
+  Banknote,
+  CheckSquare,
+  Megaphone,
+  ShoppingBag,
+  Palette,
+  Layers,
+  BarChart3,
+  GraduationCap,
+  HeartPulse,
+  Share2,
+  PenLine,
+  TrendingUp,
+  Headphones,
+  Users,
+  Home,
+  Plane,
+  Shield,
+};
+
+function getIcon(name: string): LucideIcon {
+  return ICON_MAP[name] ?? Circle;
 }
 
 export function BottomSection() {
   const { openAddStartup } = useAddStartup();
-  const { isAuthenticated, openAuthDialog } = useMockSession();
+  const { isAuthenticated } = useAuth();
+  const { requireAuth } = useRequireAuth();
 
   return (
     <div className="border-t border-border pt-8">
@@ -25,7 +73,7 @@ export function BottomSection() {
 
         <div className="mx-auto flex w-full max-w-xl flex-col gap-2 sm:flex-row sm:items-stretch">
           <div className="relative min-w-0 flex-1">
-            <Icons.Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Search className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <input
               type="text"
               placeholder="Search, e.g. SaaS over $10K/mo"
@@ -34,10 +82,12 @@ export function BottomSection() {
           </div>
           <button
             type="button"
-            onClick={() => (isAuthenticated ? openAddStartup() : openAuthDialog())}
+            onClick={() =>
+              isAuthenticated ? openAddStartup() : requireAuth({ action: 'add_startup', onAllowed: openAddStartup })
+            }
             className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-[10px] border border-border bg-card px-5 font-bold text-foreground transition-transform hover:-translate-y-0.5 sm:w-auto"
           >
-            <Icons.Plus className="h-4 w-4 shrink-0" /> Add startup
+            <Plus className="h-4 w-4 shrink-0" /> Add startup
           </button>
         </div>
       </div>

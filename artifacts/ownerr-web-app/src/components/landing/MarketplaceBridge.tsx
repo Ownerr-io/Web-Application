@@ -1,6 +1,7 @@
 import { Link } from 'wouter';
 import { Button } from '@/components/ui/button';
-import { appPath, marketplacePath } from '@/lib/appPaths';
+import { marketplacePath } from '@/lib/appPaths';
+import { marketplaceAppRoutes } from '@/routes/appRoutes';
 import { Check } from 'lucide-react';
 
 const BULLETS = [
@@ -32,8 +33,8 @@ export function MarketplaceBridge() {
           ))}
         </ul>
         <div className="mt-10 flex flex-col gap-3 sm:flex-row">
-          <Button asChild className="h-11 rounded-[10px] border-0 bg-[color:var(--terminal-ochre)] font-bold text-[#0b0b0c] hover:bg-[color:var(--terminal-ochre-hover)]">
-            <Link href={appPath('/seller')}>List on Ownerr</Link>
+          <Button asChild className="btn-platform-gradient h-11 rounded-[10px] font-bold">
+            <Link href={marketplaceAppRoutes.founder}>List on Ownerr</Link>
           </Button>
           <Button
             asChild

@@ -47,3 +47,21 @@ Thumbs.db
 # Replit
 .cache/
 .local/
+
+# Environment (keep .env.example committed)
+.env
+.env.local
+.env.production
+.env.*.local
+!.env.example
+
+
+# temporary files
+*.tmp
+*.temp
+*.tmp.*
+*.temp.*
+*.tmp.*.*
+*.temp.*.*
+*.tmp.*.*.*
+*.temp.*.*.*

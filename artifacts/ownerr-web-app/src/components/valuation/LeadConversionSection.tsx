@@ -1,7 +1,4 @@
 import { motion, useReducedMotion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Link } from 'wouter';
-import { marketplacePath } from '@/lib/appPaths';
 
 export function LeadConversionSection() {
   const reduce = useReducedMotion();

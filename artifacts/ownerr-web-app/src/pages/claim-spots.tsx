@@ -1,14 +1,11 @@
-import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Link, useLocation } from 'wouter';
+import { useEffect, useMemo, useState } from 'react';
+import { useLocation } from 'wouter';
 import { Users, Sparkles } from 'lucide-react';
 
-import {
-  CLAIM_SPOTS_TOTAL,
-  claimSpotsBaseRoster,
-  type ClaimSpotEntry,
-  type ClaimSpotRole,
-} from '@/lib/claimSpotsMockData';
-import { addClaimSpotEntryDB, getClaimSpotEntriesDB } from '@/lib/db';
+import { CLAIM_SPOTS_TOTAL } from '@/lib/marketplace/claimService';
+import type { ClaimSpotRole } from '@/lib/marketplace/types';
+import { useClaimStats, usePublicClaims, useSubmitClaim } from '@/hooks/marketplace/useClaims';
+import { useRequireAuth } from '@/lib/platform/requireAuth';
 import { cn, founderAvatarUrl } from '@/lib/utils';
 import { marketplacePath } from '@/lib/appPaths';
 import { useToast } from '@/hooks/use-toast';
@@ -57,9 +54,10 @@ function formatClaimedAt(iso: string) {
 export default function ClaimSpotsPage() {
   const [, setLocation] = useLocation();
   const { toast } = useToast();
-  const [idbClaims, setIdbClaims] = useState<ClaimSpotEntry[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
+  const { data: tableRows = [], isLoading: loading } = usePublicClaims();
+  const { data: claimStats } = useClaimStats();
+  const submitClaim = useSubmitClaim();
+  const { requireSession } = useRequireAuth();
 
   const [claimOpen, setClaimOpen] = useState(false);
   const [name, setName] = useState('');
@@ -68,30 +66,6 @@ export default function ClaimSpotsPage() {
   const [role, setRole] = useState<ClaimSpotRole>('founder');
   const [tagline, setTagline] = useState('');
   const [tablePage, setTablePage] = useState(1);
-
-  const refreshClaims = useCallback(async () => {
-    const rows = await getClaimSpotEntriesDB();
-    rows.sort((a, b) => new Date(b.claimedAt).getTime() - new Date(a.claimedAt).getTime());
-    setIdbClaims(rows);
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    (async () => {
-      try {
-        await refreshClaims();
-      } finally {
-        if (!cancelled) setLoading(false);
-      }
-    })();
-    return () => {
-      cancelled = true;
-    };
-  }, [refreshClaims]);
-
-  const tableRows = useMemo(() => {
-    return [...idbClaims, ...claimSpotsBaseRoster];
-  }, [idbClaims]);
 
   const tableTotalPages = Math.max(1, Math.ceil(tableRows.length / CLAIM_TABLE_PAGE_SIZE));
 
@@ -107,8 +81,7 @@ export default function ClaimSpotsPage() {
   const tableRangeStart = tableRows.length === 0 ? 0 : (tablePage - 1) * CLAIM_TABLE_PAGE_SIZE + 1;
   const tableRangeEnd = Math.min(tablePage * CLAIM_TABLE_PAGE_SIZE, tableRows.length);
 
-  const baseCount = claimSpotsBaseRoster.length;
-  const totalClaimedShown = baseCount + idbClaims.length;
+  const totalClaimedShown = claimStats?.claimed ?? tableRows.length;
   const pct = Math.min(100, Math.round((totalClaimedShown / CLAIM_SPOTS_TOTAL) * 100));
 
   async function onSubmit(e: React.FormEvent) {
@@ -125,68 +98,53 @@ export default function ClaimSpotsPage() {
       return;
     }
 
-    setSubmitting(true);
-    try {
-      const entry: ClaimSpotEntry = {
-        id: `user-claim-${globalThis.crypto?.randomUUID?.() ?? String(Date.now())}`,
-        name: trimmedName,
-        handle: rawHandle,
-        avatarUrl: founderAvatarUrl(rawHandle),
-        email: trimmedEmail,
-        role,
-        claimedAt: new Date().toISOString(),
-        tagline: tagline.trim() || undefined,
-      };
-      await addClaimSpotEntryDB(entry);
-      await refreshClaims();
-      setName('');
-      setHandle('');
-      setEmail('');
-      setTagline('');
-      setRole('founder');
-      setClaimOpen(false);
-      toast({
-        title: 'Spot claimed',
-        description: 'You are listed at the top of the roster (saved in this browser).',
-      });
-    } catch (err) {
-      toast({
-        variant: 'destructive',
-        title: 'Could not save',
-        description: err instanceof Error ? err.message : 'Try again.',
-      });
-    } finally {
-      setSubmitting(false);
-    }
+    requireSession(() => {
+      void submitClaim
+        .mutateAsync({
+          name: trimmedName,
+          handle: rawHandle,
+          email: trimmedEmail,
+          role,
+          tagline: tagline.trim() || undefined,
+        })
+        .then(() => {
+          setName('');
+          setHandle('');
+          setEmail('');
+          setTagline('');
+          setRole('founder');
+          setClaimOpen(false);
+        });
+    });
   }
 
   return (
     <div className="w-full min-w-0 pb-8">
-      <div className="mb-6 rounded-xl border border-dashed border-emerald-500/40 bg-emerald-500/5 p-4 sm:mb-8 sm:p-5 dark:border-emerald-500/25 dark:bg-emerald-950/20">
+      <div className="mb-6 rounded-xl border border-dashed border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4 sm:mb-8 sm:p-5">
         <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-start">
-          <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-lg bg-emerald-600/15 text-emerald-700 dark:bg-emerald-500/20 dark:text-emerald-200">
+          <div className="platform-gradient-bg flex h-11 w-11 shrink-0 items-center justify-center rounded-lg text-[color:var(--brand-accent-ink)]">
             <Sparkles className="h-5 w-5" aria-hidden />
           </div>
           <div className="min-w-0 flex-1">
-            <h1 className="text-balance text-xl font-bold tracking-tight text-foreground sm:text-2xl dark:text-white">
+            <h1 className="text-balance text-xl font-bold tracking-tight text-[color:var(--terminal-display)] sm:text-2xl">
               First {CLAIM_SPOTS_TOTAL} founders &amp; investors
             </h1>
-            <p className="mt-2 text-pretty text-sm leading-relaxed text-muted-foreground dark:text-zinc-400">
+            <p className="mp-body mt-2 text-pretty text-sm leading-relaxed">
               Roster of who claimed a free listing spot. Use{' '}
-              <span className="font-semibold text-foreground dark:text-white">Claim your spot</span> to add yourself;
-              claims are saved in IndexedDB in this browser.
+              <span className="mp-link font-semibold">Claim your spot</span> to add yourself;
+              claims are stored securely in your Ownerr account.
             </p>
             <div className="mt-4 flex flex-col gap-4 sm:max-w-2xl sm:flex-row sm:items-end sm:justify-between">
               <div className="flex min-w-0 flex-1 flex-col gap-2">
-                <div className="flex justify-between text-xs font-bold text-muted-foreground dark:text-emerald-200/90">
+                <div className="mp-label flex justify-between text-xs font-bold">
                   <span>
                     {totalClaimedShown} / {CLAIM_SPOTS_TOTAL}
                   </span>
-                  <span>claimed (incl. your saves)</span>
+                  <span>claimed</span>
                 </div>
-                <div className="h-2 w-full overflow-hidden rounded-full bg-muted dark:bg-emerald-950/80">
+                <div className="h-2 w-full overflow-hidden rounded-full bg-[color:var(--terminal-surface-2)]">
                   <div
-                    className="h-full rounded-full bg-emerald-600 dark:bg-emerald-400"
+                    className="mp-progress-fill h-full rounded-full"
                     style={{ width: `${pct}%` }}
                   />
                 </div>
@@ -271,8 +229,8 @@ export default function ClaimSpotsPage() {
               <Button type="button" variant="outline" className="min-h-10 shrink-0" onClick={() => setClaimOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" className="min-h-10 shrink-0" disabled={submitting}>
-                {submitting ? 'Saving…' : 'Submit claim'}
+              <Button type="submit" className="min-h-10 shrink-0" disabled={submitClaim.isPending}>
+                {submitClaim.isPending ? 'Saving…' : 'Submit claim'}
               </Button>
             </DialogFooter>
           </form>
@@ -292,7 +250,7 @@ export default function ClaimSpotsPage() {
             <p className="mt-1 break-words text-sm text-muted-foreground">
               {loading
                 ? 'Loading roster…'
-                : `${tableRows.length} rows — ${baseCount} seeded + ${idbClaims.length} from this browser.`}
+                : `${tableRows.length} claims on record.`}
             </p>
           </div>
           <Button
@@ -335,7 +293,7 @@ export default function ClaimSpotsPage() {
                   />
                   <div className="min-w-0 flex-1">
                     <div className="flex flex-wrap items-baseline gap-x-2 gap-y-1">
-                      <span className="font-semibold text-sky-700 underline-offset-2 dark:text-sky-400">
+                      <span className="mp-link font-semibold underline-offset-2">
                         {entry.name}
                       </span>
                       <span className="font-mono text-xs text-muted-foreground">@{entry.handle}</span>
@@ -348,8 +306,8 @@ export default function ClaimSpotsPage() {
                         className={cn(
                           'inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
                           entry.role === 'founder'
-                            ? 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200'
-                            : 'bg-sky-500/15 text-sky-900 dark:bg-sky-500/20 dark:text-sky-100',
+                            ? 'mp-badge-lime'
+                            : 'mp-badge-orange',
                         )}
                       >
                         {roleLabel(entry.role)}
@@ -406,7 +364,7 @@ export default function ClaimSpotsPage() {
                     />
                   </TableCell>
                   <TableCell className="font-semibold text-foreground dark:text-white">
-                    <span className="text-sky-700 underline-offset-2 hover:underline dark:text-sky-400">
+                    <span className="mp-link underline-offset-2 hover:underline">
                       {entry.name}
                     </span>
                   </TableCell>
@@ -421,8 +379,8 @@ export default function ClaimSpotsPage() {
                       className={cn(
                         'inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
                         entry.role === 'founder'
-                          ? 'bg-emerald-500/15 text-emerald-800 dark:bg-emerald-500/20 dark:text-emerald-200'
-                          : 'bg-sky-500/15 text-sky-900 dark:bg-sky-500/20 dark:text-sky-100',
+                          ? 'mp-badge-lime'
+                          : 'mp-badge-orange',
                       )}
                     >
                       {roleLabel(entry.role)}

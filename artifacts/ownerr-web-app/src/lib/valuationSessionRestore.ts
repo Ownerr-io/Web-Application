@@ -21,10 +21,9 @@ function mergeInputsWithDefaults(inputs: ValuationInputs): ValuationInputs {
 }
 
 export function hasValuationSessionProgress(snap: ValuationSessionSnapshot): boolean {
-  if (snap.phase !== 'intro') return true;
-  if (snap.questionIndex > 0) return true;
+  if (snap.phase === 'analyzing' || snap.phase === 'results') return true;
+  if (snap.phase === 'questions' || snap.questionIndex > 0) return true;
   if (snap.meta.startupName?.trim()) return true;
-  if (snap.inputs.mrr > 0 || snap.inputs.arr > 0) return true;
   return false;
 }
 
@@ -35,15 +34,19 @@ export type RestoredValuationSession = {
   meta: OnboardingMeta;
 };
 
-/** Map IndexedDB row to UI state (skip intro when user already progressed). */
+/** Map IndexedDB row to UI state. */
 export function resolveValuationSessionFromSnapshot(
   snap: ValuationSessionSnapshot | null,
 ): RestoredValuationSession | null {
   if (!snap || !hasValuationSessionProgress(snap)) return null;
   return {
-    phase: snap.phase === 'intro' ? 'questions' : snap.phase,
+    phase: snap.phase,
     questionIndex: snap.questionIndex,
     inputs: mergeInputsWithDefaults(snap.inputs),
     meta: mergeMetaWithDefaults(snap.meta),
   };
+}
+
+export function shouldAutoResumeValuationPhase(phase: ValuationPhase): boolean {
+  return phase === 'analyzing' || phase === 'results';
 }

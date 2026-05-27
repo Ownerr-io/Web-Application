@@ -7,10 +7,10 @@ import {
 import {
   hasValuationSessionProgress,
   resolveValuationSessionFromSnapshot,
+  shouldAutoResumeValuationPhase,
   type RestoredValuationSession,
 } from '@/lib/valuationSessionRestore';
-import type { ValuationInputs } from '@/lib/valuationIntel';
-import type { OnboardingMeta, ValuationPhase } from './types';
+import type { ValuationPhase } from './types';
 
 const SAVE_MS = 400;
 
@@ -23,6 +23,7 @@ export function useValuationSessionPersist(defaults: ValuationSessionState) {
   const [session, setSession] = useState<ValuationSessionState>(defaults);
   const persistEnabled = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const pendingQuestionResume = useRef<RestoredValuationSession | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -31,7 +32,11 @@ export function useValuationSessionPersist(defaults: ValuationSessionState) {
       if (cancelled) return;
       const restored = resolveValuationSessionFromSnapshot(snap);
       if (restored) {
-        setSession(restored);
+        if (shouldAutoResumeValuationPhase(restored.phase)) {
+          setSession(restored);
+        } else {
+          pendingQuestionResume.current = { ...restored, phase: 'questions' };
+        }
       }
       persistEnabled.current = true;
       setStatus('ready');
@@ -67,8 +72,18 @@ export function useValuationSessionPersist(defaults: ValuationSessionState) {
     setSession((prev) => ({ ...prev, ...patch }));
   }, []);
 
+  const resumeQuestionFlow = useCallback((): ValuationSessionState | null => {
+    const pending = pendingQuestionResume.current;
+    if (!pending) return null;
+    pendingQuestionResume.current = null;
+    const next = { ...pending, phase: 'questions' as const };
+    setSession(next);
+    return next;
+  }, []);
+
   const clearSession = useCallback(async () => {
     await clearValuationSession();
+    pendingQuestionResume.current = null;
     persistEnabled.current = true;
     setSession(defaults);
   }, [defaults]);
@@ -79,5 +94,6 @@ export function useValuationSessionPersist(defaults: ValuationSessionState) {
     setSession,
     patchSession,
     clearSession,
+    resumeQuestionFlow,
   };
 }

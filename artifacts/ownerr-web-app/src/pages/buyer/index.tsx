@@ -1,56 +1,49 @@
-import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useMockSession } from "@/context/MockSessionContext";
-import { fetchMarketplaceListings, getUserBids, getUserInterests } from "@/lib/mockMarketplaceService";
-import type { DealRelationshipStage, MarketplaceInterestRecord } from "@/lib/mockMarketplaceService";
-import { Skeleton } from "@/components/ui/skeleton";
-import { mockStartups } from "@/lib/mockData";
+import { useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { fetchMarketplaceListings } from '@/lib/marketplace/service';
+import type { DealRelationshipStage } from '@/lib/marketplace/types';
+import { useMyBids } from '@/hooks/marketplace/useBids';
+import { useMyInterests } from '@/hooks/marketplace/useInterests';
+import { Skeleton } from '@/components/ui/skeleton';
+import { formatCurrency } from '@/lib/utils';
 
 export default function BuyerDashboard() {
-  const { currentUser } = useMockSession();
-  const userId = currentUser?.id;
-
-  const {
-    data: interests,
-    isLoading: isLoadingInterests,
-  } = useQuery({
-    queryKey: ["userInterests", userId],
-    queryFn: () => getUserInterests(userId!),
-    enabled: !!userId,
-  });
-
-  const {
-    data: bids,
-    isLoading: isLoadingBids,
-  } = useQuery({
-    queryKey: ["userBids", userId],
-    queryFn: () => getUserBids(userId!),
-    enabled: !!userId,
-  });
+  const { data: interests, isLoading: isLoadingInterests } = useMyInterests();
+  const { data: bids, isLoading: isLoadingBids } = useMyBids();
 
   const { data: listings } = useQuery({
-    queryKey: ["buyer-overview-listings"],
-    queryFn: () => fetchMarketplaceListings(mockStartups),
+    queryKey: ['buyer-overview-listings'],
+    queryFn: () => fetchMarketplaceListings(),
   });
   const listingBySlug = new Map((listings ?? []).map((listing) => [listing.slug, listing] as const));
-  type FallbackInterest = Pick<MarketplaceInterestRecord, "id" | "listingId" | "offerAmount" | "updatedAt" | "stage">;
-  const fallbackRecent: FallbackInterest[] = [
-    { id: "fallback-1", listingId: "sorio-ai", offerAmount: 215000, updatedAt: new Date("2026-03-03").toISOString(), stage: "interested" },
-    { id: "fallback-2", listingId: "oli-ai", offerAmount: null, updatedAt: new Date("2026-03-05").toISOString(), stage: "contacted" },
-    { id: "fallback-3", listingId: "rezi", offerAmount: 128000, updatedAt: new Date("2026-03-11").toISOString(), stage: "negotiating" },
-  ];
-  const safeInterests = interests && interests.length > 0 ? interests : fallbackRecent;
-  const safeBidsCount = bids && bids.length > 0 ? bids.length : fallbackRecent.filter((x) => !!x.offerAmount).length;
+  const safeInterests = interests ?? [];
+  const safeBids = bids ?? [];
   const recent = [...safeInterests].slice(0, 4);
-  const stageCounts: Record<DealRelationshipStage, number> = { interested: 0, contacted: 0, negotiating: 0, closed: 0 };
+  const stageCounts: Record<DealRelationshipStage, number> = {
+    interested: 0,
+    contacted: 0,
+    negotiating: 0,
+    closed: 0,
+    withdrawn: 0,
+  };
   for (const item of safeInterests) stageCounts[item.stage]++;
+
+  const listingsTracked = useMemo(
+    () => new Set(safeInterests.map((i) => i.listingId)).size,
+    [safeInterests],
+  );
+  const totalOfferValue = safeBids.reduce((sum, row) => sum + row.amount, 0);
+  const activeBidCount = safeBids.filter(
+    (b) => b.status !== 'withdrawn' && b.status !== 'rejected' && b.status !== 'accepted',
+  ).length;
 
   return (
     <div className="grid gap-4">
       <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardHeader>
-            <CardTitle>Total Interests</CardTitle>
+            <CardTitle>Total interests</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingInterests ? (
@@ -65,52 +58,66 @@ export default function BuyerDashboard() {
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>Active Bids</CardTitle>
+            <CardTitle>Active bids</CardTitle>
           </CardHeader>
           <CardContent>
             {isLoadingBids ? (
               <Skeleton className="h-8 w-1/2" />
             ) : (
               <>
-                <div className="text-2xl font-bold">{safeBidsCount}</div>
-                <p className="text-xs text-muted-foreground">On various startups</p>
+                <div className="text-2xl font-bold">{activeBidCount}</div>
+                <p className="text-xs text-muted-foreground">
+                  {safeBids.length} total · {formatCurrency(totalOfferValue)} offered
+                </p>
               </>
             )}
           </CardContent>
         </Card>
         <Card>
           <CardHeader>
-            <CardTitle>High-Trust Listings</CardTitle>
+            <CardTitle>Listings tracked</CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="text-2xl font-bold">28</div>
-            <p className="text-xs text-muted-foreground">Viewed</p>
-          </CardContent>
-        </Card>
-      </div>
-      <div>
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent Activity</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="space-y-2">
-              {recent.map((item) => (
-                <div key={item.id} className="rounded-md border border-border px-3 py-2 text-sm">
-                  <p className="font-medium">{listingBySlug.get(item.listingId)?.name ?? item.listingId}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {item.offerAmount ? `Offer sent · $${Math.round(item.offerAmount).toLocaleString()}` : "Interest expressed"} ·{" "}
-                    {new Date(item.updatedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
-            </div>
+            {isLoadingInterests ? (
+              <Skeleton className="h-8 w-1/2" />
+            ) : (
+              <>
+                <div className="text-2xl font-bold">{listingsTracked}</div>
+                <p className="text-xs text-muted-foreground">Unique startups in your pipeline</p>
+              </>
+            )}
           </CardContent>
         </Card>
       </div>
       <Card>
         <CardHeader>
-          <CardTitle>Pipeline Snapshot</CardTitle>
+          <CardTitle>Recent activity</CardTitle>
+        </CardHeader>
+        <CardContent>
+          {isLoadingInterests ? (
+            <p className="text-sm text-muted-foreground">Loading…</p>
+          ) : recent.length === 0 ? (
+            <p className="text-sm text-muted-foreground">No interests yet. Browse listings to get started.</p>
+          ) : (
+            <div className="space-y-2">
+              {recent.map((item) => (
+                <div key={item.id} className="rounded-md border border-border px-3 py-2 text-sm">
+                  <p className="font-medium">{listingBySlug.get(item.listingId)?.name ?? item.listingId}</p>
+                  <p className="text-xs text-muted-foreground">
+                    {item.offerAmount
+                      ? `Offer · ${formatCurrency(item.offerAmount)}`
+                      : 'Interest expressed'}{' '}
+                    · {new Date(item.updatedAt).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </div>
+          )}
+        </CardContent>
+      </Card>
+      <Card>
+        <CardHeader>
+          <CardTitle>Pipeline snapshot</CardTitle>
         </CardHeader>
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-3">

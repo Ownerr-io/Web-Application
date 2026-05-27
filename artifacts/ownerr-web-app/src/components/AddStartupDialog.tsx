@@ -3,7 +3,7 @@ import type { Category, Startup } from '@/lib/mockData';
 import { PASTEL_COLORS, generateMonthlyRevenue } from '@/lib/mockData';
 import { computeStartupScores } from '@/lib/startupScores';
 import { addUserStartupDB } from '@/lib/db';
-import { buildMarketplaceListingFromStartup, upsertMarketplaceListing } from '@/lib/mockMarketplaceService';
+import { buildMarketplaceListingFromStartup, upsertMarketplaceListing } from '@/lib/marketplace/service';
 import {
   Dialog,
   DialogContent,
@@ -26,7 +26,8 @@ import { Checkbox } from '@/components/ui/checkbox';
 import { useToast } from '@/hooks/use-toast';
 import { cn } from '@/lib/utils';
 import { ExternalLink } from 'lucide-react';
-import { useMockSession } from '@/context/MockSessionContext';
+import { useAuth } from '@/context/AuthContext';
+import { useRequireAuth } from '@/lib/platform/requireAuth';
 
 function slugify(name: string) {
   const base = name
@@ -58,7 +59,8 @@ type Props = {
 
 export function AddStartupDialog({ open, onOpenChange }: Props) {
   const { toast } = useToast();
-  const { currentUser, isFounder, isAuthenticated, openAuthDialog } = useMockSession();
+  const { currentUser, isFounder, isAuthenticated } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const [name, setName] = useState('');
   const [founderName, setFounderName] = useState('');
   const [username, setUsername] = useState('');
@@ -92,7 +94,7 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
   async function submit() {
     if (!isAuthenticated || !currentUser) {
       onOpenChange(false);
-      openAuthDialog();
+      requireAuth({ action: 'create_listing', onAllowed: () => {} });
       return;
     }
     if (!isFounder) {

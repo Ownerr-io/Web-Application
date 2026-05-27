@@ -4,6 +4,15 @@
   "license": "MIT",
   "scripts": {
     "dev": "npm run dev --workspace=@workspace/ownerr-web-app",
+    "dev:api": "node --env-file=.env.local --import tsx/esm artifacts/api-server/src/index.ts",
+    "db:push": "npm run push --workspace=@workspace/db",
+    "db:migrate": "node scripts/apply-supabase-migration.mjs",
+    "supabase:push": "supabase db push",
+    "supabase:link": "supabase link --project-ref bnzvpkgffeappfxatuyu",
+    "marketplace:ensure-schema": "node --env-file=.env.local scripts/ensure-marketplace-schema.mjs",
+    "marketplace:seed-demo": "node --env-file=.env.local artifacts/ownerr-web-app/scripts/seed-demo-marketplace-users.mjs",
+    "marketplace:reset-demo": "node --env-file=.env.local artifacts/ownerr-web-app/scripts/reset-demo-marketplace-users.mjs",
+    "marketplace:setup-production": "npm run marketplace:ensure-schema && npm run marketplace:seed-demo",
     "build": "npm run typecheck && npm run build --workspaces --if-present",
     "typecheck:libs": "tsc --build",
     "typecheck": "npm run typecheck:libs && npm run typecheck --workspaces --if-present --workspace=@workspace/scripts --workspace=@workspace/ownerr-web-app --workspace=@workspace/mockup-sandbox --workspace=@workspace/api-server"
@@ -15,7 +24,9 @@
     "scripts"
   ],
   "devDependencies": {
+    "concurrently": "^9.2.1",
     "prettier": "^3.8.1",
+    "tsx": "^4.21.0",
     "typescript": "~5.9.2"
   },
   "dependencies": {

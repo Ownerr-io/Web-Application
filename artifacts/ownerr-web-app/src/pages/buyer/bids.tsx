@@ -1,46 +1,17 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
-import { useMockSession } from "@/context/MockSessionContext";
-import { fetchMarketplaceListings, getUserBids } from "@/lib/mockMarketplaceService";
-import { mockStartups } from "@/lib/mockData";
+import { fetchMarketplaceListings } from "@/lib/marketplace/service";
+import { useMyBids } from "@/hooks/marketplace/useBids";
 import { formatCurrency } from "@/lib/utils";
 
 export default function BuyerBidsPage() {
-  const { currentUser } = useMockSession();
-  const userId = currentUser?.id;
-  const bidsQuery = useQuery({
-    queryKey: ["buyer-bids-page", userId],
-    queryFn: () => getUserBids(userId!),
-    enabled: !!userId,
-  });
+  const bidsQuery = useMyBids();
   const listingsQuery = useQuery({
     queryKey: ["buyer-bids-listings"],
-    queryFn: () => fetchMarketplaceListings(mockStartups),
+    queryFn: () => fetchMarketplaceListings(),
   });
   const listingBySlug = new Map((listingsQuery.data ?? []).map((listing) => [listing.slug, listing] as const));
-  const fallbackBids = [
-    {
-      id: "fallback-bid-1",
-      listingId: "sorio-ai",
-      offerAmount: 215000,
-      stage: "negotiating",
-      updatedAt: new Date("2026-03-03T15:30:00.000Z").toISOString(),
-    },
-    {
-      id: "fallback-bid-2",
-      listingId: "rezi",
-      offerAmount: 128000,
-      stage: "contacted",
-      updatedAt: new Date("2026-03-11T14:10:00.000Z").toISOString(),
-    },
-  ];
-  const rows = (bidsQuery.data && bidsQuery.data.length > 0 ? bidsQuery.data : fallbackBids) as Array<{
-    id: string;
-    listingId: string;
-    offerAmount: number | null;
-    stage: string;
-    updatedAt: string;
-  }>;
+  const rows = bidsQuery.data ?? [];
 
   return (
     <Card>
@@ -56,7 +27,7 @@ export default function BuyerBidsPage() {
           <div className="rounded-lg border border-border bg-muted/20 p-3">
             <p className="text-[11px] uppercase tracking-wide text-muted-foreground">Total Offer Value</p>
             <p className="mt-1 text-xl font-bold">
-              {formatCurrency(rows.reduce((sum, row) => sum + (row.offerAmount ?? 0), 0))}
+              {formatCurrency(rows.reduce((sum, row) => sum + row.amount, 0))}
             </p>
           </div>
           <div className="rounded-lg border border-border bg-muted/20 p-3">
@@ -68,14 +39,14 @@ export default function BuyerBidsPage() {
         </div>
         <div className="space-y-3">
           {rows.map((record) => {
-            const listing = listingBySlug.get(record.listingId);
+            const listing = listingBySlug.get(record.startupSlug);
             return (
               <div key={record.id} className="rounded-lg border border-border p-3">
                 <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold">{listing?.name ?? record.listingId}</p>
-                  <span className="text-sm font-bold">{formatCurrency(record.offerAmount ?? 0)}</span>
+                  <p className="font-semibold">{listing?.name ?? record.startupSlug}</p>
+                  <span className="text-sm font-bold">{formatCurrency(record.amount)}</span>
                 </div>
-                <p className="mt-1 text-xs text-muted-foreground capitalize">Stage: {record.stage}</p>
+                <p className="mt-1 text-xs text-muted-foreground capitalize">Status: {record.status}</p>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Updated {new Date(record.updatedAt).toLocaleString()}
                 </p>

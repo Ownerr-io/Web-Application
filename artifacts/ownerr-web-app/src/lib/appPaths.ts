@@ -1,28 +1,19 @@
-/** Public marketplace discovery + listings (first-class product surface). */
-export const MARKETPLACE_BASE = '/marketplace';
+import { MARKETPLACE_ROUTES } from '@/routing/routeRegistry';
 
-/** Authenticated operational hub + role dashboards. */
-export const APP_BASE = '/app';
+export const MARKETPLACE_BASE = MARKETPLACE_ROUTES.root;
 
-/**
- * Build a path under `/marketplace`.
- * `marketplacePath('/')` → `/marketplace`
- */
+/** @deprecated Use MARKETPLACE_ROUTES — marketplace app lives under /marketplace/app */
+export const APP_BASE = MARKETPLACE_ROUTES.app;
+
 export function marketplacePath(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`;
   if (p === '/') return MARKETPLACE_BASE;
   return `${MARKETPLACE_BASE}${p}`;
 }
 
-/**
- * Build a path under `/app` (dashboard only — not public marketplace).
- * `appPath('/')` → `/app`
- */
+/** @deprecated Use marketplaceAppRoutes / MARKETPLACE_ROUTES */
 export function appPath(path: string): string {
   const p = path.startsWith('/') ? path : `/${path}`;
-  if (p === '/') return APP_BASE;
-  return `${APP_BASE}${p}`;
+  if (p === '/' || p === '') return MARKETPLACE_ROUTES.app;
+  return `${MARKETPLACE_ROUTES.app}${p}`;
 }
-
-/** @deprecated Use MARKETPLACE_BASE — kept for gradual migration of string checks */
-export const APP_MARKETPLACE_BASE = MARKETPLACE_BASE;

@@ -1,10 +1,12 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { mockStartups, Startup } from '@/lib/mockData';
+import type { Startup } from '@/lib/marketplace/types';
+import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
 import { formatCurrency } from '@/lib/utils';
 import { RefreshCw } from 'lucide-react';
 
 export default function Game() {
+  const { data: mockStartups = [] } = usePublicStartups();
   const [isMounted, setIsMounted] = useState(false);
   const [score, setScore] = useState(0);
   const [highScore, setHighScore] = useState(0);
@@ -12,22 +14,22 @@ export default function Game() {
   const [revealed, setRevealed] = useState(false);
   const [isCorrect, setIsCorrect] = useState<boolean | null>(null);
 
-  const getNewPair = () => {
+  const getNewPair = useCallback(() => {
+    if (mockStartups.length < 2) return;
     const shuffled = [...mockStartups].sort(() => 0.5 - Math.random());
-    // Ensure they don't have the exact same MRR
-    let a = shuffled[0];
-    let b = shuffled.find(s => s.revenue !== a.revenue) || shuffled[1];
+    const a = shuffled[0];
+    const b = shuffled.find((s) => s.revenue !== a.revenue) || shuffled[1];
     setPair([a, b]);
     setRevealed(false);
     setIsCorrect(null);
-  };
+  }, [mockStartups]);
 
   useEffect(() => {
     setIsMounted(true);
     getNewPair();
     const savedHighScore = localStorage.getItem('ownerr_highscore');
     if (savedHighScore) setHighScore(parseInt(savedHighScore, 10));
-  }, []);
+  }, [getNewPair]);
 
   const handleGuess = (index: 0 | 1) => {
     if (revealed || !pair) return;

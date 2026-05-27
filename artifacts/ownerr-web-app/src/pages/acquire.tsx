@@ -2,11 +2,11 @@ import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
 import { useLocation, useSearch } from 'wouter';
 import { ChevronDown, Info, SlidersHorizontal } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
-import { mockStartups, type Category } from '@/lib/mockData';
+import type { Category } from '@/lib/marketplace/types';
 import { ACQUIRE_GRID_ROWS } from '@/lib/acquireMarketplaceData';
 import { AcquireListingCard } from '@/components/AcquireListingCard';
-import { MockAcquireBidPanel } from '@/components/mock-bidding/MockAcquireBidPanel';
-import { bestDealScore, fetchMarketplaceListings } from '@/lib/mockMarketplaceService';
+import { AcquireBidPanel } from '@/components/marketplace/AcquireBidPanel';
+import { bestDealScore, fetchMarketplaceListings } from '@/lib/marketplace/service';
 import {
   Select,
   SelectContent,
@@ -17,7 +17,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
 import { cn } from '@/lib/utils';
-import { appPath, marketplacePath } from '@/lib/appPaths';
+import { MARKETPLACE_ROUTES } from '@/routing/routeRegistry';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
 
@@ -39,7 +39,6 @@ const FILTER_DISABLED =
   'h-9 w-full cursor-not-allowed rounded-md border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface-2)] px-2 text-xs text-[color:var(--terminal-muted)] opacity-70';
 const SELECT_ITEM =
   'cursor-pointer focus:bg-[color:var(--terminal-surface-2)] focus:text-[color:var(--terminal-fg)]';
-const FILTER_ROW_BLOCK = 'w-[200px] max-w-full';
 const ACQUIRE_FILTERS_STORAGE_KEY = 'ownerr-acquire-filters-v1';
 const BUYER_FILTER_SELECT_TRIGGER =
   'h-9 w-full min-w-0 border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] font-mono text-xs text-[color:var(--terminal-fg)]';
@@ -654,8 +653,8 @@ function AcquireMarketplaceFiltersBody({
 export default function Acquire() {
   const wouterSearch = useSearch();
   const [location, setLocation] = useLocation();
-  const isBuyerPage = location.startsWith(appPath('/buyer/acquire'));
-  const acquireBase = isBuyerPage ? appPath('/buyer/acquire') : marketplacePath('/acquire');
+  const isBuyerPage = location.startsWith(MARKETPLACE_ROUTES.buyerAcquire);
+  const acquireBase = isBuyerPage ? MARKETPLACE_ROUTES.buyerAcquire : MARKETPLACE_ROUTES.acquire;
   const [isMounted, setIsMounted] = useState(false);
 
   const [search, setSearch] = useState('');
@@ -677,7 +676,7 @@ export default function Acquire() {
   const [revenueProvider, setRevenueProvider] = useState('all');
   const listingsQuery = useQuery({
     queryKey: ['marketplace-listings'],
-    queryFn: () => fetchMarketplaceListings(mockStartups),
+    queryFn: () => fetchMarketplaceListings(),
   });
 
   useLayoutEffect(() => {
@@ -882,7 +881,7 @@ export default function Acquire() {
       setLocation(next);
     }, 3800);
     return () => window.clearTimeout(tid);
-  }, [isMounted, listingFocusSlug, listingPresentInGrid, setLocation]);
+  }, [acquireBase, isMounted, listingFocusSlug, listingPresentInGrid, setLocation]);
 
   const activeFilterCount = useMemo(() => {
     let n = 0;
@@ -978,7 +977,7 @@ export default function Acquire() {
     <div className="min-w-0 flex-1">
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <p className="font-mono text-sm font-bold text-[color:var(--terminal-muted)]">
-          <span className="text-[color:var(--terminal-ochre)]">
+          <span className="platform-gradient-text tabular-nums">
             {(listingsQuery.data?.filter((item) => item.forSale).length ?? 0).toLocaleString()}
           </span>{' '}
           startups found
@@ -1013,13 +1012,13 @@ export default function Acquire() {
               >
                 {isSpotlight ? (
                   <p
-                    className="pointer-events-none absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full bg-sky-500 px-2.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wide text-white shadow-md dark:bg-sky-400 dark:text-slate-950"
+                    className="btn-platform-gradient pointer-events-none absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wide shadow-md"
                     aria-live="polite"
                   >
                     Your listing
                   </p>
                 ) : null}
-                <AcquireListingCard startup={s} footer={<MockAcquireBidPanel startup={s} compact />} />
+                <AcquireListingCard startup={s} footer={<AcquireBidPanel startup={s} compact />} />
               </div>
             );
           })}
@@ -1056,14 +1055,14 @@ export default function Acquire() {
                 >
                   <span className="flex min-w-0 items-center gap-2">
                     <SlidersHorizontal
-                      className="h-4 w-4 shrink-0 text-[color:var(--brand-accent)]"
+                      className="h-4 w-4 shrink-0 text-[color:var(--terminal-ochre)]"
                       aria-hidden
                     />
                     <span className="truncate">Filters & sort</span>
                   </span>
                   <span className="flex shrink-0 items-center gap-2">
                     {activeFilterCount > 0 ? (
-                      <span className="rounded-full bg-[color:var(--brand-accent)]/20 px-2 py-0.5 font-mono text-[11px] font-bold tabular-nums text-[color:var(--brand-accent)]">
+                      <span className="rounded-full bg-[color:var(--terminal-ochre-muted)] px-2 py-0.5 font-mono text-[11px] font-bold tabular-nums text-[color:var(--terminal-ochre)]">
                         {activeFilterCount}
                       </span>
                     ) : null}
@@ -1074,7 +1073,7 @@ export default function Acquire() {
               <PopoverContent
                 align="center"
                 sideOffset={8}
-                className="z-[80] w-[calc(100vw-2rem)] max-w-md border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-0 font-mono text-[color:var(--terminal-fg)] shadow-xl [--terminal-ochre:var(--brand-accent)]"
+                className="z-[80] w-[calc(100vw-2rem)] max-w-md border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-0 font-mono text-[color:var(--terminal-fg)] shadow-xl"
               >
                 <div className="max-h-[min(78dvh,560px)] overflow-y-auto overscroll-contain p-4">
                   <div className="mb-4 border-b border-[color:var(--terminal-border)] pb-3">

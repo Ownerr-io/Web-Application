@@ -14,8 +14,10 @@ if (Number.isNaN(port) || port <= 0) {
 
 const basePath = process.env.BASE_PATH ?? "/";
 const strictPort = portFromEnv !== undefined;
+const repoRoot = path.resolve(import.meta.dirname, "..", "..");
 
 export default defineConfig({
+  envDir: repoRoot,
   base: basePath,
   plugins: [
     react(),

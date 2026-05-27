@@ -34,7 +34,7 @@ export function AcquisitionFlow() {
           whileInView={{ opacity: 1, y: 0 }}
           viewport={{ once: true, margin: '-30px' }}
           transition={{ duration: 0.3, delay: reduce ? 0 : idx * 0.06 }}
-          className="flex h-full min-h-[11.5rem] flex-col rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4 shadow-sm hover-elevate sm:min-h-[12.5rem]"
+          className="saas-glass-card saas-glass-card-hover flex h-full min-h-[11.5rem] flex-col rounded-[12px] border border-[color:var(--terminal-border)]/80 p-5 sm:min-h-[12.5rem]"
         >
           <div className="mb-3 shrink-0 text-[10px] font-bold uppercase tracking-[0.24em] text-[color:var(--terminal-muted)]">
             {s.n}

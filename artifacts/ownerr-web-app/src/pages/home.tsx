@@ -1,7 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { motion } from 'framer-motion';
 import { Link, useLocation } from 'wouter';
-import { mockStartups, mockFounders, leaderboardMetricValue } from '@/lib/mockData';
+import { leaderboardMetricValue } from '@/lib/mockData';
+import { buildFoundersFromStartups } from '@/lib/marketplace/founders';
+import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
 import { mergeWithUserStartups, USER_STARTUPS_CHANGED_EVENT } from '@/lib/userStartups';
 import { StartupCard } from '@/components/StartupCard';
 import { WhatsHappening } from '@/components/WhatsHappening';
@@ -23,6 +25,7 @@ export default function Home() {
   const [metric, setMetric] = useState<'mrr' | 'arr'>('mrr');
   const [period, setPeriod] = useState<'all_time' | 'current'>('all_time');
   const [, setLocation] = useLocation();
+  const { data: publicStartups = [] } = usePublicStartups();
 
   useEffect(() => { setIsMounted(true); }, []);
 
@@ -36,10 +39,10 @@ export default function Home() {
     };
   }, []);
 
-  const mergedStartups = useMemo(
-    () => mergeWithUserStartups(mockStartups),
-    [userStartupsTick],
-  );
+  const mergedStartups = useMemo(() => {
+    void userStartupsTick;
+    return mergeWithUserStartups(publicStartups);
+  }, [publicStartups, userStartupsTick]);
 
   const leaderboardRows = useMemo(() => {
     return [...mergedStartups].sort(
@@ -48,8 +51,9 @@ export default function Home() {
     );
   }, [mergedStartups, metric, period]);
 
-  const recentlyListed = mockStartups.filter(s => s.forSale).slice(0, 8);
-  const bestDeals = mockStartups.filter(s => s.forSale && s.multiple && s.multiple < 1.8).slice(0, 8);
+  const founders = useMemo(() => buildFoundersFromStartups(publicStartups), [publicStartups]);
+  const recentlyListed = publicStartups.filter((s) => s.forSale).slice(0, 8);
+  const bestDeals = publicStartups.filter((s) => s.forSale && s.multiple && s.multiple < 1.8).slice(0, 8);
 
   if (!isMounted) return <div className="min-h-[500px]" />;
 
@@ -62,7 +66,7 @@ export default function Home() {
           <h2 className="mp-section-title">Recently listed</h2>
           <button
             onClick={() => setLocation(marketplacePath('/acquire'))}
-            className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
+            className="mp-link inline-flex items-center gap-0.5 text-xs font-bold"
           >
             View all
             <ChevronRight className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
@@ -83,7 +87,7 @@ export default function Home() {
           <h2 className="mp-section-title">Best deals this week</h2>
           <button
             onClick={() => setLocation(marketplacePath('/acquire'))}
-            className="inline-flex items-center gap-0.5 text-xs text-muted-foreground hover:text-foreground"
+            className="mp-link inline-flex items-center gap-0.5 text-xs font-bold"
           >
             View all
             <ChevronRight className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
@@ -152,7 +156,7 @@ export default function Home() {
               </thead>
               <tbody>
                 {leaderboardRows.slice(0, 25).map((startup, index) => {
-                  const founder = mockFounders.find(f => f.handle === startup.founderHandle);
+                  const founder = founders.find((f) => f.handle === startup.founderHandle);
                   const metricVal = leaderboardMetricValue(startup, metric, period);
                   const rank = index + 1;
                   let rankDisplay: React.ReactNode = rank.toString();
@@ -249,9 +253,9 @@ export default function Home() {
         <h2 className="mp-section-title mb-4">Stats overview</h2>
         <div className="grid grid-cols-1 gap-3 min-[400px]:grid-cols-2 lg:grid-cols-4 lg:gap-4">
           <KPI label="Total Verified MRR" value={formatCurrency(mergedStartups.reduce((s, x) => s + x.revenue, 0))} />
-          <KPI label="Verified Startups" value={String(mockStartups.length)} />
-          <KPI label="Founders" value={String(mockFounders.length)} />
-          <KPI label="Listings for sale" value={String(mockStartups.filter(s => s.forSale).length)} accent />
+          <KPI label="Verified Startups" value={String(publicStartups.length)} />
+          <KPI label="Founders" value={String(founders.length)} />
+          <KPI label="Listings for sale" value={String(publicStartups.filter((s) => s.forSale).length)} accent />
         </div>
       </section>
 
@@ -266,11 +270,11 @@ function KPI({ label, value, accent }: { label: string; value: string; accent?: 
   return (
     <div
       className={`startup-card flex min-w-0 flex-col items-center justify-center p-4 text-center sm:p-5 ${
-        accent ? 'bg-emerald-100 text-emerald-950 dark:bg-emerald-950/40 dark:text-emerald-50' : ''
+        accent ? 'border border-[color:var(--terminal-ochre-muted)] bg-[color:var(--terminal-surface-2)]' : ''
       }`}
     >
-      <div className="mb-2 text-[11px] font-medium text-muted-foreground sm:text-xs">{label}</div>
-      <div className="w-full max-w-full break-words text-lg font-bold tabular-nums leading-tight sm:text-xl md:text-2xl">
+      <div className="mp-label mb-2 text-[11px] sm:text-xs">{label}</div>
+      <div className="mp-value w-full max-w-full break-words text-lg leading-tight sm:text-xl md:text-2xl">
         {value}
       </div>
     </div>

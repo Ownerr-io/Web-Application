@@ -19,7 +19,9 @@ import {
   BarChart3,
 } from 'lucide-react';
 
-import { mockFounders, mockStartups, leaderboardMetricValue, type Startup } from '@/lib/mockData';
+import { leaderboardMetricValue, type Startup } from '@/lib/mockData';
+import { buildFoundersFromStartups } from '@/lib/marketplace/founders';
+import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
 import { marketplacePath } from '@/lib/appPaths';
 import { getStartupDetailModel } from '@/lib/startupDetailContent';
 import { StartupScoresDetailGrid } from '@/components/StartupTripleScores';
@@ -50,15 +52,16 @@ import {
   fetchMarketplaceInterests,
   fetchMarketplaceListingBySlug,
   fetchMarketplaceListings,
-  runMockDomainVerification,
+  runDomainVerification,
   submitMarketplaceInterest,
   trustLabelFromScore,
   updateMarketplaceVerification,
   updateMarketplaceInterestStage,
   type MarketplaceInterestRecord,
   type MarketplaceListing,
-} from '@/lib/mockMarketplaceService';
-import { useMockSession } from '@/context/MockSessionContext';
+} from '@/lib/marketplace/service';
+import { useAuth } from '@/context/AuthContext';
+import { useRequireAuth } from '@/lib/platform/requireAuth';
 
 function DiscoverCard({ s }: { s: Startup }) {
   const mrr = leaderboardMetricValue(s, 'mrr', 'current');
@@ -113,18 +116,19 @@ export default function StartupDetail() {
   const { slug } = useParams();
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { currentUser, isBuyer, isAuthenticated, openAuthDialog } = useMockSession();
+  const { currentUser, isBuyer, isAuthenticated } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const [mounted, setMounted] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
 
   const listingsQuery = useQuery({
     queryKey: ['marketplace-listings'],
-    queryFn: () => fetchMarketplaceListings(mockStartups),
+    queryFn: () => fetchMarketplaceListings(),
   });
 
   const listingQuery = useQuery({
     queryKey: ['marketplace-listing', slug],
-    queryFn: () => fetchMarketplaceListingBySlug(mockStartups, slug ?? ''),
+    queryFn: () => fetchMarketplaceListingBySlug(slug ?? ''),
     enabled: !!slug,
   });
 
@@ -133,7 +137,9 @@ export default function StartupDetail() {
   }, []);
 
   const startup = listingQuery.data;
-  const founder = startup ? mockFounders.find((f) => f.handle === startup.founderHandle) : undefined;
+  const { data: catalogStartups = [] } = usePublicStartups();
+  const founders = useMemo(() => buildFoundersFromStartups(catalogStartups), [catalogStartups]);
+  const founder = startup ? founders.find((f) => f.handle === startup.founderHandle) : undefined;
   const isOwner = !!startup && !!currentUser && startup.ownerUserId === currentUser.id;
 
   const interestsQuery = useQuery({
@@ -270,7 +276,7 @@ export default function StartupDetail() {
                   className="font-bold"
                   onClick={() => {
                     if (!isAuthenticated) {
-                      openAuthDialog();
+                      requireAuth({ action: 'express_interest', onAllowed: () => {} });
                       return;
                     }
                     setContactOpen(true);
@@ -361,7 +367,7 @@ export default function StartupDetail() {
               ]);
             }}
             onDomainVerify={async () => {
-              await runMockDomainVerification(startup);
+              await runDomainVerification(startup);
               await Promise.all([
                 queryClient.invalidateQueries({ queryKey: ['marketplace-listing', startup.slug] }),
                 queryClient.invalidateQueries({ queryKey: ['marketplace-listings'] }),
@@ -501,7 +507,7 @@ export default function StartupDetail() {
                 className="h-10 flex-1 font-bold md:h-11 md:flex-none"
                 onClick={() => {
                   if (!isAuthenticated) {
-                    openAuthDialog();
+                    requireAuth({ action: 'express_interest', onAllowed: () => {} });
                     return;
                   }
                   setContactOpen(true);
@@ -588,7 +594,7 @@ export default function StartupDetail() {
             ]);
           }}
           onDomainVerify={async () => {
-            await runMockDomainVerification(startup);
+            await runDomainVerification(startup);
             await Promise.all([
               queryClient.invalidateQueries({ queryKey: ['marketplace-listing', startup.slug] }),
               queryClient.invalidateQueries({ queryKey: ['marketplace-listings'] }),
@@ -822,7 +828,7 @@ function VerificationSection({ listing }: { listing: MarketplaceListing }) {
           </div>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
             <div
-              className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-sky-500"
+              className="mp-progress-fill h-full rounded-full"
               style={{ width: `${listing.trustScore}%` }}
             />
           </div>
@@ -831,7 +837,7 @@ function VerificationSection({ listing }: { listing: MarketplaceListing }) {
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3">
-          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.revenue.status === 'verified' ? 'bg-emerald-500/15 mp-text-positive' : 'bg-muted text-muted-foreground'}`}>
+          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.revenue.status === 'verified' ? 'mp-badge-lime' : 'bg-muted mp-muted'}`}>
             <BadgeCheck className="h-4 w-4" />
           </div>
           <div className="min-w-0">
@@ -842,7 +848,7 @@ function VerificationSection({ listing }: { listing: MarketplaceListing }) {
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3">
-          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.domain.status === 'verified' ? 'bg-blue-500/15 text-blue-600 dark:text-blue-400' : 'bg-muted text-muted-foreground'}`}>
+          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.domain.status === 'verified' ? 'mp-badge-orange' : 'bg-muted mp-muted'}`}>
             <Globe className="h-4 w-4" />
           </div>
           <div className="min-w-0">
@@ -853,7 +859,7 @@ function VerificationSection({ listing }: { listing: MarketplaceListing }) {
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3">
-          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.traffic.status === 'verified' ? 'bg-amber-500/15 text-amber-600 dark:text-amber-400' : 'bg-muted text-muted-foreground'}`}>
+          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.traffic.status === 'verified' ? 'mp-badge-amber' : 'bg-muted mp-muted'}`}>
             <BarChart3 className="h-4 w-4" />
           </div>
           <div className="min-w-0">
@@ -947,7 +953,7 @@ function FounderControlsSection({
           <div className="text-xs text-muted-foreground">{completed}/3 completed</div>
         </div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-          <div className="h-full rounded-full bg-gradient-to-r from-emerald-500 to-sky-500" style={{ width: `${checklistPct}%` }} />
+          <div className="mp-progress-fill h-full rounded-full" style={{ width: `${checklistPct}%` }} />
         </div>
         <div className="mt-3 space-y-2 text-sm">
           <FounderChecklistRow done={listing.revenueVerified} label="Verify revenue" />
@@ -1047,7 +1053,7 @@ function FounderChecklistRow({ done, label }: { done: boolean; label: string }) 
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-foreground">{label}</span>
-      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${done ? 'bg-emerald-500/15 text-emerald-600' : 'bg-muted text-muted-foreground'}`}>
+      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${done ? 'mp-badge-lime' : 'bg-muted mp-muted'}`}>
         {done ? 'Done' : 'Pending'}
       </span>
     </div>
@@ -1083,7 +1089,7 @@ function ContactSellerForm({
   startupName: string;
   onSent: () => void | Promise<void>;
 }) {
-  const { currentUser } = useMockSession();
+  const { currentUser } = useAuth();
   const { toast } = useToast();
   const [name, setName] = useState('John Doe');
   const [email, setEmail] = useState('john@example.com');

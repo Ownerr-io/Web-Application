@@ -1,10 +1,10 @@
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { useMockSession } from "@/context/MockSessionContext";
+import { useAuth } from "@/context/AuthContext";
 import { founderAvatarUrl } from "@/lib/utils";
 
 export default function BuyerProfilePage() {
-  const { currentUser, logout } = useMockSession();
+  const { currentUser, logout } = useAuth();
 
   return (
     <div className="grid gap-4 md:grid-cols-3">

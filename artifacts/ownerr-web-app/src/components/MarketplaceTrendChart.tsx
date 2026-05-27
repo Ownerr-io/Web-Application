@@ -9,7 +9,7 @@ import {
 } from "recharts";
 import { useIsDark } from "@/components/ThemeToggle";
 import { formatCurrency, formatShortCurrency } from "@/lib/utils";
-import type { TimeSeriesPoint } from "@/lib/mockMarketplaceService";
+import type { TimeSeriesPoint } from "@/lib/marketplace/types";
 
 export function MarketplaceTrendChart({
   title,
@@ -30,11 +30,11 @@ export function MarketplaceTrendChart({
   return (
     <section className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
       <div className="flex flex-col gap-1">
-        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">{title}</div>
+        <div className="mp-label text-[10px]">{title}</div>
         <div className="text-2xl font-bold tabular-nums">
           {mode === "currency" ? formatCurrency(latestValue) : latestValue.toLocaleString("en-US")}
         </div>
-        <p className="text-sm text-muted-foreground">{subtitle}</p>
+        <p className="mp-body text-sm">{subtitle}</p>
       </div>
       <div className="mt-4 h-[260px] w-full">
         <ResponsiveContainer width="100%" height="100%">
@@ -61,7 +61,7 @@ export function MarketplaceTrendChart({
                 if (!active || !point) return null;
                 return (
                   <div className="rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-xl">
-                    <div className="font-bold text-foreground">{point.label}</div>
+                    <div className="mp-value font-bold">{point.label}</div>
                     <div className="mt-1">
                       {mode === "currency" ? formatCurrency(point.value) : point.value.toLocaleString("en-US")}
                     </div>

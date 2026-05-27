@@ -1,5 +1,6 @@
 import { Link, useLocation } from 'wouter';
-import { useMockSession } from '@/context/MockSessionContext';
+import { useAuth } from '@/context/AuthContext';
+import { useRequireAuth } from '@/lib/platform/requireAuth';
 import { Startup } from '@/lib/mockData';
 import { marketplacePath } from '@/lib/appPaths';
 import { formatShortCurrency } from '@/lib/utils';
@@ -56,7 +57,8 @@ function CardBody({ startup, logoColor }: { startup: Startup; logoColor: string 
 export function StartupCard({ startup, showBidCta }: { startup: Startup; showBidCta?: boolean }) {
   const logoColor = startup.logoColor ?? '#E6EAFF';
   const bidHref = `${marketplacePath('/acquire')}?listing=${encodeURIComponent(startup.slug)}`;
-  const { isAuthenticated, openAuthDialog } = useMockSession();
+  const { isAuthenticated } = useAuth();
+  const { requireAuth } = useRequireAuth();
   const [, setLocation] = useLocation();
 
   if (showBidCta && startup.forSale) {
@@ -69,12 +71,12 @@ export function StartupCard({ startup, showBidCta }: { startup: Startup; showBid
           <Button
             type="button"
             size="sm"
-            className="h-9 w-full font-bold"
+            className="btn-marketplace-primary h-9 w-full font-bold"
             onClick={() => {
               if (isAuthenticated) {
                 setLocation(bidHref);
               } else {
-                openAuthDialog();
+                requireAuth({ action: 'save_startup', onAllowed: () => {} });
               }
             }}
           >
