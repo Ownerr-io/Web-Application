@@ -25,14 +25,22 @@ export function OwnerrNetworkLandingCtas({ variant }: { variant: Variant }) {
   }, [profile]);
 
   if (loading) {
-    return <div className="h-12 w-full max-w-md animate-pulse rounded-[10px] bg-[color:var(--terminal-surface)]" />;
+    return (
+      <div className="h-12 w-full max-w-md animate-pulse rounded-[10px] bg-[color:var(--terminal-surface)]" />
+    );
   }
 
   const loggedIn = Boolean(session && profile);
 
   if (!loggedIn) {
     return (
-      <div className={variant === "hero" ? "flex flex-wrap gap-3" : "flex flex-wrap justify-center gap-3"}>
+      <div
+        className={
+          variant === "hero"
+            ? "flex flex-wrap gap-3"
+            : "flex flex-wrap justify-center gap-3"
+        }
+      >
         <Button
           asChild
           className={
@@ -40,28 +48,61 @@ export function OwnerrNetworkLandingCtas({ variant }: { variant: Variant }) {
               ? "btn-platform-gradient h-11 rounded-[10px] px-6 text-sm font-bold shadow-lg"
               : "btn-platform-gradient h-11 rounded-[10px] px-6 text-sm font-bold"
           }
-          onClick={() => void trackOwnerrNetworkEvent("cta_click", { placement: variant === "hero" ? "hero" : "footer" })}
+          onClick={() =>
+            void trackOwnerrNetworkEvent("cta_click", {
+              placement: variant === "hero" ? "hero" : "footer",
+            })
+          }
         >
-          <Link href={`${AUTH_ROUTES.start}?product=ownerr-network`}>Join Ownerr Network</Link>
+          <Link href={`${AUTH_ROUTES.start}?product=ownerr-network`}>
+            Join Ownerr Network
+          </Link>
         </Button>
-        <Button asChild variant="outline" className="h-11 rounded-[10px] border-[color:var(--terminal-border)] text-sm font-semibold">
-          <Link href={marketingRoutes.ownerrNetworkLeaderboard}>Leaderboard</Link>
+        <Button
+          asChild
+          variant="outline"
+          className="h-11 rounded-[10px] border-[color:var(--terminal-border)] text-sm font-semibold"
+        >
+          <Link href={marketingRoutes.ownerrNetworkLeaderboard}>
+            Leaderboard
+          </Link>
         </Button>
       </div>
     );
   }
 
   return (
-    <div className={variant === "hero" ? "flex flex-wrap gap-3" : "flex flex-wrap justify-center gap-3"}>
-      <Button asChild className="h-11 rounded-[10px] bg-[color:var(--terminal-ochre)] text-sm font-bold text-[color:var(--brand-accent-ink)]">
-        <Link href={marketingRoutes.ownerrNetworkDashboard}>Go to Dashboard</Link>
+    <div
+      className={
+        variant === "hero"
+          ? "flex flex-wrap gap-3"
+          : "flex flex-wrap justify-center gap-3"
+      }
+    >
+      <Button
+        asChild
+        className="h-11 rounded-[10px] bg-[color:var(--terminal-ochre)] text-sm font-bold text-[color:var(--brand-accent-ink)]"
+      >
+        <Link href={marketingRoutes.ownerrNetworkDashboard}>
+          Go to Dashboard
+        </Link>
       </Button>
       {onboardingDone === false ? (
-        <Button asChild variant="outline" className="h-11 rounded-[10px] border-[color:var(--terminal-border)] text-sm font-semibold">
-          <Link href={marketingRoutes.ownerrNetworkOnboarding}>Continue setup</Link>
+        <Button
+          asChild
+          variant="outline"
+          className="h-11 rounded-[10px] border-[color:var(--terminal-border)] text-sm font-semibold"
+        >
+          <Link href={marketingRoutes.ownerrNetworkOnboarding}>
+            Continue setup
+          </Link>
         </Button>
       ) : null}
-      <Button asChild variant="outline" className="h-11 rounded-[10px] border-[color:var(--terminal-border)] text-sm font-semibold">
+      <Button
+        asChild
+        variant="outline"
+        className="h-11 rounded-[10px] border-[color:var(--terminal-border)] text-sm font-semibold"
+      >
         <Link href={marketingRoutes.ownerrNetworkLeaderboard}>Leaderboard</Link>
       </Button>
     </div>
@@ -74,7 +115,10 @@ export function ownerrNetworkStickyCtaTarget(
 ): { href: string; label: string } {
   if (!session) {
     return {
-      href: authLoginHref({ product: "ownerr-network", redirect: marketingRoutes.ownerrNetworkOnboarding }),
+      href: authLoginHref({
+        product: "ownerr-network",
+        redirect: marketingRoutes.ownerrNetworkOnboarding,
+      }),
       label: "Sign in",
     };
   }

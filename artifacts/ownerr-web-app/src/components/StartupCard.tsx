@@ -1,17 +1,21 @@
-import { Link, useLocation } from 'wouter';
-import { useAuth } from '@/context/AuthContext';
-import { useRequireAuth } from '@/lib/platform/requireAuth';
-import { Startup } from '@/lib/mockData';
-import { marketplacePath } from '@/lib/appPaths';
-import { formatShortCurrency } from '@/lib/utils';
-import { StartupTripleScores } from '@/components/StartupTripleScores';
-import { Button } from '@/components/ui/button';
+import { Link, useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
+import { useRequireAuth } from "@/lib/platform/requireAuth";
+import { Startup } from "@/lib/mockData";
+import { marketplaceBrowsePath, marketplaceStartupPath } from "@/lib/appPaths";
+import { formatShortCurrency } from "@/lib/utils";
+import { StartupTripleScores } from "@/components/StartupTripleScores";
+import { Button } from "@/components/ui/button";
 
-function CardBody({ startup, logoColor }: { startup: Startup; logoColor: string }) {
+function CardBody({
+  startup,
+  logoColor,
+}: {
+  startup: Startup;
+  logoColor: string;
+}) {
   return (
     <>
-
-
       <div className="mb-4 flex items-center gap-3">
         <div
           className="flex h-12 w-12 shrink-0 items-center justify-center rounded-[8px] border border-black/10 text-xl font-bold dark:border-white/12"
@@ -24,26 +28,32 @@ function CardBody({ startup, logoColor }: { startup: Startup; logoColor: string 
           />
         </div>
         <div className="min-w-0 flex-1 pr-8">
-          <h3 className="startup-listing-title truncate text-base group-hover:underline">{startup.name}</h3>
-          <p className="startup-listing-category truncate">{startup.category}</p>
+          <h3 className="startup-listing-title truncate text-base group-hover:underline">
+            {startup.name}
+          </h3>
+          <p className="startup-listing-category truncate">
+            {startup.category}
+          </p>
         </div>
       </div>
 
       <div className="startup-listing-metrics mt-auto grid grid-cols-3 gap-2">
         <div className="min-w-0 text-center">
           <div className="startup-listing-metric-label">Revenue</div>
-          <div className="startup-listing-metric-value">{formatShortCurrency(startup.revenue)}</div>
+          <div className="startup-listing-metric-value">
+            {formatShortCurrency(startup.revenue)}
+          </div>
         </div>
         <div className="min-w-0 text-center">
           <div className="startup-listing-metric-label">Price</div>
           <div className="startup-listing-metric-value">
-            {startup.price != null ? formatShortCurrency(startup.price) : '—'}
+            {startup.price != null ? formatShortCurrency(startup.price) : "—"}
           </div>
         </div>
         <div className="min-w-0 text-center">
           <div className="startup-listing-metric-label">Multiple</div>
           <div className="startup-listing-metric-value">
-            {startup.multiple != null ? `${startup.multiple.toFixed(1)}x` : '—'}
+            {startup.multiple != null ? `${startup.multiple.toFixed(1)}x` : "—"}
           </div>
         </div>
       </div>
@@ -54,17 +64,24 @@ function CardBody({ startup, logoColor }: { startup: Startup; logoColor: string 
   );
 }
 
-export function StartupCard({ startup, showBidCta }: { startup: Startup; showBidCta?: boolean }) {
-  const logoColor = startup.logoColor ?? '#E6EAFF';
-  const bidHref = `${marketplacePath('/acquire')}?listing=${encodeURIComponent(startup.slug)}`;
+export function StartupCard({
+  startup,
+  showBidCta,
+}: {
+  startup: Startup;
+  showBidCta?: boolean;
+}) {
+  const logoColor = startup.logoColor ?? "#E6EAFF";
+  const [location, setLocation] = useLocation();
+  const detailHref = marketplaceStartupPath(startup.slug, location);
+  const bidHref = `${marketplaceBrowsePath(location)}?listing=${encodeURIComponent(startup.slug)}`;
   const { isAuthenticated } = useAuth();
   const { requireAuth } = useRequireAuth();
-  const [, setLocation] = useLocation();
 
   if (showBidCta && startup.forSale) {
     return (
       <div className="startup-listing-card group flex flex-col">
-        <Link href={marketplacePath(`/startup/${startup.slug}`)} className="block min-h-0 flex-1">
+        <Link href={detailHref} className="block min-h-0 flex-1">
           <CardBody startup={startup} logoColor={logoColor} />
         </Link>
         <div className="mt-3 border-t border-border/80 px-1 pb-1 pt-3">
@@ -76,7 +93,7 @@ export function StartupCard({ startup, showBidCta }: { startup: Startup; showBid
               if (isAuthenticated) {
                 setLocation(bidHref);
               } else {
-                requireAuth({ action: 'save_startup', onAllowed: () => {} });
+                requireAuth({ action: "save_startup", onAllowed: () => {} });
               }
             }}
           >
@@ -88,7 +105,7 @@ export function StartupCard({ startup, showBidCta }: { startup: Startup; showBid
   }
 
   return (
-    <Link href={marketplacePath(`/startup/${startup.slug}`)} className="block">
+    <Link href={detailHref} className="block">
       <div className="startup-listing-card group flex flex-col">
         <CardBody startup={startup} logoColor={logoColor} />
       </div>

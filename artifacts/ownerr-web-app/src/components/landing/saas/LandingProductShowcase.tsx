@@ -1,9 +1,13 @@
-import { Link } from 'wouter';
-import { ArrowRight } from 'lucide-react';
-import { productsNavItems } from '@/routes/navConfig';
-import { Reveal, RevealItem, RevealStagger } from '@/components/landing/saas/Reveal';
-import { SectionHeader } from '@/components/landing/saas/SectionHeader';
-import { cn } from '@/lib/utils';
+import { Link } from "wouter";
+import { ArrowRight } from "lucide-react";
+import { productsNavItems } from "@/routes/navConfig";
+import {
+  Reveal,
+  RevealItem,
+  RevealStagger,
+} from "@/components/landing/saas/Reveal";
+import { SectionHeader } from "@/components/landing/saas/SectionHeader";
+import { cn } from "@/lib/utils";
 
 export function LandingProductShowcase() {
   return (
@@ -24,10 +28,12 @@ export function LandingProductShowcase() {
             >
               <div className="flex min-w-0 gap-5 sm:gap-8">
                 <span className="font-mono text-sm font-bold tabular-nums text-[color:var(--terminal-muted)]">
-                  {String(i + 1).padStart(2, '0')}
+                  {String(i + 1).padStart(2, "0")}
                 </span>
                 <div className="min-w-0">
-                  <h3 className="text-lg font-bold text-[color:var(--terminal-display)]">{item.label}</h3>
+                  <h3 className="text-lg font-bold text-[color:var(--terminal-display)]">
+                    {item.label}
+                  </h3>
                   <p className="mt-2 max-w-xl text-sm leading-relaxed text-[color:var(--terminal-muted)]">
                     {item.description}
                   </p>
@@ -35,8 +41,8 @@ export function LandingProductShowcase() {
               </div>
               <span
                 className={cn(
-                  'inline-flex shrink-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-orange',
-                  'sm:opacity-70 sm:transition-opacity group-hover:sm:opacity-100',
+                  "inline-flex shrink-0 items-center gap-2 text-xs font-bold uppercase tracking-[0.18em] text-brand-orange",
+                  "sm:opacity-70 sm:transition-opacity group-hover:sm:opacity-100",
                 )}
               >
                 Enter
@@ -48,8 +54,9 @@ export function LandingProductShowcase() {
       </RevealStagger>
       <Reveal className="mt-8">
         <p className="text-xs leading-relaxed text-[color:var(--terminal-muted)]">
-          Use the header <span className="text-[color:var(--terminal-fg)]">Products</span> menu anytime — same
-          destinations, consistent hierarchy.
+          Use the header{" "}
+          <span className="text-[color:var(--terminal-fg)]">Products</span> menu
+          anytime — same destinations, consistent hierarchy.
         </p>
       </Reveal>
     </section>

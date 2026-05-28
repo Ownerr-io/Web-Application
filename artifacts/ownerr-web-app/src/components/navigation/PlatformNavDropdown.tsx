@@ -1,13 +1,13 @@
-import { Link } from 'wouter';
-import { ArrowRight, ChevronDown } from 'lucide-react';
+import { Link } from "wouter";
+import { ArrowRight, ChevronDown } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuItem,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
-import type { NavLinkItem } from '@/routes/navConfig';
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import type { NavLinkItem } from "@/routes/navConfig";
 
 type Props = {
   label: string;
@@ -17,30 +17,39 @@ type Props = {
   onNavigate?: () => void;
 };
 
-const ACCENTS = ['lime', 'orange', 'red', 'lime', 'orange'] as const;
+const ACCENTS = ["lime", "orange", "red", "lime", "orange"] as const;
 
-export function PlatformNavDropdown({ label, items, active, terminal, onNavigate }: Props) {
+export function PlatformNavDropdown({
+  label,
+  items,
+  active,
+  terminal,
+  onNavigate,
+}: Props) {
   const triggerClass = cn(
-    'group/trigger inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold tracking-wide transition-colors outline-none',
-    'focus-visible:ring-2 focus-visible:ring-[color:var(--brand-orange)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--terminal-surface)]',
-    'data-[state=open]:text-brand-orange',
+    "group/trigger inline-flex items-center gap-1.5 px-3 py-2 text-xs font-bold tracking-wide transition-colors outline-none",
+    "focus-visible:ring-2 focus-visible:ring-[color:var(--brand-orange)]/40 focus-visible:ring-offset-2 focus-visible:ring-offset-[color:var(--terminal-surface)]",
+    "data-[state=open]:text-brand-orange",
     active
       ? terminal
-        ? 'text-brand-orange'
-        : 'text-foreground'
+        ? "text-brand-orange"
+        : "text-foreground"
       : terminal
-        ? 'text-[color:var(--terminal-muted)] hover:text-[color:var(--terminal-fg)]'
-        : 'text-muted-foreground hover:text-foreground',
+        ? "text-[color:var(--terminal-muted)] hover:text-[color:var(--terminal-fg)]"
+        : "text-muted-foreground hover:text-foreground",
   );
 
   const subtitle =
-    label === 'Products'
-      ? 'Modules on the Ownerr platform'
-      : 'Guides and reference';
+    label === "Products"
+      ? "Modules on the Ownerr platform"
+      : "Guides and reference";
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className={triggerClass} aria-label={`${label} menu`}>
+      <DropdownMenuTrigger
+        className={triggerClass}
+        aria-label={`${label} menu`}
+      >
         <span className="relative">
           {label}
           <span
@@ -57,15 +66,17 @@ export function PlatformNavDropdown({ label, items, active, terminal, onNavigate
         align="start"
         sideOffset={12}
         className={cn(
-          'luxury-nav-dropdown z-[100] font-mono',
-          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[side=bottom]:slide-in-from-top-1',
-          !terminal && 'border-border bg-background/95',
+          "luxury-nav-dropdown z-[100] font-mono",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98] data-[side=bottom]:slide-in-from-top-1",
+          !terminal && "border-border bg-background/95",
         )}
       >
         <div className="luxury-nav-dropdown-header">
           <p className="luxury-kicker">{label}</p>
           <span className="luxury-rule mt-3 block" aria-hidden />
-          <p className="mt-3 text-[11px] leading-snug text-[color:var(--terminal-muted)]">{subtitle}</p>
+          <p className="mt-3 text-[11px] leading-snug text-[color:var(--terminal-muted)]">
+            {subtitle}
+          </p>
         </div>
         <div className="luxury-nav-dropdown-body">
           {items.map((item, i) => {
@@ -83,7 +94,7 @@ export function PlatformNavDropdown({ label, items, active, terminal, onNavigate
                   className="luxury-nav-dropdown-item group/item"
                 >
                   <span className="mt-0.5 w-6 shrink-0 font-mono text-[10px] font-bold tabular-nums text-[color:var(--terminal-muted)]">
-                    {String(i + 1).padStart(2, '0')}
+                    {String(i + 1).padStart(2, "0")}
                   </span>
                   <span className="min-w-0 flex-1">
                     <span className="block text-[13px] font-bold leading-tight text-[color:var(--terminal-display)]">

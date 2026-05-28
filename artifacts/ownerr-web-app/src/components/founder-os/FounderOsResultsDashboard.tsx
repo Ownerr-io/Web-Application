@@ -19,11 +19,14 @@ export function FounderOsResultsDashboard({ record, draft }: Props) {
         </p>
         <h1 className="flex flex-wrap items-center gap-2 text-balance text-3xl font-bold text-[#EBFBBC] sm:text-4xl">
           More reach starts now
-          <Rocket className="h-8 w-8 shrink-0 text-[color:var(--terminal-lime)]" aria-hidden />
+          <Rocket
+            className="h-8 w-8 shrink-0 text-[color:var(--terminal-lime)]"
+            aria-hidden
+          />
         </h1>
         <p className="max-w-2xl text-sm font-medium text-[color:var(--terminal-fg)] sm:text-base">
-          Your idea is on OWNERR OS. Spread it on LinkedIn, X, WhatsApp, Instagram — and send your referral link
-          so more founders join the loop (and you stack more visibility).
+          Your listing is live. Copy your referral link or public share page and
+          post the share card anywhere you reach founders.
         </p>
         <p className="text-xs font-semibold text-[color:var(--terminal-ochre)]">
           Chance to Win $250k · Top 100 get $2,500 each in Founders Capital

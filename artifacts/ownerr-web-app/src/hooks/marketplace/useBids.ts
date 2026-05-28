@@ -1,17 +1,22 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/context/AuthContext';
-import { getSupabase } from '@/lib/supabase/client';
-import { createBid, listBidsForBuyer, listBidsForStartupSlug, updateBidStatus } from '@/lib/marketplace/bidService';
-import { marketplaceKeys } from '@/lib/marketplace/queryKeys';
-import type { BidStatus } from '@/lib/marketplace/types';
-import { useToast } from '@/hooks/use-toast';
-import { MarketplaceError } from '@/lib/marketplace/errors';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
+import { getSupabase } from "@/lib/supabase/client";
+import {
+  createBid,
+  listBidsForBuyer,
+  listBidsForStartupSlug,
+  updateBidStatus,
+} from "@/lib/marketplace/bidService";
+import { marketplaceKeys } from "@/lib/marketplace/queryKeys";
+import type { BidStatus } from "@/lib/marketplace/types";
+import { useToast } from "@/hooks/use-toast";
+import { MarketplaceError } from "@/lib/marketplace/errors";
 
 export function useMyBids() {
   const { session } = useAuth();
   const authUserId = session?.user?.id;
   return useQuery({
-    queryKey: marketplaceKeys.bids.mine(authUserId ?? ''),
+    queryKey: marketplaceKeys.bids.mine(authUserId ?? ""),
     queryFn: () => listBidsForBuyer(authUserId!),
     enabled: !!authUserId,
   });
@@ -19,7 +24,7 @@ export function useMyBids() {
 
 export function useStartupBids(slug: string | undefined) {
   return useQuery({
-    queryKey: marketplaceKeys.bids.startup(slug ?? ''),
+    queryKey: marketplaceKeys.bids.startup(slug ?? ""),
     queryFn: () => listBidsForStartupSlug(slug!),
     enabled: !!slug,
   });
@@ -31,9 +36,15 @@ export function useCreateBid() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (input: { startupSlug: string; amount: number; message?: string }) => {
-      const { data: { user } } = await getSupabase().auth.getUser();
-      if (!user) throw new MarketplaceError('Sign in required', 'forbidden');
+    mutationFn: async (input: {
+      startupSlug: string;
+      amount: number;
+      message?: string;
+    }) => {
+      const {
+        data: { user },
+      } = await getSupabase().auth.getUser();
+      if (!user) throw new MarketplaceError("Sign in required", "forbidden");
       return createBid({
         user,
         startupSlug: input.startupSlug,
@@ -43,16 +54,20 @@ export function useCreateBid() {
     },
     onSuccess: (_data, vars) => {
       if (currentUser) {
-        void qc.invalidateQueries({ queryKey: marketplaceKeys.bids.mine(currentUser.id) });
+        void qc.invalidateQueries({
+          queryKey: marketplaceKeys.bids.mine(currentUser.id),
+        });
       }
-      void qc.invalidateQueries({ queryKey: marketplaceKeys.bids.startup(vars.startupSlug) });
-      toast({ title: 'Bid submitted' });
+      void qc.invalidateQueries({
+        queryKey: marketplaceKeys.bids.startup(vars.startupSlug),
+      });
+      toast({ title: "Bid submitted" });
     },
     onError: (err: Error) => {
       toast({
-        title: 'Could not submit bid',
+        title: "Could not submit bid",
         description: err.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -64,8 +79,13 @@ export function useUpdateBidStatus() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: (input: { bidId: string; status: BidStatus; startupSlug?: string }) => {
-      if (!currentUser) throw new MarketplaceError('Sign in required', 'forbidden');
+    mutationFn: (input: {
+      bidId: string;
+      status: BidStatus;
+      startupSlug?: string;
+    }) => {
+      if (!currentUser)
+        throw new MarketplaceError("Sign in required", "forbidden");
       return updateBidStatus({
         bidId: input.bidId,
         status: input.status,
@@ -74,17 +94,21 @@ export function useUpdateBidStatus() {
     },
     onSuccess: (_data, vars) => {
       if (currentUser) {
-        void qc.invalidateQueries({ queryKey: marketplaceKeys.bids.mine(currentUser.id) });
+        void qc.invalidateQueries({
+          queryKey: marketplaceKeys.bids.mine(currentUser.id),
+        });
       }
       if (vars.startupSlug) {
-        void qc.invalidateQueries({ queryKey: marketplaceKeys.bids.startup(vars.startupSlug) });
+        void qc.invalidateQueries({
+          queryKey: marketplaceKeys.bids.startup(vars.startupSlug),
+        });
       }
     },
     onError: (err: Error) => {
       toast({
-        title: 'Could not update bid',
+        title: "Could not update bid",
         description: err.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });

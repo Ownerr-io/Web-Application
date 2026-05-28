@@ -1,18 +1,20 @@
-import { Heart, Link2, MessageCircle } from 'lucide-react';
-import { Link } from 'wouter';
-import { FOUNDER_SOLD_POSTS } from '@/lib/acquireMarketplaceData';
-import { founderAvatarUrl } from '@/lib/utils';
-import { marketplacePath } from '@/lib/appPaths';
+import { Heart, Link2, MessageCircle } from "lucide-react";
+import { Link } from "wouter";
+import { FOUNDER_SOLD_POSTS } from "@/lib/acquireMarketplaceData";
+import { founderAvatarUrl } from "@/lib/utils";
+import { marketplacePath } from "@/lib/appPaths";
 
 function PostBody({ text }: { text: string }) {
   const chunks = text.split(/(@[\w_]+)/g);
   return (
     <p className="whitespace-pre-wrap font-mono text-[15px] leading-normal text-foreground/90">
       {chunks.map((chunk, i) =>
-        chunk.startsWith('@') ? (
+        chunk.startsWith("@") ? (
           <Link
             key={i}
-            href={marketplacePath(`/founder/${encodeURIComponent(chunk.slice(1))}`)}
+            href={marketplacePath(
+              `/founder/${encodeURIComponent(chunk.slice(1))}`,
+            )}
             className="mp-text-link hover:underline "
           >
             {chunk}
@@ -27,7 +29,12 @@ function PostBody({ text }: { text: string }) {
 
 function XLogo() {
   return (
-    <svg viewBox="0 0 24 24" className="h-4 w-4 text-foreground/80" aria-hidden fill="currentColor">
+    <svg
+      viewBox="0 0 24 24"
+      className="h-4 w-4 text-foreground/80"
+      aria-hidden
+      fill="currentColor"
+    >
       <path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z" />
     </svg>
   );
@@ -81,7 +88,9 @@ export function FoundersSoldSection() {
                     <XLogo />
                   </div>
                   {post.headline ? (
-                    <p className="mt-2 font-mono text-[15px] font-bold text-foreground">{post.headline}</p>
+                    <p className="mt-2 font-mono text-[15px] font-bold text-foreground">
+                      {post.headline}
+                    </p>
                   ) : null}
                   <div className="mt-2">
                     <PostBody text={post.body} />
@@ -90,16 +99,28 @@ export function FoundersSoldSection() {
               </div>
               {post.imageSrc ? (
                 <div className="mt-3 overflow-hidden rounded-xl border border-border">
-                  <img src={post.imageSrc} alt="" className="h-auto w-full object-cover" loading="lazy" />
+                  <img
+                    src={post.imageSrc}
+                    alt=""
+                    className="h-auto w-full object-cover"
+                    loading="lazy"
+                  />
                 </div>
               ) : null}
             </div>
             <div className="border-t border-border px-4 py-2">
-              <p className="font-mono text-[13px] text-muted-foreground">{post.timeLabel}</p>
+              <p className="font-mono text-[13px] text-muted-foreground">
+                {post.timeLabel}
+              </p>
               <div className="mt-3 flex flex-wrap items-center gap-4 border-t border-border pt-3 font-mono text-[13px] text-muted-foreground">
                 <span className="inline-flex items-center gap-1.5 text-pink-500">
-                  <Heart className="h-4 w-4 fill-pink-500 text-pink-500" strokeWidth={0} />
-                  <span className="tabular-nums text-foreground">{post.likes}</span>
+                  <Heart
+                    className="h-4 w-4 fill-pink-500 text-pink-500"
+                    strokeWidth={0}
+                  />
+                  <span className="tabular-nums text-foreground">
+                    {post.likes}
+                  </span>
                 </span>
                 <button
                   type="button"

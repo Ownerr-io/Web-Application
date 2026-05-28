@@ -1,0 +1,8 @@
+node_modules
+dist
+**/dist
+**/dist-analyze
+**/build
+coverage
+.next
+.turbo

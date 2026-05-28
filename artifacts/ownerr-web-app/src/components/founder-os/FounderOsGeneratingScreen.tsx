@@ -41,7 +41,10 @@ export function FounderOsGeneratingScreen({ startupName, onComplete }: Props) {
   }, [syncMs, onComplete]);
 
   const line = useMemo(() => {
-    const idx = Math.min(LINES.length - 1, Math.floor((pct / 100) * LINES.length));
+    const idx = Math.min(
+      LINES.length - 1,
+      Math.floor((pct / 100) * LINES.length),
+    );
     return LINES[idx];
   }, [pct]);
 
@@ -59,16 +62,23 @@ export function FounderOsGeneratingScreen({ startupName, onComplete }: Props) {
           <span>
             {startupName.trim() || "Your startup"} is joining the list
           </span>
-          <CheckCircle2 className="h-8 w-8 shrink-0 text-[color:var(--terminal-lime)]" aria-hidden />
+          <CheckCircle2
+            className="h-8 w-8 shrink-0 text-[color:var(--terminal-lime)]"
+            aria-hidden
+          />
         </h2>
-        <p className="mt-3 text-sm font-semibold text-[color:var(--terminal-ochre)]">{line}</p>
+        <p className="mt-3 text-sm font-semibold text-[color:var(--terminal-ochre)]">
+          {line}
+        </p>
         <div className="mt-10 h-2 w-full max-w-md overflow-hidden rounded-full bg-white/10">
           <motion.div
             className="h-full bg-gradient-to-r from-[color:var(--terminal-ochre)] to-[color:var(--terminal-lime)]"
             style={{ width: `${pct}%` }}
           />
         </div>
-        <p className="mt-4 font-mono text-xs tabular-nums text-[color:var(--terminal-muted)]">{pct}%</p>
+        <p className="mt-4 font-mono text-xs tabular-nums text-[color:var(--terminal-muted)]">
+          {pct}%
+        </p>
       </div>
     </ValuationFullViewport>
   );

@@ -1,6 +1,6 @@
-import { useEffect, useId, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { useEffect, useId, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 type Props = {
   /** Decorative 0–100 index (not enterprise valuation). */
@@ -17,11 +17,11 @@ export function ValuationAuroraOrb({
   targetIndex = 78,
   size = 280,
   className,
-  label = 'Intelligence signal',
-  sublabel = 'Live preview · not your valuation',
+  label = "Intelligence signal",
+  sublabel = "Live preview · not your valuation",
 }: Props) {
   const reduce = useReducedMotion();
-  const gradId = useId().replace(/:/g, '');
+  const gradId = useId().replace(/:/g, "");
   const stroke = 10;
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
@@ -49,7 +49,7 @@ export function ValuationAuroraOrb({
 
   return (
     <motion.div
-      className={cn('relative mx-auto', className)}
+      className={cn("relative mx-auto", className)}
       style={{ width: size, height: size }}
       initial={reduce ? false : { opacity: 0.85, scale: 0.92 }}
       animate={{ opacity: 1, scale: 1 }}
@@ -61,33 +61,40 @@ export function ValuationAuroraOrb({
             className="pointer-events-none absolute inset-[8%] rounded-full opacity-70 blur-2xl"
             style={{
               background:
-                'conic-gradient(from 0deg, color-mix(in srgb, var(--terminal-ochre) 55%, transparent), color-mix(in srgb, var(--terminal-lime) 40%, transparent), color-mix(in srgb, var(--terminal-ochre) 20%, transparent))',
+                "conic-gradient(from 0deg, color-mix(in srgb, var(--terminal-ochre) 55%, transparent), color-mix(in srgb, var(--terminal-lime) 40%, transparent), color-mix(in srgb, var(--terminal-ochre) 20%, transparent))",
             }}
             animate={{ rotate: 360 }}
-            transition={{ duration: 18, repeat: Infinity, ease: 'linear' }}
+            transition={{ duration: 18, repeat: Infinity, ease: "linear" }}
           />
           <motion.div
             className="pointer-events-none absolute inset-[18%] rounded-full border border-[color:var(--terminal-border)]/40"
             animate={{ scale: [1, 1.04, 1], opacity: [0.35, 0.55, 0.35] }}
-            transition={{ duration: 3.2, repeat: Infinity, ease: 'easeInOut' }}
+            transition={{ duration: 3.2, repeat: Infinity, ease: "easeInOut" }}
           />
           {[0, 1, 2].map((i) => (
             <motion.div
               key={i}
               className="pointer-events-none absolute inset-0"
               animate={{ rotate: 360 }}
-              transition={{ duration: 10 + i * 2.5, repeat: Infinity, ease: 'linear' }}
+              transition={{
+                duration: 10 + i * 2.5,
+                repeat: Infinity,
+                ease: "linear",
+              }}
               initial={{ rotate: i * 120 }}
             >
-              <span
-                className="absolute left-1/2 top-2 h-2 w-2 -translate-x-1/2 rounded-full bg-[color:var(--terminal-lime)] shadow-[0_0_12px_color-mix(in_srgb,var(--terminal-lime)_55%,transparent)]"
-              />
+              <span className="absolute left-1/2 top-2 h-2 w-2 -translate-x-1/2 rounded-full bg-[color:var(--terminal-lime)] shadow-[0_0_12px_color-mix(in_srgb,var(--terminal-lime)_55%,transparent)]" />
             </motion.div>
           ))}
         </>
       ) : null}
 
-      <svg width={size} height={size} className="relative -rotate-90" aria-hidden>
+      <svg
+        width={size}
+        height={size}
+        className="relative -rotate-90"
+        aria-hidden
+      >
         <defs>
           <linearGradient id={gradId} x1="0%" y1="0%" x2="100%" y2="100%">
             <stop offset="0%" stopColor="var(--terminal-ochre)" />
@@ -116,7 +123,8 @@ export function ValuationAuroraOrb({
           animate={{ strokeDashoffset: offset }}
           transition={{ duration: reduce ? 0 : 1.05, ease: easePremium }}
           style={{
-            filter: 'drop-shadow(0 0 14px color-mix(in srgb, var(--terminal-ochre) 35%, transparent))',
+            filter:
+              "drop-shadow(0 0 14px color-mix(in srgb, var(--terminal-ochre) 35%, transparent))",
           }}
         />
       </svg>
@@ -127,7 +135,7 @@ export function ValuationAuroraOrb({
           className="font-mono text-5xl font-bold tabular-nums tracking-tight text-[color:var(--terminal-fg)] sm:text-6xl"
           initial={reduce ? false : { opacity: 0.6, y: 4 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ type: 'spring', stiffness: 420, damping: 28 }}
+          transition={{ type: "spring", stiffness: 420, damping: 28 }}
         >
           {index}
         </motion.span>

@@ -1,5 +1,8 @@
-import type { AuthRole } from '@/lib/auth/types';
-import { isDemoAccountEmail, showDemoAccountHints } from '@/lib/demo/demoAccountCatalog';
+import type { AuthRole } from "@/lib/auth/types";
+import {
+  isDemoAccountEmail,
+  showDemoAccountHints,
+} from "@/lib/demo/demoAccountCatalog";
 
 /** Demo marketplace desks use DB auth only — no env credential shortcuts. */
 export function canUseDemoMarketplaceDesk(): boolean {

@@ -14,4 +14,4 @@ export {
   type PublicNavCta,
   type ProductsMenuLink,
   type ProductsDropdownSection,
-} from '@/routing/navigationRegistry';
+} from "@/routing/navigationRegistry";

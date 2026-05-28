@@ -27,12 +27,16 @@ export function FounderOsProvider({ children }: { children: ReactNode }) {
   const authUserId = session?.user?.id ?? null;
 
   const [flowOpen, setFlowOpen] = useState(false);
-  const [completedRecord, setCompletedRecordState] = useState<FounderSubmissionRecord | null>(null);
+  const [completedRecord, setCompletedRecordState] =
+    useState<FounderSubmissionRecord | null>(null);
   const [completedRecordLoading, setCompletedRecordLoading] = useState(true);
 
-  const setCompletedRecord = useCallback((record: FounderSubmissionRecord | null) => {
-    setCompletedRecordState(record);
-  }, []);
+  const setCompletedRecord = useCallback(
+    (record: FounderSubmissionRecord | null) => {
+      setCompletedRecordState(record);
+    },
+    [],
+  );
 
   useEffect(() => {
     if (authLoading) return;
@@ -74,14 +78,27 @@ export function FounderOsProvider({ children }: { children: ReactNode }) {
       completedRecordLoading: authLoading || completedRecordLoading,
       setCompletedRecord,
     }),
-    [flowOpen, openFlow, closeFlow, completedRecord, authLoading, completedRecordLoading, setCompletedRecord],
+    [
+      flowOpen,
+      openFlow,
+      closeFlow,
+      completedRecord,
+      authLoading,
+      completedRecordLoading,
+      setCompletedRecord,
+    ],
   );
 
-  return <FounderOsContext.Provider value={value}>{children}</FounderOsContext.Provider>;
+  return (
+    <FounderOsContext.Provider value={value}>
+      {children}
+    </FounderOsContext.Provider>
+  );
 }
 
 export function useFounderOs() {
   const ctx = useContext(FounderOsContext);
-  if (!ctx) throw new Error("useFounderOs must be used within FounderOsProvider");
+  if (!ctx)
+    throw new Error("useFounderOs must be used within FounderOsProvider");
   return ctx;
 }

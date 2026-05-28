@@ -1,8 +1,16 @@
 import type { FounderSubmissionRecord } from "./founderTypes";
 import { buildReferralLink } from "./founderReferral";
-import { getFounderSharePageUrl, getPublicShareOrigin } from "./founderShareUrls";
+import {
+  getFounderSharePageUrl,
+  getPublicShareOrigin,
+} from "./founderShareUrls";
 
-export type SharePlatform = "linkedin" | "twitter" | "whatsapp" | "instagram" | "generic";
+export type SharePlatform =
+  | "linkedin"
+  | "twitter"
+  | "whatsapp"
+  | "instagram"
+  | "generic";
 
 export function buildShareCaptions(record: FounderSubmissionRecord) {
   const link = buildReferralLink(getPublicShareOrigin(), record.referralCode);

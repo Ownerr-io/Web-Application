@@ -1,8 +1,12 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 
-export function useAnimatedNumber(target: number, durationMs = 900, enabled = true): number {
+export function useAnimatedNumber(
+  target: number,
+  durationMs = 900,
+  enabled = true,
+): number {
   const [value, setValue] = useState(enabled ? 0 : target);
 
   useEffect(() => {

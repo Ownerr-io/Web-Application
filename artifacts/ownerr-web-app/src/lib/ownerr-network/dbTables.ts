@@ -55,26 +55,46 @@ export async function detectNetworkTables(
 ): Promise<NetworkTableSet> {
   // Detect if public.users exists (final schema)
   try {
-    const { error: usersProbeErr } = await supabase.from("users").select("id").limit(1);
+    const { error: usersProbeErr } = await supabase
+      .from("users")
+      .select("id")
+      .limit(1);
     if (usersProbeErr) {
       const code = usersProbeErr.code;
       const status = (usersProbeErr as { status?: number }).status;
       const msg = usersProbeErr.message || "";
-      if (code === "42P01" || code === "PGRST205" || code === "PGRST204" || status === 404 || msg.includes("does not exist")) {
+      if (
+        code === "42P01" ||
+        code === "PGRST205" ||
+        code === "PGRST204" ||
+        status === 404 ||
+        msg.includes("does not exist")
+      ) {
         usersTableActive = false;
-        console.log("[Schema Detection] Canonical 'users' table NOT active (legacy/intermediate schema detected).");
+        console.log(
+          "[Schema Detection] Canonical 'users' table NOT active (legacy/intermediate schema detected).",
+        );
       } else {
         // Any other database error (like unauthorized or empty results) means the table exists but probe had an RLS/auth constraint
         usersTableActive = true;
-        console.log("[Schema Detection] Canonical 'users' table is active (probe returned non-404 error code:", code, ").");
+        console.log(
+          "[Schema Detection] Canonical 'users' table is active (probe returned non-404 error code:",
+          code,
+          ").",
+        );
       }
     } else {
       usersTableActive = true;
-      console.log("[Schema Detection] Canonical 'users' table is active (probe succeeded).");
+      console.log(
+        "[Schema Detection] Canonical 'users' table is active (probe succeeded).",
+      );
     }
   } catch (err) {
     usersTableActive = false;
-    console.warn("[Schema Detection] Failed to probe canonical 'users' table:", err);
+    console.warn(
+      "[Schema Detection] Failed to probe canonical 'users' table:",
+      err,
+    );
   }
 
   const { error } = await supabase.from(NEW.users).select("id").limit(1);
@@ -90,18 +110,20 @@ export async function detectNetworkTables(
     return LEGACY;
   }
   tables = NEW;
-  console.log("[Schema Detection] Fallback network table set: NEW (ownerr_network_*)");
+  console.log(
+    "[Schema Detection] Fallback network table set: NEW (ownerr_network_*)",
+  );
   return NEW;
 }
 
 export function ensureNetworkTablesDetected(
   supabase?: SupabaseClient,
 ): Promise<NetworkTableSet> {
-  if (!detectPromise) detectPromise = detectNetworkTables(supabase ?? getSupabase());
+  if (!detectPromise)
+    detectPromise = detectNetworkTables(supabase ?? getSupabase());
   return detectPromise;
 }
 
 export function networkTables(): NetworkTableSet {
   return tables;
 }
-

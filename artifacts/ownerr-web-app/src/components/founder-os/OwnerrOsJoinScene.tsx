@@ -1,12 +1,15 @@
 import { Link } from "wouter";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Gift, Share2, Sparkles, UserPlus, Zap } from "lucide-react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import { Gift, Share2, Sparkles, UserPlus, Zap } from "lucide-react";
 import { fadeUp } from "@/components/landing/saas/motion";
-import { OwnerrOsShareSocialButtons } from "@/components/founder-os/OwnerrOsShareSocialButtons";
 import { OWNERR_OS_SHARE_CARD_PATH } from "@/lib/ownerrOsShareAssets";
 import { marketingRoutes } from "@/routes/marketingRoutes";
-import { OwnerrOsPublicIdeaForm } from "@/components/founder-os/OwnerrOsPublicIdeaForm";
-import { cn } from "@/lib/utils";
+import { OwnerrOsJoinAuthSection } from "@/components/founder-os/OwnerrOsJoinAuthSection";
 
 const PERKS = [
   {
@@ -49,13 +52,15 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
             className="saas-hero-orb left-[-12%] top-0 h-[min(420px,55vw)] w-[min(420px,55vw)] opacity-45"
             style={{
               y: orbY,
-              background: "color-mix(in srgb, var(--brand-lime) 20%, transparent)",
+              background:
+                "color-mix(in srgb, var(--brand-lime) 20%, transparent)",
             }}
           />
           <motion.div
             className="saas-hero-orb right-[-8%] bottom-[-10%] h-[min(360px,45vw)] w-[min(360px,45vw)] opacity-35"
             style={{
-              background: "color-mix(in srgb, var(--brand-orange) 18%, transparent)",
+              background:
+                "color-mix(in srgb, var(--brand-orange) 18%, transparent)",
             }}
           />
         </div>
@@ -67,18 +72,35 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
             variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
             className="w-full max-w-4xl space-y-4"
           >
-            <motion.span variants={fadeUp} custom={0} className="luxury-kicker block">
+            <motion.span
+              variants={fadeUp}
+              custom={0}
+              className="luxury-kicker block"
+            >
               OWNERR OS · Referral invite
             </motion.span>
 
-            <motion.h1 variants={fadeUp} custom={1} className="marketing-hero-title max-w-3xl">
-              <span className="text-[color:var(--terminal-display)]">A founder invited you.</span>
-              <span className="mt-1.5 block platform-gradient-text">Your turn to get seen.</span>
+            <motion.h1
+              variants={fadeUp}
+              custom={1}
+              className="marketing-hero-title max-w-3xl"
+            >
+              <span className="text-[color:var(--terminal-display)]">
+                A founder invited you.
+              </span>
+              <span className="mt-1.5 block platform-gradient-text">
+                Your turn to get seen.
+              </span>
             </motion.h1>
 
-            <motion.p variants={fadeUp} custom={2} className="marketing-lead max-w-2xl">
-              List your startup, unlock share assets and a personal referral link, and grow reach across channels —
-              built for operators who ship, not slide decks.
+            <motion.p
+              variants={fadeUp}
+              custom={2}
+              className="marketing-lead max-w-2xl"
+            >
+              List your startup, unlock share assets and a personal referral
+              link, and grow reach across channels — built for operators who
+              ship, not slide decks.
             </motion.p>
 
             {referralCode ? (
@@ -87,9 +109,15 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
                 custom={2.5}
                 className="inline-flex items-center gap-2 rounded-[10px] border border-[color:var(--brand-orange)]/35 bg-[color:var(--brand-orange)]/10 px-3 py-2"
               >
-                <UserPlus className="h-4 w-4 text-[color:var(--brand-orange)]" aria-hidden />
+                <UserPlus
+                  className="h-4 w-4 text-[color:var(--brand-orange)]"
+                  aria-hidden
+                />
                 <span className="text-xs font-bold text-[color:var(--terminal-fg)]">
-                  Referred by <span className="font-mono text-[color:var(--brand-orange)]">{referralCode}</span>
+                  Referred by{" "}
+                  <span className="font-mono text-[color:var(--brand-orange)]">
+                    {referralCode}
+                  </span>
                 </span>
               </motion.div>
             ) : null}
@@ -103,7 +131,7 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
               className="flex min-w-0 w-full flex-col gap-5"
             >
               <motion.div variants={fadeUp} custom={0} className="w-full">
-                <OwnerrOsPublicIdeaForm referralCode={referralCode} />
+                <OwnerrOsJoinAuthSection referralCode={referralCode} />
               </motion.div>
             </motion.div>
 
@@ -134,14 +162,6 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
                     />
                   </div>
                 </div>
-                <div className="border-t border-[color:var(--terminal-border)]/80 px-4 py-3 sm:px-5">
-                  <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]">
-                    Share preview
-                  </p>
-                  <div className="mt-2">
-                    <OwnerrOsShareSocialButtons layout="row" />
-                  </div>
-                </div>
               </div>
             </motion.div>
           </div>
@@ -155,10 +175,13 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
         <div className="flex flex-col items-start gap-4 lg:flex-row lg:items-end lg:justify-between">
           <div className="max-w-2xl space-y-2">
             <p className="luxury-kicker">Why join now</p>
-            <h2 className="marketing-section-heading">Everything you need to launch reach</h2>
+            <h2 className="marketing-section-heading">
+              Everything you need to launch reach
+            </h2>
           </div>
           <p className="marketing-body-sm max-w-md lg:text-right">
-            You were invited into the loop — finish signup and publish your listing in one sitting.
+            You were invited into the loop — finish signup and publish your
+            listing in one sitting.
           </p>
         </div>
 
@@ -175,7 +198,9 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
               <div className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[color:var(--terminal-border)]/80 bg-[color:var(--terminal-surface)]/80 text-[color:var(--brand-orange)]">
                 <f.icon className="h-4 w-4" aria-hidden />
               </div>
-              <h3 className="mt-4 text-sm font-bold text-[color:var(--terminal-fg)]">{f.title}</h3>
+              <h3 className="mt-4 text-sm font-bold text-[color:var(--terminal-fg)]">
+                {f.title}
+              </h3>
               <p className="marketing-body-sm mt-2">{f.body}</p>
             </motion.article>
           ))}
@@ -187,7 +212,9 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
         <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
           <div className="lg:col-span-5">
             <p className="luxury-kicker">How it works</p>
-            <h2 className="marketing-section-heading">Three steps after you sign up</h2>
+            <h2 className="marketing-section-heading">
+              Three steps after you sign up
+            </h2>
             <ul className="mt-6 space-y-4">
               {STEPS.map((s) => (
                 <li key={s.n} className="flex gap-4">
@@ -195,8 +222,12 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
                     {s.n}
                   </span>
                   <span>
-                    <span className="block text-sm font-bold text-[color:var(--terminal-fg)]">{s.label}</span>
-                    <span className="text-sm text-[color:var(--terminal-muted)]">{s.detail}</span>
+                    <span className="block text-sm font-bold text-[color:var(--terminal-fg)]">
+                      {s.label}
+                    </span>
+                    <span className="text-sm text-[color:var(--terminal-muted)]">
+                      {s.detail}
+                    </span>
                   </span>
                 </li>
               ))}
@@ -206,11 +237,17 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
           <div className="lg:col-span-7">
             <div className="saas-glass-card flex flex-col items-start justify-between gap-6 rounded-[14px] border border-[color:var(--terminal-border)]/80 p-6 sm:flex-row sm:items-center sm:p-8">
               <div className="flex gap-3">
-                <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand-lime)]" aria-hidden />
+                <Sparkles
+                  className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand-lime)]"
+                  aria-hidden
+                />
                 <div>
-                  <p className="text-sm font-bold text-[color:var(--terminal-fg)]">Ready to claim your spot?</p>
+                  <p className="text-sm font-bold text-[color:var(--terminal-fg)]">
+                    Ready to claim your spot?
+                  </p>
                   <p className="mt-1 max-w-md text-sm text-[color:var(--terminal-muted)]">
-                    Your referral is saved — sign up once and we&apos;ll attribute your invite through the full flow.
+                    Your referral is saved — sign up once and we&apos;ll
+                    attribute your invite through the full flow.
                   </p>
                 </div>
               </div>
@@ -219,7 +256,10 @@ export function OwnerrOsJoinScene({ referralCode }: Props) {
         </div>
 
         <p className="mt-10 text-center text-sm text-[color:var(--terminal-muted)]">
-          <Link href={marketingRoutes.home} className="font-bold text-brand-orange hover:underline">
+          <Link
+            href={marketingRoutes.home}
+            className="font-bold text-brand-orange hover:underline"
+          >
             Explore the full Ownerr platform
           </Link>
         </p>

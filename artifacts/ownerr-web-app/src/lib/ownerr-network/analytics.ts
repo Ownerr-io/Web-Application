@@ -1,5 +1,9 @@
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
-import { ensureNetworkTablesDetected, networkTables, isUsersTableActive } from "@/lib/ownerr-network/dbTables";
+import {
+  ensureNetworkTablesDetected,
+  networkTables,
+  isUsersTableActive,
+} from "@/lib/ownerr-network/dbTables";
 
 const SESSION_KEY = "ownerr_network_analytics_session";
 
@@ -35,7 +39,9 @@ export async function trackOwnerrNetworkEvent(
     const supabase = getSupabase();
     await ensureNetworkTablesDetected(supabase);
     const isNewSchema = isUsersTableActive();
-    console.log(`[Analytics] Tracking event: ${eventType} (isNewSchema: ${isNewSchema})`);
+    console.log(
+      `[Analytics] Tracking event: ${eventType} (isNewSchema: ${isNewSchema})`,
+    );
     if (isNewSchema) {
       await supabase.from("user_events").insert({
         product_slug: "ownerr_network",

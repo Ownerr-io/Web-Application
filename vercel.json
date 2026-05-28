@@ -4,7 +4,5 @@
   "outputDirectory": "artifacts/ownerr-web-app/dist",
   "framework": "vite",
   "root": "artifacts/ownerr-web-app",
-  "rewrites": [
-    { "source": "/(.*)", "destination": "/index.html" }
-  ]
+  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
 }

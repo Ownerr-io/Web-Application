@@ -1,7 +1,10 @@
 import { useCallback } from "react";
 import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
-import { evaluateAuthGate, storeActionAndGetLoginHref } from "@/lib/platform/authGate";
+import {
+  evaluateAuthGate,
+  storeActionAndGetLoginHref,
+} from "@/lib/platform/authGate";
 import type { AuthActionIntent } from "@/lib/platform/types";
 import { authLoginHrefForApp } from "@/lib/auth/authLogin";
 import { captureProductIntentFromPath } from "@/lib/auth/productLock";

@@ -1,33 +1,33 @@
-import { useState } from 'react';
-import { Link, useLocation } from 'wouter';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
-import { syncMarketplaceDeskRoleForPath } from '@/lib/auth/syncMarketplaceDeskRole';
-import type { AuthRole } from '@/lib/auth/types';
-import { marketplaceWorkspaceForRole } from '@/routing/navigationRegistry';
-import { AUTH_ROUTES, MARKETPLACE_ROUTES } from '@/routing/routeRegistry';
+import { useState } from "react";
+import { Link, useLocation } from "wouter";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { syncMarketplaceDeskRoleForPath } from "@/lib/auth/syncMarketplaceDeskRole";
+import type { AuthRole } from "@/lib/auth/types";
+import { marketplaceWorkspaceForRole } from "@/routing/navigationRegistry";
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
 
-type DeskView = 'buyer' | 'seller';
+type DeskView = "buyer" | "seller";
 
 function activeDeskFromPath(path: string, fallback: AuthRole | null): DeskView {
-  if (path.includes('/marketplace/app/seller')) return 'seller';
-  if (path.includes('/marketplace/app/buyer')) return 'buyer';
-  return fallback === 'buyer' ? 'buyer' : 'seller';
+  if (path.includes("/marketplace/app/seller")) return "seller";
+  if (path.includes("/marketplace/app/buyer")) return "buyer";
+  return fallback === "buyer" ? "buyer" : "seller";
 }
 
 const BUYER_LINKS = [
-  { href: MARKETPLACE_ROUTES.buyerDashboard, label: 'Overview' },
-  { href: MARKETPLACE_ROUTES.buyerBrowse, label: 'Browse' },
-  { href: MARKETPLACE_ROUTES.buyerBids, label: 'Bids' },
-  { href: MARKETPLACE_ROUTES.buyerInterests, label: 'Interests' },
+  { href: MARKETPLACE_ROUTES.buyerDashboard, label: "Overview" },
+  { href: MARKETPLACE_ROUTES.buyerBrowse, label: "Browse" },
+  { href: MARKETPLACE_ROUTES.buyerBids, label: "Bids" },
+  { href: MARKETPLACE_ROUTES.buyerInterests, label: "Interests" },
 ];
 
 const SELLER_LINKS = [
-  { href: MARKETPLACE_ROUTES.sellerDashboard, label: 'Overview' },
-  { href: MARKETPLACE_ROUTES.sellerListings, label: 'My listings' },
-  { href: MARKETPLACE_ROUTES.sellerInbox, label: 'Inbox' },
-  { href: MARKETPLACE_ROUTES.sellerVerification, label: 'Verification' },
+  { href: MARKETPLACE_ROUTES.sellerDashboard, label: "Overview" },
+  { href: MARKETPLACE_ROUTES.sellerListings, label: "My listings" },
+  { href: MARKETPLACE_ROUTES.sellerInbox, label: "Inbox" },
+  { href: MARKETPLACE_ROUTES.sellerVerification, label: "Verification" },
 ];
 
 export function MarketplaceAppSettings() {
@@ -36,9 +36,9 @@ export function MarketplaceAppSettings() {
   const [switching, setSwitching] = useState(false);
 
   const activeDesk = activeDeskFromPath(location, currentUser?.role ?? null);
-  const workspaceLinks = activeDesk === 'buyer' ? BUYER_LINKS : SELLER_LINKS;
-  const otherDesk: DeskView = activeDesk === 'buyer' ? 'seller' : 'buyer';
-  const otherRole: AuthRole = otherDesk === 'buyer' ? 'buyer' : 'founder';
+  const workspaceLinks = activeDesk === "buyer" ? BUYER_LINKS : SELLER_LINKS;
+  const otherDesk: DeskView = activeDesk === "buyer" ? "seller" : "buyer";
+  const otherRole: AuthRole = otherDesk === "buyer" ? "buyer" : "founder";
 
   async function switchToOtherDesk() {
     const dest = marketplaceWorkspaceForRole(otherRole);
@@ -57,8 +57,8 @@ export function MarketplaceAppSettings() {
         <CardHeader>
           <CardTitle>Settings</CardTitle>
           <p className="text-sm text-muted-foreground">
-            {activeDesk === 'buyer' ? 'Buyer' : 'Seller'} desk · signed in as{' '}
-            {session?.user.email ?? '—'}
+            {activeDesk === "buyer" ? "Buyer" : "Seller"} desk · signed in as{" "}
+            {session?.user.email ?? "—"}
           </p>
         </CardHeader>
         <CardContent className="space-y-6">
@@ -68,7 +68,13 @@ export function MarketplaceAppSettings() {
             </p>
             <div className="mt-2 flex flex-wrap gap-2">
               {workspaceLinks.map((item) => (
-                <Button key={item.href} type="button" variant="secondary" size="sm" asChild>
+                <Button
+                  key={item.href}
+                  type="button"
+                  variant="secondary"
+                  size="sm"
+                  asChild
+                >
                   <Link href={item.href}>{item.label}</Link>
                 </Button>
               ))}
@@ -80,7 +86,8 @@ export function MarketplaceAppSettings() {
               Switch desk
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Open the {otherDesk} app with the matching demo account when enabled.
+              Open the {otherDesk} app with the matching demo account when
+              enabled.
             </p>
             <Button
               type="button"
@@ -95,9 +102,11 @@ export function MarketplaceAppSettings() {
           </div>
 
           <div className="flex flex-wrap gap-2">
-            {activeDesk === 'seller' ? (
+            {activeDesk === "seller" ? (
               <Button type="button" variant="outline" size="sm" asChild>
-                <Link href={MARKETPLACE_ROUTES.sellerProfile}>Desk profile</Link>
+                <Link href={MARKETPLACE_ROUTES.sellerProfile}>
+                  Desk profile
+                </Link>
               </Button>
             ) : null}
             {/* <Button type="button" variant="outline" size="sm" asChild>
@@ -108,7 +117,11 @@ export function MarketplaceAppSettings() {
             </Button> */}
           </div>
 
-          <Button type="button" variant="destructive" onClick={() => void logout()}>
+          <Button
+            type="button"
+            variant="destructive"
+            onClick={() => void logout()}
+          >
             Log out
           </Button>
         </CardContent>

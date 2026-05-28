@@ -71,6 +71,10 @@ export type LeaderboardEntry = Pick<
   profile_verified?: boolean;
   user_type?: string | null;
   skill_tags?: string[];
+  goals?: string | null;
+  work_preference?: string | null;
+  experience_level?: string | null;
+  availability?: string | null;
 };
 
 export type DiscoverProfile = {

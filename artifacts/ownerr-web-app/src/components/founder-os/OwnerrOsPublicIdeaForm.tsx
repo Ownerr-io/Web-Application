@@ -1,28 +1,27 @@
-import { useEffect, useState } from 'react';
-import { motion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
+import { useEffect, useState } from "react";
+import { motion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { FOUNDER_CATEGORIES } from '@/components/founder-os/founderOsQuestions';
+} from "@/components/ui/select";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import { FOUNDER_CATEGORIES } from "@/components/founder-os/founderOsQuestions";
 import {
   isOwnerrOsDraftComplete,
   peekOwnerrOsDraft,
   persistOwnerrOsDraft,
   type OwnerrOsDraft,
-} from '@/lib/auth/ownerrOsDraft';
-import { resolveProductAuthPath } from '@/lib/auth/productAuthRoutes';
-import { PRODUCT_ROUTES } from '@/routing/routeRegistry';
-import { getStoredReferralAttribution } from '@/lib/founderReferral';
+} from "@/lib/auth/ownerrOsDraft";
+import { buildOwnerrOsGoogleRedirect } from "@/lib/auth/ownerrOsGoogleRedirect";
+import { getStoredReferralAttribution } from "@/lib/founderReferral";
 
 type Props = {
   referralCode?: string | null;
@@ -33,17 +32,17 @@ export function OwnerrOsPublicIdeaForm({ referralCode }: Props) {
   const { toast } = useToast();
   const [busy, setBusy] = useState(false);
 
-  const [fullName, setFullName] = useState('');
-  const [startupName, setStartupName] = useState('');
-  const [industry, setIndustry] = useState<string>('SaaS');
-  const [ideaDescription, setIdeaDescription] = useState('');
+  const [fullName, setFullName] = useState("");
+  const [startupName, setStartupName] = useState("");
+  const [industry, setIndustry] = useState<string>("SaaS");
+  const [ideaDescription, setIdeaDescription] = useState("");
 
   useEffect(() => {
     const saved = peekOwnerrOsDraft();
     if (!saved) return;
     setFullName(saved.fullName);
     setStartupName(saved.startupName);
-    setIndustry(saved.industry || 'SaaS');
+    setIndustry(saved.industry || "SaaS");
     setIdeaDescription(saved.ideaDescription);
   }, []);
 
@@ -55,7 +54,7 @@ export function OwnerrOsPublicIdeaForm({ referralCode }: Props) {
     return {
       fullName: fullName.trim(),
       startupName: startupName.trim(),
-      industry: industry.trim() || 'Other',
+      industry: industry.trim() || "Other",
       ideaDescription: ideaDescription.trim(),
       referralCode: ref,
       updatedAt: Date.now(),
@@ -80,26 +79,22 @@ export function OwnerrOsPublicIdeaForm({ referralCode }: Props) {
     const draft = peekOwnerrOsDraft();
     if (!isOwnerrOsDraftComplete(draft)) {
       toast({
-        title: 'Complete your idea first',
-        description: 'Add your name, startup, and a short description (12+ characters).',
-        variant: 'destructive',
+        title: "Complete your idea first",
+        description:
+          "Add your name, startup, and a short description (12+ characters).",
+        variant: "destructive",
       });
       return;
     }
 
-    const callbackPath = resolveProductAuthPath('ownerr_os', 'callback');
-    const base = import.meta.env.BASE_URL.replace(/\/$/, '');
-    const returnTo = encodeURIComponent(PRODUCT_ROUTES.ownerrOsDashboard);
-    const redirectTo = `${window.location.origin}${base}${callbackPath}?returnTo=${returnTo}`;
-
     setBusy(true);
     try {
-      await signInWithGoogle(redirectTo);
+      await signInWithGoogle(buildOwnerrOsGoogleRedirect());
     } catch (err) {
       toast({
-        title: 'Google sign-in failed',
-        description: err instanceof Error ? err.message : 'Try again.',
-        variant: 'destructive',
+        title: "Google sign-in failed",
+        description: err instanceof Error ? err.message : "Try again.",
+        variant: "destructive",
       });
       setBusy(false);
     }
@@ -112,9 +107,12 @@ export function OwnerrOsPublicIdeaForm({ referralCode }: Props) {
       className="saas-glass-card w-full max-w-none space-y-5 rounded-[14px] border border-[color:var(--terminal-border)]/80 p-6 sm:p-8 lg:p-8"
     >
       <div>
-        <p className="text-sm font-bold text-[color:var(--terminal-fg)]">Your startup idea</p>
+        <p className="text-sm font-bold text-[color:var(--terminal-fg)]">
+          Your startup idea
+        </p>
         <p className="mt-1 text-xs text-[color:var(--terminal-muted)]">
-          No account needed yet — we save your answers locally, then you continue with Google.
+          Register as a new founder — we save your answers locally, then you
+          create your account with Google.
         </p>
       </div>
 
@@ -142,8 +140,17 @@ export function OwnerrOsPublicIdeaForm({ referralCode }: Props) {
         </div>
         <div className="space-y-2">
           <Label htmlFor="idea-industry">Industry</Label>
-          <Select value={industry} onValueChange={(v) => { setIndustry(v); setTimeout(saveDraft, 0); }}>
-            <SelectTrigger id="idea-industry" className="border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)]">
+          <Select
+            value={industry}
+            onValueChange={(v) => {
+              setIndustry(v);
+              setTimeout(saveDraft, 0);
+            }}
+          >
+            <SelectTrigger
+              id="idea-industry"
+              className="border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)]"
+            >
               <SelectValue placeholder="Category" />
             </SelectTrigger>
             <SelectContent>
@@ -181,7 +188,7 @@ export function OwnerrOsPublicIdeaForm({ referralCode }: Props) {
         className="btn-platform-gradient h-12 w-full font-bold"
         onClick={() => void onGoogle()}
       >
-        {busy ? 'Opening Google…' : 'Continue with Google'}
+        {busy ? "Opening Google…" : "Register with Google"}
       </Button>
     </motion.div>
   );

@@ -1,6 +1,12 @@
-import { useEffect, useMemo, useState, type FormEvent, type ReactNode } from 'react';
-import { useParams, useSearch, Link } from 'wouter';
-import { useQuery, useQueryClient } from '@tanstack/react-query';
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type FormEvent,
+  type ReactNode,
+} from "react";
+import { useParams, useSearch, useLocation, Link } from "wouter";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
 import {
   Building2,
   ChevronRight,
@@ -17,36 +23,46 @@ import {
   BadgeCheck,
   Globe,
   BarChart3,
-} from 'lucide-react';
+} from "lucide-react";
 
-import { leaderboardMetricValue, type Startup } from '@/lib/mockData';
-import { buildFoundersFromStartups } from '@/lib/marketplace/founders';
-import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
-import { marketplacePath } from '@/lib/appPaths';
-import { getStartupDetailModel } from '@/lib/startupDetailContent';
-import { StartupScoresDetailGrid } from '@/components/StartupTripleScores';
-import { formatCurrency, formatShortCurrency, founderAvatarUrl } from '@/lib/utils';
-import { useToast } from '@/hooks/use-toast';
+import { leaderboardMetricValue, type Startup } from "@/lib/mockData";
+import { buildFoundersFromStartups } from "@/lib/marketplace/founders";
+import { usePublicStartups } from "@/hooks/marketplace/usePublicStartups";
+import {
+  isMarketplaceBuyerAppPath,
+  marketplaceBrowsePath,
+  marketplacePath,
+  marketplaceStartupPath,
+} from "@/lib/appPaths";
+import { MarketplaceAppPageShell } from "@/components/marketplace/MarketplaceAppPageShell";
+import { getStartupDetailModel } from "@/lib/startupDetailContent";
+import { StartupScoresDetailGrid } from "@/components/StartupTripleScores";
+import {
+  formatCurrency,
+  formatShortCurrency,
+  founderAvatarUrl,
+} from "@/lib/utils";
+import { useToast } from "@/hooks/use-toast";
 import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { FounderLink, StartupLink } from '@/components/EntityLink';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { Textarea } from '@/components/ui/textarea';
-import { MarketplaceTrendChart } from '@/components/MarketplaceTrendChart';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { FounderLink, StartupLink } from "@/components/EntityLink";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { MarketplaceTrendChart } from "@/components/MarketplaceTrendChart";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   appendMarketplaceThreadMessage,
   fetchMarketplaceInterests,
@@ -59,17 +75,21 @@ import {
   updateMarketplaceInterestStage,
   type MarketplaceInterestRecord,
   type MarketplaceListing,
-} from '@/lib/marketplace/service';
-import { useAuth } from '@/context/AuthContext';
-import { useRequireAuth } from '@/lib/platform/requireAuth';
+} from "@/lib/marketplace/service";
+import { useAuth } from "@/context/AuthContext";
+import { useRequireAuth } from "@/lib/platform/requireAuth";
 
 function DiscoverCard({ s }: { s: Startup }) {
-  const mrr = leaderboardMetricValue(s, 'mrr', 'current');
+  const [location] = useLocation();
+  const mrr = leaderboardMetricValue(s, "mrr", "current");
   const rev30 = mrr;
   const total = Math.round((s.peakMrr ?? s.revenue) * 16);
 
   return (
-    <Link href={marketplacePath(`/startup/${s.slug}`)} className="group block h-full min-w-0">
+    <Link
+      href={marketplaceStartupPath(s.slug, location)}
+      className="group block h-full min-w-0"
+    >
       <div className="flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-foreground/25 hover:bg-muted/15">
         <div className="p-4">
           <div className="flex items-start gap-3">
@@ -84,10 +104,14 @@ function DiscoverCard({ s }: { s: Startup }) {
               />
             </div>
             <div className="min-w-0">
-              <div className="font-bold leading-tight group-hover:underline line-clamp-2">{s.name}</div>
+              <div className="font-bold leading-tight group-hover:underline line-clamp-2">
+                {s.name}
+              </div>
             </div>
           </div>
-          <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">{s.description}</p>
+          <p className="mt-2 line-clamp-3 text-sm text-muted-foreground">
+            {s.description}
+          </p>
         </div>
         <div className="mt-auto border-t border-dotted border-border bg-muted/10 px-3 py-3">
           <div className="grid grid-cols-3 gap-1 text-center">
@@ -95,15 +119,25 @@ function DiscoverCard({ s }: { s: Startup }) {
               <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
                 Rev (30D)
               </div>
-              <div className="text-xs font-bold tabular-nums">{formatShortCurrency(rev30)}</div>
+              <div className="text-xs font-bold tabular-nums">
+                {formatShortCurrency(rev30)}
+              </div>
             </div>
             <div>
-              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">MRR</div>
-              <div className="text-xs font-bold tabular-nums">{formatShortCurrency(mrr)}</div>
+              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                MRR
+              </div>
+              <div className="text-xs font-bold tabular-nums">
+                {formatShortCurrency(mrr)}
+              </div>
             </div>
             <div>
-              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">Total</div>
-              <div className="text-xs font-bold tabular-nums">{formatShortCurrency(total)}</div>
+              <div className="text-[9px] font-bold uppercase tracking-wider text-muted-foreground">
+                Total
+              </div>
+              <div className="text-xs font-bold tabular-nums">
+                {formatShortCurrency(total)}
+              </div>
             </div>
           </div>
         </div>
@@ -112,8 +146,29 @@ function DiscoverCard({ s }: { s: Startup }) {
   );
 }
 
+function wrapBuyerDeskPage(
+  inBuyerApp: boolean,
+  node: ReactNode,
+  opts: { title: string; description?: ReactNode; headerActions?: ReactNode },
+): ReactNode {
+  if (!inBuyerApp) return node;
+  return (
+    <MarketplaceAppPageShell
+      layout="compact"
+      kicker="Marketplace · Buyer"
+      title={opts.title}
+      description={opts.description}
+      headerActions={opts.headerActions}
+    >
+      {node}
+    </MarketplaceAppPageShell>
+  );
+}
+
 export default function StartupDetail() {
   const { slug } = useParams();
+  const [location] = useLocation();
+  const inBuyerApp = isMarketplaceBuyerAppPath(location);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   const { currentUser, isBuyer, isAuthenticated } = useAuth();
@@ -122,13 +177,13 @@ export default function StartupDetail() {
   const [contactOpen, setContactOpen] = useState(false);
 
   const listingsQuery = useQuery({
-    queryKey: ['marketplace-listings'],
+    queryKey: ["marketplace-listings"],
     queryFn: () => fetchMarketplaceListings(),
   });
 
   const listingQuery = useQuery({
-    queryKey: ['marketplace-listing', slug],
-    queryFn: () => fetchMarketplaceListingBySlug(slug ?? ''),
+    queryKey: ["marketplace-listing", slug],
+    queryFn: () => fetchMarketplaceListingBySlug(slug ?? ""),
     enabled: !!slug,
   });
 
@@ -138,19 +193,27 @@ export default function StartupDetail() {
 
   const startup = listingQuery.data;
   const { data: catalogStartups = [] } = usePublicStartups();
-  const founders = useMemo(() => buildFoundersFromStartups(catalogStartups), [catalogStartups]);
-  const founder = startup ? founders.find((f) => f.handle === startup.founderHandle) : undefined;
-  const isOwner = !!startup && !!currentUser && startup.ownerUserId === currentUser.id;
+  const founders = useMemo(
+    () => buildFoundersFromStartups(catalogStartups),
+    [catalogStartups],
+  );
+  const founder = startup
+    ? founders.find((f) => f.handle === startup.founderHandle)
+    : undefined;
+  const isOwner =
+    !!startup && !!currentUser && startup.ownerUserId === currentUser.id;
 
   const interestsQuery = useQuery({
-    queryKey: ['marketplace-interests', startup?.slug],
+    queryKey: ["marketplace-interests", startup?.slug],
     queryFn: () => fetchMarketplaceInterests(startup!.slug),
     enabled: !!startup,
   });
 
   const leaderboardRank = useMemo(() => {
     if (!startup) return 1;
-    const sorted = [...(listingsQuery.data ?? [])].sort((a, b) => b.revenue - a.revenue);
+    const sorted = [...(listingsQuery.data ?? [])].sort(
+      (a, b) => b.revenue - a.revenue,
+    );
     const i = sorted.findIndex((s) => s.slug === startup.slug);
     return i >= 0 ? i + 1 : 999;
   }, [listingsQuery.data, startup]);
@@ -162,8 +225,8 @@ export default function StartupDetail() {
 
   const search = useSearch();
   const isLeaderboardView = useMemo(() => {
-    const q = search.startsWith('?') ? search.slice(1) : search;
-    return new URLSearchParams(q).get('from') === 'leaderboard';
+    const q = search.startsWith("?") ? search.slice(1) : search;
+    return new URLSearchParams(q).get("from") === "leaderboard";
   }, [search]);
 
   const discoverStartups = useMemo(() => {
@@ -196,20 +259,20 @@ export default function StartupDetail() {
 
   async function onShare() {
     const shareUrl =
-      typeof window !== 'undefined'
+      typeof window !== "undefined"
         ? isLeaderboardView
           ? window.location.href
           : `${window.location.origin}${window.location.pathname}`
-        : '';
+        : "";
     try {
       if (navigator.share) {
         await navigator.share({ title: shareTitle, url: shareUrl });
       } else {
         await navigator.clipboard.writeText(shareUrl);
-        toast({ title: 'Link copied' });
+        toast({ title: "Link copied" });
       }
     } catch {
-      toast({ title: 'Could not share', variant: 'destructive' });
+      toast({ title: "Could not share", variant: "destructive" });
     }
   }
 
@@ -217,15 +280,18 @@ export default function StartupDetail() {
     return (
       <div className="flex flex-col gap-6 pb-10">
         <nav className="flex flex-wrap items-center gap-1 font-mono text-sm text-muted-foreground">
-          <Link href={marketplacePath('/')} className="hover:text-foreground">
+          <Link href={marketplacePath("/")} className="hover:text-foreground">
             Ownerr
           </Link>
           <ChevronRight className="h-4 w-4 opacity-50" />
           <span className="hover:text-foreground">
-            <Link href={`${marketplacePath('/')}#leaderboard`}>Startup</Link>
+            <Link href={`${marketplacePath("/")}#leaderboard`}>Startup</Link>
           </span>
           <ChevronRight className="h-4 w-4 opacity-50" />
-          <StartupLink slug={startup.slug} className="font-bold text-foreground">
+          <StartupLink
+            slug={startup.slug}
+            className="font-bold text-foreground"
+          >
             {startup.name}
           </StartupLink>
         </nav>
@@ -257,36 +323,50 @@ export default function StartupDetail() {
             <div className="flex shrink-0 gap-2 self-start md:self-center">
               <Button
                 type="button"
-                variant="outline"
-                className="font-bold"
+                className="btn-marketplace-primary font-bold"
                 onClick={() => void onShare()}
               >
                 <Share2 className="h-4 w-4" />
                 Share
               </Button>
               {isOwner ? (
-                <Button type="button" variant="outline" className="font-bold" disabled>
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="font-bold"
+                  disabled
+                >
                   <MessageCircle className="h-4 w-4" />
                   Founder controls below
                 </Button>
               ) : (
                 <Button
                   type="button"
-                  variant="outline"
-                  className="font-bold"
+                  className="btn-marketplace-primary font-bold"
                   onClick={() => {
                     if (!isAuthenticated) {
-                      requireAuth({ action: 'express_interest', onAllowed: () => {} });
+                      requireAuth({
+                        action: "express_interest",
+                        onAllowed: () => {},
+                      });
                       return;
                     }
                     setContactOpen(true);
                   }}
                 >
                   <MessageCircle className="h-4 w-4" />
-                  {isAuthenticated ? (isBuyer ? 'Express Interest' : 'Buyer mode required') : 'Login to continue'}
+                  {isAuthenticated
+                    ? isBuyer
+                      ? "Express Interest"
+                      : "Buyer mode required"
+                    : "Login to continue"}
                 </Button>
               )}
-              <Button type="button" variant="secondary" className="font-bold bg-primary text-primary-foreground" asChild>
+              <Button
+                type="button"
+                className="btn-marketplace-primary font-bold"
+                asChild
+              >
                 <a href={visitUrl} target="_blank" rel="noreferrer">
                   <ExternalLink className="h-4 w-4" />
                   Visit
@@ -301,7 +381,9 @@ export default function StartupDetail() {
             <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               All-time revenue
             </div>
-            <div className="mt-2 text-2xl font-bold tabular-nums">{formatCurrency(detail.allTimeRevenue)}</div>
+            <div className="mt-2 text-2xl font-bold tabular-nums">
+              {formatCurrency(detail.allTimeRevenue)}
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">
               Ranked #{detail.leaderboardRank} on Ownerr
             </p>
@@ -309,9 +391,14 @@ export default function StartupDetail() {
           <div className="rounded-xl border border-border bg-card p-5 text-center">
             <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               MRR (estimated)
-              <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground/80" aria-hidden />
+              <Info
+                className="h-3.5 w-3.5 shrink-0 text-muted-foreground/80"
+                aria-hidden
+              />
             </div>
-            <div className="mt-2 text-2xl font-bold tabular-nums">{formatCurrency(mrrShown)}</div>
+            <div className="mt-2 text-2xl font-bold tabular-nums">
+              {formatCurrency(mrrShown)}
+            </div>
             <p className="mt-1 text-xs text-muted-foreground">
               {detail.activeSubscriptions} active subscriptions
             </p>
@@ -331,10 +418,15 @@ export default function StartupDetail() {
                     alt=""
                     className="h-11 w-11 shrink-0 rounded-full border border-border bg-muted"
                   />
-                  <span className="max-w-full truncate text-center sm:text-left">{founder.name}</span>
+                  <span className="max-w-full truncate text-center sm:text-left">
+                    {founder.name}
+                  </span>
                 </FounderLink>
               ) : (
-                <FounderLink handle={startup.founderHandle} className="block max-w-full truncate font-bold text-foreground">
+                <FounderLink
+                  handle={startup.founderHandle}
+                  className="block max-w-full truncate font-bold text-foreground"
+                >
                   {startup.founderDisplayName ?? startup.founderHandle}
                 </FounderLink>
               )}
@@ -344,7 +436,9 @@ export default function StartupDetail() {
             <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
               Founded
             </div>
-            <div className="mt-2 text-2xl font-bold tabular-nums">{foundedLabel}</div>
+            <div className="mt-2 text-2xl font-bold tabular-nums">
+              {foundedLabel}
+            </div>
             <div className="mt-2 flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
               <span aria-hidden>🇺🇸</span>
               <span>United States</span>
@@ -360,44 +454,62 @@ export default function StartupDetail() {
             listing={startup}
             interestRecords={interestsQuery.data ?? []}
             onVerificationUpdated={async (kind, status, provider) => {
-              await updateMarketplaceVerification(startup, kind, status, provider);
+              await updateMarketplaceVerification(
+                startup,
+                kind,
+                status,
+                provider,
+              );
               await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['marketplace-listing', startup.slug] }),
-                queryClient.invalidateQueries({ queryKey: ['marketplace-listings'] }),
+                queryClient.invalidateQueries({
+                  queryKey: ["marketplace-listing", startup.slug],
+                }),
+                queryClient.invalidateQueries({
+                  queryKey: ["marketplace-listings"],
+                }),
               ]);
             }}
             onDomainVerify={async () => {
               await runDomainVerification(startup);
               await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['marketplace-listing', startup.slug] }),
-                queryClient.invalidateQueries({ queryKey: ['marketplace-listings'] }),
+                queryClient.invalidateQueries({
+                  queryKey: ["marketplace-listing", startup.slug],
+                }),
+                queryClient.invalidateQueries({
+                  queryKey: ["marketplace-listings"],
+                }),
               ]);
             }}
             onInterestStageUpdated={async (record, stage) => {
               await updateMarketplaceInterestStage(record, stage);
-              await queryClient.invalidateQueries({ queryKey: ['marketplace-interests', startup.slug] });
+              await queryClient.invalidateQueries({
+                queryKey: ["marketplace-interests", startup.slug],
+              });
             }}
             onSendFounderReply={async (record) => {
               await appendMarketplaceThreadMessage({
                 threadId: record.id,
                 senderUserId: startup.ownerUserId,
-                senderName: founder?.name ?? startup.founderDisplayName ?? startup.name,
-                senderRole: 'founder',
-                body: 'Thanks for reaching out. Happy to share more context and next steps for this deal.',
+                senderName:
+                  founder?.name ?? startup.founderDisplayName ?? startup.name,
+                senderRole: "founder",
+                body: "Thanks for reaching out. Happy to share more context and next steps for this deal.",
               });
-              await queryClient.invalidateQueries({ queryKey: ['marketplace-interests', startup.slug] });
+              await queryClient.invalidateQueries({
+                queryKey: ["marketplace-interests", startup.slug],
+              });
             }}
           />
         ) : null}
         <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
           <MarketplaceTrendChart
             title="Revenue history"
-            subtitle={`${startup.growthPct >= 0 ? '+' : ''}${startup.growthPct}% vs previous month`}
+            subtitle={`${startup.growthPct >= 0 ? "+" : ""}${startup.growthPct}% vs previous month`}
             points={startup.revenueHistory}
           />
           <MarketplaceTrendChart
             title="Traffic history"
-            subtitle={`${(startup.trafficMonthlyVisitors ?? 0).toLocaleString('en-US')} visitors/mo · ${startup.verification.traffic.status}`}
+            subtitle={`${(startup.trafficMonthlyVisitors ?? 0).toLocaleString("en-US")} visitors/mo · ${startup.verification.traffic.status}`}
             points={startup.trafficHistory}
             mode="number"
           />
@@ -426,11 +538,14 @@ export default function StartupDetail() {
           <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
             <h2 className="text-lg font-bold">Discover more startups</h2>
             <Link
-              href={`${marketplacePath('/')}#leaderboard`}
+              href={`${marketplacePath("/")}#leaderboard`}
               className="inline-flex items-center gap-0.5 text-sm font-bold text-muted-foreground hover:text-foreground"
             >
               Advanced Search
-              <ChevronRight className="h-3.5 w-3.5 shrink-0 opacity-70" aria-hidden />
+              <ChevronRight
+                className="h-3.5 w-3.5 shrink-0 opacity-70"
+                aria-hidden
+              />
             </Link>
           </div>
           <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
@@ -443,23 +558,81 @@ export default function StartupDetail() {
     );
   }
 
-  return (
+  const buyerHeaderActions = inBuyerApp ? (
+    <>
+      <Button
+        type="button"
+        size="sm"
+        className="btn-marketplace-primary h-9 font-bold"
+        onClick={() => void onShare()}
+      >
+        <Share2 className="h-4 w-4" />
+        <span className="hidden sm:inline">Share</span>
+      </Button>
+      {isOwner ? (
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          className="h-9 font-bold"
+          disabled
+        >
+          <MessageCircle className="h-4 w-4" />
+        </Button>
+      ) : (
+        <Button
+          type="button"
+          size="sm"
+          className="btn-marketplace-primary h-9 font-bold"
+          onClick={() => {
+            if (!isAuthenticated) {
+              requireAuth({ action: "express_interest", onAllowed: () => {} });
+              return;
+            }
+            setContactOpen(true);
+          }}
+        >
+          <MessageCircle className="h-4 w-4" />
+          <span className="hidden sm:inline">
+            {isAuthenticated ? (isBuyer ? "Interest" : "Buyer desk") : "Login"}
+          </span>
+        </Button>
+      )}
+      <Button
+        type="button"
+        size="sm"
+        className="btn-marketplace-primary h-9 font-bold"
+        asChild
+      >
+        <a href={visitUrl} target="_blank" rel="noreferrer">
+          <ExternalLink className="h-4 w-4" />
+          <span className="hidden sm:inline">Visit</span>
+        </a>
+      </Button>
+    </>
+  ) : null;
+
+  return wrapBuyerDeskPage(
+    inBuyerApp,
     <div className="flex flex-col gap-4 pb-8 sm:gap-6 sm:pb-10">
-      <nav className="flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
-        <Link href={marketplacePath('/')} className="hover:text-foreground">
-          Ownerr
-        </Link>
-        <ChevronRight className="h-4 w-4 opacity-50" />
-        <span className="hover:text-foreground">
-          <Link href={marketplacePath('/acquire')}>Startup</Link>
-        </span>
-        <ChevronRight className="h-4 w-4 opacity-50" />
-        <StartupLink slug={startup.slug} className="font-bold text-foreground">
-          {startup.name}
-        </StartupLink>
-      </nav>
-
-
+      {!inBuyerApp ? (
+        <nav className="flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
+          <Link href={marketplacePath("/")} className="hover:text-foreground">
+            Ownerr
+          </Link>
+          <ChevronRight className="h-4 w-4 opacity-50" />
+          <span className="hover:text-foreground">
+            <Link href={marketplaceBrowsePath(location)}>Startup</Link>
+          </span>
+          <ChevronRight className="h-4 w-4 opacity-50" />
+          <StartupLink
+            slug={startup.slug}
+            className="font-bold text-foreground"
+          >
+            {startup.name}
+          </StartupLink>
+        </nav>
+      ) : null}
 
       <section className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-8">
         <div className="flex flex-col gap-4 sm:gap-6 md:flex-row md:items-start md:justify-between">
@@ -475,55 +648,82 @@ export default function StartupDetail() {
               />
             </div>
             <div className="min-w-0 flex-1">
-              <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
-                <StartupLink slug={startup.slug} className="text-foreground">
-                  {startup.name}
-                </StartupLink>
-              </h1>
-              <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base">
-                {startup.description}
-              </p>
+              {inBuyerApp ? (
+                <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
+                  {startup.description}
+                </p>
+              ) : (
+                <>
+                  <h1 className="text-2xl font-bold tracking-tight sm:text-4xl">
+                    <StartupLink
+                      slug={startup.slug}
+                      className="text-foreground"
+                    >
+                      {startup.name}
+                    </StartupLink>
+                  </h1>
+                  <p className="mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base">
+                    {startup.description}
+                  </p>
+                </>
+              )}
             </div>
           </div>
-          <div className="flex w-full shrink-0 gap-2 self-start md:w-auto md:self-center">
-            <Button
-              type="button"
-              variant="outline"
-              className="h-10 flex-1 font-bold md:h-11 md:flex-none"
-              onClick={() => void onShare()}
-            >
-              <Share2 className="h-4 w-4" />
-              Share
-            </Button>
-            {isOwner ? (
-              <Button type="button" variant="outline" className="h-10 flex-1 font-bold md:h-11 md:flex-none" disabled>
-                <MessageCircle className="h-4 w-4" />
-                Founder controls below
-              </Button>
-            ) : (
+          {!inBuyerApp ? (
+            <div className="flex w-full shrink-0 gap-2 self-start md:w-auto md:self-center">
               <Button
                 type="button"
-                variant="outline"
-                className="h-10 flex-1 font-bold md:h-11 md:flex-none"
-                onClick={() => {
-                  if (!isAuthenticated) {
-                    requireAuth({ action: 'express_interest', onAllowed: () => {} });
-                    return;
-                  }
-                  setContactOpen(true);
-                }}
+                className="btn-marketplace-primary h-10 flex-1 font-bold md:h-11 md:flex-none"
+                onClick={() => void onShare()}
               >
-                <MessageCircle className="h-4 w-4" />
-                {isAuthenticated ? (isBuyer ? 'Express Interest' : 'Buyer mode required') : 'Login to continue'}
+                <Share2 className="h-4 w-4" />
+                Share
               </Button>
-            )}
-            <Button type="button" variant="outline" className="h-10 flex-1 font-bold md:h-11 md:flex-none" asChild>
-              <a href={visitUrl} target="_blank" rel="noreferrer">
-                <ExternalLink className="h-4 w-4" />
-                Visit
-              </a>
-            </Button>
-          </div>
+              {isOwner ? (
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="h-10 flex-1 font-bold md:h-11 md:flex-none"
+                  disabled
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  Founder controls below
+                </Button>
+              ) : (
+                <Button
+                  type="button"
+                  className="btn-marketplace-primary h-10 flex-1 font-bold md:h-11 md:flex-none"
+                  onClick={() => {
+                    if (!isAuthenticated) {
+                      requireAuth({
+                        action: "express_interest",
+                        onAllowed: () => {},
+                      });
+                      return;
+                    }
+                    setContactOpen(true);
+                  }}
+                >
+                  <MessageCircle className="h-4 w-4" />
+                  {isAuthenticated
+                    ? isBuyer
+                      ? "Express Interest"
+                      : "Buyer mode required"
+                    : "Login to continue"}
+                </Button>
+              )}
+              <Button
+                type="button"
+                className="btn-marketplace-primary h-10 flex-1 font-bold md:h-11 md:flex-none"
+                asChild
+              >
+                <a href={visitUrl} target="_blank" rel="noreferrer">
+                  <ExternalLink className="h-4 w-4" />
+                  Visit
+                </a>
+              </Button>
+            </div>
+          ) : null}
         </div>
       </section>
 
@@ -532,7 +732,9 @@ export default function StartupDetail() {
           <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             All-time revenue
           </div>
-          <div className="mt-2 text-2xl font-bold tabular-nums">{formatCurrency(detail.allTimeRevenue)}</div>
+          <div className="mt-2 text-2xl font-bold tabular-nums">
+            {formatCurrency(detail.allTimeRevenue)}
+          </div>
           <p className="mt-1 text-xs text-muted-foreground">
             Ranked #{detail.leaderboardRank} on Ownerr
           </p>
@@ -540,9 +742,14 @@ export default function StartupDetail() {
         <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
           <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             MRR (estimated)
-            <Info className="h-3.5 w-3.5 shrink-0 text-muted-foreground/80" aria-hidden />
+            <Info
+              className="h-3.5 w-3.5 shrink-0 text-muted-foreground/80"
+              aria-hidden
+            />
           </div>
-          <div className="mt-2 text-2xl font-bold tabular-nums">{formatCurrency(mrrShown)}</div>
+          <div className="mt-2 text-2xl font-bold tabular-nums">
+            {formatCurrency(mrrShown)}
+          </div>
           <p className="mt-1 text-xs text-muted-foreground">
             {detail.activeSubscriptions} active subscriptions
           </p>
@@ -562,10 +769,15 @@ export default function StartupDetail() {
                   alt=""
                   className="h-11 w-11 shrink-0 rounded-full border border-border bg-muted"
                 />
-                <span className="max-w-full truncate text-center sm:text-left">{founder.name}</span>
+                <span className="max-w-full truncate text-center sm:text-left">
+                  {founder.name}
+                </span>
               </FounderLink>
             ) : (
-              <FounderLink handle={startup.founderHandle} className="block max-w-full truncate font-bold text-foreground">
+              <FounderLink
+                handle={startup.founderHandle}
+                className="block max-w-full truncate font-bold text-foreground"
+              >
                 {startup.founderDisplayName ?? startup.founderHandle}
               </FounderLink>
             )}
@@ -575,7 +787,9 @@ export default function StartupDetail() {
           <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
             Founded
           </div>
-          <div className="mt-2 text-2xl font-bold tabular-nums">{foundedLabel}</div>
+          <div className="mt-2 text-2xl font-bold tabular-nums">
+            {foundedLabel}
+          </div>
         </div>
       </div>
 
@@ -587,44 +801,62 @@ export default function StartupDetail() {
           listing={startup}
           interestRecords={interestsQuery.data ?? []}
           onVerificationUpdated={async (kind, status, provider) => {
-            await updateMarketplaceVerification(startup, kind, status, provider);
+            await updateMarketplaceVerification(
+              startup,
+              kind,
+              status,
+              provider,
+            );
             await Promise.all([
-              queryClient.invalidateQueries({ queryKey: ['marketplace-listing', startup.slug] }),
-              queryClient.invalidateQueries({ queryKey: ['marketplace-listings'] }),
+              queryClient.invalidateQueries({
+                queryKey: ["marketplace-listing", startup.slug],
+              }),
+              queryClient.invalidateQueries({
+                queryKey: ["marketplace-listings"],
+              }),
             ]);
           }}
           onDomainVerify={async () => {
             await runDomainVerification(startup);
             await Promise.all([
-              queryClient.invalidateQueries({ queryKey: ['marketplace-listing', startup.slug] }),
-              queryClient.invalidateQueries({ queryKey: ['marketplace-listings'] }),
+              queryClient.invalidateQueries({
+                queryKey: ["marketplace-listing", startup.slug],
+              }),
+              queryClient.invalidateQueries({
+                queryKey: ["marketplace-listings"],
+              }),
             ]);
           }}
           onInterestStageUpdated={async (record, stage) => {
             await updateMarketplaceInterestStage(record, stage);
-            await queryClient.invalidateQueries({ queryKey: ['marketplace-interests', startup.slug] });
+            await queryClient.invalidateQueries({
+              queryKey: ["marketplace-interests", startup.slug],
+            });
           }}
           onSendFounderReply={async (record) => {
             await appendMarketplaceThreadMessage({
               threadId: record.id,
               senderUserId: startup.ownerUserId,
-              senderName: founder?.name ?? startup.founderDisplayName ?? startup.name,
-              senderRole: 'founder',
-              body: 'Thanks for reaching out. Happy to share more context and next steps for this deal.',
+              senderName:
+                founder?.name ?? startup.founderDisplayName ?? startup.name,
+              senderRole: "founder",
+              body: "Thanks for reaching out. Happy to share more context and next steps for this deal.",
             });
-            await queryClient.invalidateQueries({ queryKey: ['marketplace-interests', startup.slug] });
+            await queryClient.invalidateQueries({
+              queryKey: ["marketplace-interests", startup.slug],
+            });
           }}
         />
       ) : null}
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
         <MarketplaceTrendChart
           title="Revenue history"
-          subtitle={`${startup.growthPct >= 0 ? '+' : ''}${startup.growthPct}% vs previous month`}
+          subtitle={`${startup.growthPct >= 0 ? "+" : ""}${startup.growthPct}% vs previous month`}
           points={startup.revenueHistory}
         />
         <MarketplaceTrendChart
           title="Traffic history"
-          subtitle={`${(startup.trafficMonthlyVisitors ?? 0).toLocaleString('en-US')} visitors/mo · ${startup.verification.traffic.status}`}
+          subtitle={`${(startup.trafficMonthlyVisitors ?? 0).toLocaleString("en-US")} visitors/mo · ${startup.verification.traffic.status}`}
           points={startup.trafficHistory}
           mode="number"
         />
@@ -741,8 +973,11 @@ export default function StartupDetail() {
                 <span className="text-left font-bold">{founder.name}</span>
               </FounderLink>
               <div className="max-w-full text-center text-sm text-muted-foreground sm:text-left">
-                Founder of{' '}
-                <StartupLink slug={startup.slug} className="text-muted-foreground hover:text-foreground">
+                Founder of{" "}
+                <StartupLink
+                  slug={startup.slug}
+                  className="text-muted-foreground hover:text-foreground"
+                >
                   {startup.name}
                 </StartupLink>
               </div>
@@ -755,12 +990,18 @@ export default function StartupDetail() {
                 className="h-10 w-10 rounded-full border border-border bg-muted"
               />
               <div>
-                <FounderLink handle={startup.founderHandle} className="block font-bold text-foreground">
+                <FounderLink
+                  handle={startup.founderHandle}
+                  className="block font-bold text-foreground"
+                >
                   {startup.founderDisplayName ?? startup.founderHandle}
                 </FounderLink>
                 <div className="text-sm text-muted-foreground">
-                  Founder of{' '}
-                  <StartupLink slug={startup.slug} className="text-muted-foreground">
+                  Founder of{" "}
+                  <StartupLink
+                    slug={startup.slug}
+                    className="text-muted-foreground"
+                  >
                     {startup.name}
                   </StartupLink>
                 </div>
@@ -777,8 +1018,9 @@ export default function StartupDetail() {
               Express Interest in {startup.name}
             </DialogTitle>
             <DialogDescription className="text-left text-sm text-muted-foreground">
-              Non-binding expression of interest. Your message helps the founder understand your profile. No
-              transaction is handled on the platform.
+              Non-binding expression of interest. Your message helps the founder
+              understand your profile. No transaction is handled on the
+              platform.
             </DialogDescription>
           </DialogHeader>
           <ContactSellerForm
@@ -786,21 +1028,34 @@ export default function StartupDetail() {
             startupName={startup.name}
             onSent={async () => {
               await Promise.all([
-                queryClient.invalidateQueries({ queryKey: ['marketplace-interests', startup.slug] }),
-                queryClient.invalidateQueries({ queryKey: ['marketplace-listing', startup.slug] }),
+                queryClient.invalidateQueries({
+                  queryKey: ["marketplace-interests", startup.slug],
+                }),
+                queryClient.invalidateQueries({
+                  queryKey: ["marketplace-listing", startup.slug],
+                }),
               ]);
               setContactOpen(false);
-              toast({ title: 'Interest expressed', description: 'The founder will be notified.' });
+              toast({
+                title: "Interest expressed",
+                description: "The founder will be notified.",
+              });
             }}
           />
         </DialogContent>
       </Dialog>
-    </div>
+    </div>,
+    {
+      title: startup.name,
+      description: startup.category,
+      headerActions: buyerHeaderActions,
+    },
   );
 }
 
 function TechPill({ tech }: { tech: string }) {
-  const domain = tech.toLowerCase().replace(/ /g, '').replace(/\./g, '') + '.com';
+  const domain =
+    tech.toLowerCase().replace(/ /g, "").replace(/\./g, "") + ".com";
   const logoUrl = `https://icon.horse/icon/${domain}`;
 
   return (
@@ -816,14 +1071,19 @@ function VerificationSection({ listing }: { listing: MarketplaceListing }) {
     <section className="rounded-xl border border-border bg-card p-4 sm:p-6">
       <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
         <div>
-          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">Trust & verification</h2>
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Trust & verification
+          </h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Ownerr does not handle payments. Deals happen off-platform after introductions.
+            Ownerr does not handle payments. Deals happen off-platform after
+            introductions.
           </p>
         </div>
         <div className="min-w-[180px] rounded-xl border border-border bg-muted/20 p-3">
           <div className="flex items-center justify-between">
-            <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Trust score</span>
+            <span className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+              Trust score
+            </span>
             <span className="text-sm font-bold">{listing.trustScore}/100</span>
           </div>
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-muted">
@@ -832,45 +1092,60 @@ function VerificationSection({ listing }: { listing: MarketplaceListing }) {
               style={{ width: `${listing.trustScore}%` }}
             />
           </div>
-          <div className="mt-2 text-sm font-bold text-foreground">{trustLabelFromScore(listing.trustScore)}</div>
+          <div className="mt-2 text-sm font-bold text-foreground">
+            {trustLabelFromScore(listing.trustScore)}
+          </div>
         </div>
       </div>
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-3">
         <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3">
-          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.revenue.status === 'verified' ? 'mp-badge-lime' : 'bg-muted mp-muted'}`}>
+          <div
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.revenue.status === "verified" ? "mp-badge-lime" : "bg-muted mp-muted"}`}
+          >
             <BadgeCheck className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold">Revenue {listing.verification.revenue.status}</div>
+            <div className="text-xs font-bold">
+              Revenue {listing.verification.revenue.status}
+            </div>
             <div className="text-[10px] text-muted-foreground">
-              {listing.verification.revenue.provider ?? 'No provider connected'} · {listing.revenueHistory.length} months
+              {listing.verification.revenue.provider ?? "No provider connected"}{" "}
+              · {listing.revenueHistory.length} months
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3">
-          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.domain.status === 'verified' ? 'mp-badge-orange' : 'bg-muted mp-muted'}`}>
+          <div
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.domain.status === "verified" ? "mp-badge-orange" : "bg-muted mp-muted"}`}
+          >
             <Globe className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold">Domain {listing.verification.domain.status}</div>
+            <div className="text-xs font-bold">
+              Domain {listing.verification.domain.status}
+            </div>
             <div className="text-[10px] text-muted-foreground">
               {listing.verification.domain.note}
             </div>
           </div>
         </div>
         <div className="flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3">
-          <div className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.traffic.status === 'verified' ? 'mp-badge-amber' : 'bg-muted mp-muted'}`}>
+          <div
+            className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${listing.verification.traffic.status === "verified" ? "mp-badge-amber" : "bg-muted mp-muted"}`}
+          >
             <BarChart3 className="h-4 w-4" />
           </div>
           <div className="min-w-0">
-            <div className="text-xs font-bold">Traffic {listing.verification.traffic.status}</div>
+            <div className="text-xs font-bold">
+              Traffic {listing.verification.traffic.status}
+            </div>
             <div className="text-[10px] text-muted-foreground">
               {listing.trafficMonthlyVisitors != null
                 ? `${listing.trafficMonthlyVisitors.toLocaleString()} visitors/mo · ${listing.trafficTrend}`
-                : 'No data'}
+                : "No data"}
             </div>
             <div className="mt-1 text-[10px] text-muted-foreground">
-              {listing.verification.traffic.sourceLabel ?? 'Manual upload'}
+              {listing.verification.traffic.sourceLabel ?? "Manual upload"}
             </div>
           </div>
         </div>
@@ -890,12 +1165,15 @@ function FounderControlsSection({
   listing: MarketplaceListing;
   interestRecords: MarketplaceInterestRecord[];
   onVerificationUpdated: (
-    kind: keyof MarketplaceListing['verification'],
-    status: MarketplaceListing['verification'][keyof MarketplaceListing['verification']]['status'],
+    kind: keyof MarketplaceListing["verification"],
+    status: MarketplaceListing["verification"][keyof MarketplaceListing["verification"]]["status"],
     provider?: string | null,
   ) => Promise<void>;
   onDomainVerify: () => Promise<void>;
-  onInterestStageUpdated: (record: MarketplaceInterestRecord, stage: MarketplaceInterestRecord['stage']) => Promise<void>;
+  onInterestStageUpdated: (
+    record: MarketplaceInterestRecord,
+    stage: MarketplaceInterestRecord["stage"],
+  ) => Promise<void>;
   onSendFounderReply: (record: MarketplaceInterestRecord) => Promise<void>;
 }) {
   const checklistItems = [
@@ -915,63 +1193,121 @@ function FounderControlsSection({
           </p>
         </div>
         <div className="text-sm text-muted-foreground">
-          Inbox: <span className="font-bold text-foreground">{interestRecords.length}</span>
+          Inbox:{" "}
+          <span className="font-bold text-foreground">
+            {interestRecords.length}
+          </span>
         </div>
       </div>
       <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
         <FounderVerificationCard
           title="Revenue verification"
-          description={`${listing.verification.revenue.note} Provider: ${listing.verification.revenue.provider ?? 'none'}`}
+          description={`${listing.verification.revenue.note} Provider: ${listing.verification.revenue.provider ?? "none"}`}
           actions={[
-            { label: 'Mark pending', onClick: () => onVerificationUpdated('revenue', 'pending', listing.revenueProvider ?? 'Stripe') },
-            { label: 'Verify', onClick: () => onVerificationUpdated('revenue', 'verified', listing.revenueProvider ?? 'Stripe') },
+            {
+              label: "Mark pending",
+              onClick: () =>
+                onVerificationUpdated(
+                  "revenue",
+                  "pending",
+                  listing.revenueProvider ?? "Stripe",
+                ),
+            },
+            {
+              label: "Verify",
+              onClick: () =>
+                onVerificationUpdated(
+                  "revenue",
+                  "verified",
+                  listing.revenueProvider ?? "Stripe",
+                ),
+            },
           ]}
         />
         <FounderVerificationCard
           title="Domain verification"
-          description={`Add this TXT record: ${listing.verification.domain.expectedValue ?? 'n/a'}`}
-          actions={[
-            { label: 'Verify TXT record', onClick: onDomainVerify },
-          ]}
+          description={`Add this TXT record: ${listing.verification.domain.expectedValue ?? "n/a"}`}
+          actions={[{ label: "Verify TXT record", onClick: onDomainVerify }]}
           helper="Why it matters: buyers trust that the founder actually controls the domain before moving off-platform."
         />
         <FounderVerificationCard
           title="Traffic connection"
-          description={`${listing.verification.traffic.note} Source: ${listing.verification.traffic.sourceLabel ?? 'Manual upload'}`}
+          description={`${listing.verification.traffic.note} Source: ${listing.verification.traffic.sourceLabel ?? "Manual upload"}`}
           actions={[
-            { label: 'Manual upload', onClick: () => onVerificationUpdated('traffic', 'verified', 'Manual upload') },
-            { label: 'Connect GA', onClick: () => onVerificationUpdated('traffic', 'verified', 'Google Analytics') },
+            {
+              label: "Manual upload",
+              onClick: () =>
+                onVerificationUpdated("traffic", "verified", "Manual upload"),
+            },
+            {
+              label: "Connect GA",
+              onClick: () =>
+                onVerificationUpdated(
+                  "traffic",
+                  "verified",
+                  "Google Analytics",
+                ),
+            },
           ]}
         />
       </div>
       <div className="mt-5 rounded-lg border border-border bg-muted/20 p-4">
         <div className="flex items-center justify-between">
           <div>
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Founder checklist</div>
-            <div className="text-sm font-bold text-foreground">{checklistPct}% complete</div>
+            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+              Founder checklist
+            </div>
+            <div className="text-sm font-bold text-foreground">
+              {checklistPct}% complete
+            </div>
           </div>
-          <div className="text-xs text-muted-foreground">{completed}/3 completed</div>
+          <div className="text-xs text-muted-foreground">
+            {completed}/3 completed
+          </div>
         </div>
         <div className="mt-3 h-2 overflow-hidden rounded-full bg-muted">
-          <div className="mp-progress-fill h-full rounded-full" style={{ width: `${checklistPct}%` }} />
+          <div
+            className="mp-progress-fill h-full rounded-full"
+            style={{ width: `${checklistPct}%` }}
+          />
         </div>
         <div className="mt-3 space-y-2 text-sm">
-          <FounderChecklistRow done={listing.revenueVerified} label="Verify revenue" />
-          <FounderChecklistRow done={listing.domainVerified} label="Verify domain" />
-          <FounderChecklistRow done={listing.trafficVerified} label="Add traffic" />
+          <FounderChecklistRow
+            done={listing.revenueVerified}
+            label="Verify revenue"
+          />
+          <FounderChecklistRow
+            done={listing.domainVerified}
+            label="Verify domain"
+          />
+          <FounderChecklistRow
+            done={listing.trafficVerified}
+            label="Add traffic"
+          />
         </div>
       </div>
       <div className="mt-5 rounded-lg border border-border bg-muted/20 p-4">
-        <div className="mb-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Inbox</div>
+        <div className="mb-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Inbox
+        </div>
         {interestRecords.length === 0 ? (
-          <p className="text-sm text-muted-foreground">No buyer messages yet.</p>
+          <p className="text-sm text-muted-foreground">
+            No buyer messages yet.
+          </p>
         ) : (
           <div className="space-y-3">
             {interestRecords
               .slice()
-              .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime())
+              .sort(
+                (a, b) =>
+                  new Date(b.createdAt).getTime() -
+                  new Date(a.createdAt).getTime(),
+              )
               .map((record) => (
-                <div key={record.id} className="rounded-lg border border-border bg-card p-3">
+                <div
+                  key={record.id}
+                  className="rounded-lg border border-border bg-card p-3"
+                >
                   <div className="flex flex-wrap items-center justify-between gap-2">
                     <div className="font-bold">{record.buyerName}</div>
                     <div className="text-xs text-muted-foreground">
@@ -980,36 +1316,58 @@ function FounderControlsSection({
                   </div>
                   <div className="mt-1 text-xs text-muted-foreground">
                     {record.email} · {record.buyerRole}
-                    {record.offerAmount ? ` · ${formatCurrency(record.offerAmount)}` : ''}
+                    {record.offerAmount
+                      ? ` · ${formatCurrency(record.offerAmount)}`
+                      : ""}
                   </div>
                   <div className="mt-3 flex items-center justify-between gap-2">
                     <span className="rounded-full border border-border px-2 py-0.5 text-[10px] font-bold">
                       {record.stage}
                     </span>
                     <div className="flex items-center gap-2">
-                      <Button type="button" variant="outline" size="sm" onClick={() => void onSendFounderReply(record)}>
+                      <Button
+                        type="button"
+                        variant="outline"
+                        size="sm"
+                        onClick={() => void onSendFounderReply(record)}
+                      >
                         Reply
                       </Button>
-                      <Select value={record.stage} onValueChange={(value) => void onInterestStageUpdated(record, value as MarketplaceInterestRecord['stage'])}>
-                      <SelectTrigger className="h-8 w-[150px]">
-                        <SelectValue />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="interested">Interested</SelectItem>
-                        <SelectItem value="contacted">Contacted</SelectItem>
-                        <SelectItem value="negotiating">Negotiating</SelectItem>
-                        <SelectItem value="closed">Closed</SelectItem>
-                      </SelectContent>
+                      <Select
+                        value={record.stage}
+                        onValueChange={(value) =>
+                          void onInterestStageUpdated(
+                            record,
+                            value as MarketplaceInterestRecord["stage"],
+                          )
+                        }
+                      >
+                        <SelectTrigger className="h-8 w-[150px]">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="interested">Interested</SelectItem>
+                          <SelectItem value="contacted">Contacted</SelectItem>
+                          <SelectItem value="negotiating">
+                            Negotiating
+                          </SelectItem>
+                          <SelectItem value="closed">Closed</SelectItem>
+                        </SelectContent>
                       </Select>
                     </div>
                   </div>
                   <div className="mt-3 space-y-2">
                     {record.messages.map((message) => (
-                      <div key={message.id} className="rounded-md border border-border bg-muted/20 px-3 py-2">
+                      <div
+                        key={message.id}
+                        className="rounded-md border border-border bg-muted/20 px-3 py-2"
+                      >
                         <div className="text-[10px] font-bold uppercase tracking-wide text-muted-foreground">
                           {message.senderName} · {message.senderRole}
                         </div>
-                        <p className="mt-1 text-sm text-foreground">{message.body}</p>
+                        <p className="mt-1 text-sm text-foreground">
+                          {message.body}
+                        </p>
                       </div>
                     ))}
                   </div>
@@ -1037,10 +1395,18 @@ function FounderVerificationCard({
     <div className="rounded-lg border border-border bg-muted/20 p-4">
       <div className="text-sm font-bold">{title}</div>
       <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      {helper ? <p className="mt-2 text-xs text-muted-foreground">{helper}</p> : null}
+      {helper ? (
+        <p className="mt-2 text-xs text-muted-foreground">{helper}</p>
+      ) : null}
       <div className="mt-3 flex flex-wrap gap-2">
         {actions.map((action) => (
-          <Button key={action.label} type="button" variant="outline" size="sm" onClick={() => void action.onClick()}>
+          <Button
+            key={action.label}
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => void action.onClick()}
+          >
             {action.label}
           </Button>
         ))}
@@ -1049,12 +1415,20 @@ function FounderVerificationCard({
   );
 }
 
-function FounderChecklistRow({ done, label }: { done: boolean; label: string }) {
+function FounderChecklistRow({
+  done,
+  label,
+}: {
+  done: boolean;
+  label: string;
+}) {
   return (
     <div className="flex items-center justify-between gap-3">
       <span className="text-foreground">{label}</span>
-      <span className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${done ? 'mp-badge-lime' : 'bg-muted mp-muted'}`}>
-        {done ? 'Done' : 'Pending'}
+      <span
+        className={`rounded-full px-2 py-0.5 text-[10px] font-bold ${done ? "mp-badge-lime" : "bg-muted mp-muted"}`}
+      >
+        {done ? "Done" : "Pending"}
       </span>
     </div>
   );
@@ -1091,10 +1465,12 @@ function ContactSellerForm({
 }) {
   const { currentUser } = useAuth();
   const { toast } = useToast();
-  const [name, setName] = useState('John Doe');
-  const [email, setEmail] = useState('john@example.com');
-  const [message, setMessage] = useState('Can you share more about your growth and churn?');
-  const [offer, setOffer] = useState('10000');
+  const [name, setName] = useState("John Doe");
+  const [email, setEmail] = useState("john@example.com");
+  const [message, setMessage] = useState(
+    "Can you share more about your growth and churn?",
+  );
+  const [offer, setOffer] = useState("10000");
 
   async function submit(e: FormEvent) {
     e.preventDefault();
@@ -1108,14 +1484,17 @@ function ContactSellerForm({
         buyerRole: currentUser.role,
         email: email.trim(),
         message: message.trim(),
-        offerAmount: offer.trim() ? Number(offer.replace(/[^0-9.]/g, '')) : null,
+        offerAmount: offer.trim()
+          ? Number(offer.replace(/[^0-9.]/g, ""))
+          : null,
       });
       await onSent();
     } catch (error) {
       toast({
-        title: 'Could not send interest',
-        description: error instanceof Error ? error.message : 'Please try again.',
-        variant: 'destructive',
+        title: "Could not send interest",
+        description:
+          error instanceof Error ? error.message : "Please try again.",
+        variant: "destructive",
       });
     }
   }
@@ -1172,7 +1551,10 @@ function ContactSellerForm({
           className="border-border bg-background"
         />
       </div>
-      <Button type="submit" className="w-full bg-[color:var(--terminal-ochre)] font-bold text-[color:var(--mp-text-on-accent)] hover:bg-[color:var(--terminal-ochre-hover)]">
+      <Button
+        type="submit"
+        className="w-full bg-[color:var(--terminal-ochre)] font-bold text-[color:var(--mp-text-on-accent)] hover:bg-[color:var(--terminal-ochre-hover)]"
+      >
         Send message
       </Button>
       <p className="text-center text-xs text-muted-foreground">

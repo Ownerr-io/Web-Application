@@ -1,5 +1,5 @@
-import { useEffect, useState } from 'react';
-import { StatsDashboard } from '@/components/stats/StatsDashboard';
+import { useEffect, useState } from "react";
+import { StatsDashboard } from "@/components/stats/StatsDashboard";
 
 export default function Stats() {
   const [isMounted, setIsMounted] = useState(false);

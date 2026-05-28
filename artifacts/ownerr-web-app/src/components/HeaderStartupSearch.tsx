@@ -1,15 +1,18 @@
-import { useEffect, useMemo, useRef, useState } from 'react';
-import { useLocation } from 'wouter';
-import { Search } from 'lucide-react';
-import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
-import { marketplacePath } from '@/lib/appPaths';
-import { mergeWithUserStartups, USER_STARTUPS_CHANGED_EVENT } from '@/lib/userStartups';
-import { cn } from '@/lib/utils';
+import { useEffect, useMemo, useRef, useState } from "react";
+import { useLocation } from "wouter";
+import { Search } from "lucide-react";
+import { usePublicStartups } from "@/hooks/marketplace/usePublicStartups";
+import { marketplacePath } from "@/lib/appPaths";
+import {
+  mergeWithUserStartups,
+  USER_STARTUPS_CHANGED_EVENT,
+} from "@/lib/userStartups";
+import { cn } from "@/lib/utils";
 
 export function HeaderStartupSearch({ className }: { className?: string }) {
   const { data: publicStartups = [] } = usePublicStartups();
   const [, setLocation] = useLocation();
-  const [query, setQuery] = useState('');
+  const [query, setQuery] = useState("");
   const [open, setOpen] = useState(false);
   const [userTick, setUserTick] = useState(0);
   const wrapRef = useRef<HTMLDivElement>(null);
@@ -17,10 +20,10 @@ export function HeaderStartupSearch({ className }: { className?: string }) {
   useEffect(() => {
     const bump = () => setUserTick((t) => t + 1);
     window.addEventListener(USER_STARTUPS_CHANGED_EVENT, bump);
-    window.addEventListener('storage', bump);
+    window.addEventListener("storage", bump);
     return () => {
       window.removeEventListener(USER_STARTUPS_CHANGED_EVENT, bump);
-      window.removeEventListener('storage', bump);
+      window.removeEventListener("storage", bump);
     };
   }, []);
 
@@ -28,8 +31,8 @@ export function HeaderStartupSearch({ className }: { className?: string }) {
     function onDocClick(e: MouseEvent) {
       if (!wrapRef.current?.contains(e.target as Node)) setOpen(false);
     }
-    document.addEventListener('mousedown', onDocClick);
-    return () => document.removeEventListener('mousedown', onDocClick);
+    document.addEventListener("mousedown", onDocClick);
+    return () => document.removeEventListener("mousedown", onDocClick);
   }, []);
 
   const startups = useMemo(
@@ -56,12 +59,12 @@ export function HeaderStartupSearch({ className }: { className?: string }) {
 
   function pick(slug: string) {
     setLocation(marketplacePath(`/startup/${slug}`));
-    setQuery('');
+    setQuery("");
     setOpen(false);
   }
 
   return (
-    <div ref={wrapRef} className={cn('relative flex-1', className)}>
+    <div ref={wrapRef} className={cn("relative flex-1", className)}>
       <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground pointer-events-none" />
       <input
         type="search"
@@ -95,7 +98,10 @@ export function HeaderStartupSearch({ className }: { className?: string }) {
             >
               <div
                 className="w-9 h-9 rounded-[6px] flex items-center justify-center font-bold text-sm border border-black/5 shrink-0"
-                style={{ backgroundColor: s.logoColor, color: 'rgba(0,0,0,0.75)' }}
+                style={{
+                  backgroundColor: s.logoColor,
+                  color: "rgba(0,0,0,0.75)",
+                }}
               >
                 {s.name.charAt(0)}
               </div>
@@ -103,7 +109,7 @@ export function HeaderStartupSearch({ className }: { className?: string }) {
                 <div className="font-bold truncate">{s.name}</div>
                 <div className="text-xs text-muted-foreground truncate">
                   {s.category}
-                  {s.forSale ? ' · For sale' : ''}
+                  {s.forSale ? " · For sale" : ""}
                 </div>
               </div>
             </button>

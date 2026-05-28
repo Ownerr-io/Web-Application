@@ -1,17 +1,17 @@
-import type { AuthRole } from '@/lib/auth/types';
+import type { AuthRole } from "@/lib/auth/types";
 
 export type Category =
-  | 'Content Creation'
-  | 'Mobile Apps'
-  | 'SaaS'
-  | 'Education'
-  | 'Crypto & Web3'
-  | 'Developer Tools'
-  | 'Artificial Intelligence'
-  | 'Health'
-  | 'Marketing'
-  | 'Customer Support'
-  | 'Social Media';
+  | "Content Creation"
+  | "Mobile Apps"
+  | "SaaS"
+  | "Education"
+  | "Crypto & Web3"
+  | "Developer Tools"
+  | "Artificial Intelligence"
+  | "Health"
+  | "Marketing"
+  | "Customer Support"
+  | "Social Media";
 
 export interface Startup {
   slug: string;
@@ -40,34 +40,34 @@ export interface Startup {
   lendScore: number;
   acquisitionPower: number;
   revenueVerified: boolean;
-  revenueProvider: 'Stripe' | 'RevenueCat' | null;
+  revenueProvider: "Stripe" | "RevenueCat" | null;
   domainVerified: boolean;
   trafficVerified: boolean;
   trafficMonthlyVisitors: number | null;
-  trafficTrend: 'up' | 'down' | 'flat' | null;
+  trafficTrend: "up" | "down" | "flat" | null;
 }
 
 export type StartupSeed = Omit<
   Startup,
-  | 'businessScore'
-  | 'lendScore'
-  | 'acquisitionPower'
-  | 'revenueVerified'
-  | 'revenueProvider'
-  | 'domainVerified'
-  | 'trafficVerified'
-  | 'trafficMonthlyVisitors'
-  | 'trafficTrend'
+  | "businessScore"
+  | "lendScore"
+  | "acquisitionPower"
+  | "revenueVerified"
+  | "revenueProvider"
+  | "domainVerified"
+  | "trafficVerified"
+  | "trafficMonthlyVisitors"
+  | "trafficTrend"
 > &
   Partial<
     Pick<
       Startup,
-      | 'revenueVerified'
-      | 'revenueProvider'
-      | 'domainVerified'
-      | 'trafficVerified'
-      | 'trafficMonthlyVisitors'
-      | 'trafficTrend'
+      | "revenueVerified"
+      | "revenueProvider"
+      | "domainVerified"
+      | "trafficVerified"
+      | "trafficMonthlyVisitors"
+      | "trafficTrend"
     >
   >;
 
@@ -88,7 +88,7 @@ export interface Founder {
   lookingForCofounder: boolean;
 }
 
-export type DeskMarketplaceRole = 'buyer' | 'seller';
+export type DeskMarketplaceRole = "buyer" | "seller";
 
 export type TimeSeriesPoint = {
   label: string;
@@ -96,7 +96,11 @@ export type TimeSeriesPoint = {
   value: number;
 };
 
-export type VerificationStatus = 'unverified' | 'pending' | 'verified' | 'failed';
+export type VerificationStatus =
+  | "unverified"
+  | "pending"
+  | "verified"
+  | "failed";
 
 export type VerificationSnapshot = {
   status: VerificationStatus;
@@ -105,27 +109,27 @@ export type VerificationSnapshot = {
   requestedAt: string | null;
   note: string;
   sourceLabel?: string;
-  mode?: 'manual' | 'google_analytics' | 'dns_txt';
+  mode?: "manual" | "google_analytics" | "dns_txt";
   expectedValue?: string | null;
 };
 
-export type TrustLabel = 'High Trust' | 'Medium Trust' | 'Low Trust';
+export type TrustLabel = "High Trust" | "Medium Trust" | "Low Trust";
 
 export type DealRelationshipStage =
-  | 'interested'
-  | 'contacted'
-  | 'negotiating'
-  | 'closed'
-  | 'withdrawn';
+  | "interested"
+  | "contacted"
+  | "negotiating"
+  | "closed"
+  | "withdrawn";
 
 export type BidStatus =
-  | 'draft'
-  | 'submitted'
-  | 'under_review'
-  | 'accepted'
-  | 'rejected'
-  | 'withdrawn'
-  | 'expired';
+  | "draft"
+  | "submitted"
+  | "under_review"
+  | "accepted"
+  | "rejected"
+  | "withdrawn"
+  | "expired";
 
 export type MarketplaceBid = {
   id: string;
@@ -162,7 +166,7 @@ export type ConversationMessage = {
   createdAt: string;
 };
 
-export type ClaimSpotRole = 'founder' | 'investor';
+export type ClaimSpotRole = "founder" | "investor";
 
 export type ClaimSpotEntry = {
   id: string;

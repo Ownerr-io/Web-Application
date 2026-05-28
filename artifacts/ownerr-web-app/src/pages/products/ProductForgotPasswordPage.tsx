@@ -1,20 +1,23 @@
-import { useState } from 'react';
-import { Link } from 'wouter';
-import type { AppSlug } from '@workspace/api-zod';
-import { MarketingLayout } from '@/components/MarketingLayout';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
-import { useAuth } from '@/context/AuthContext';
-import { useToast } from '@/hooks/use-toast';
-import { productLandingPath, resolveProductAuthPath } from '@/lib/auth/productAuthRoutes';
+import { useState } from "react";
+import { Link } from "wouter";
+import type { AppSlug } from "@workspace/api-zod";
+import { MarketingLayout } from "@/components/MarketingLayout";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { useAuth } from "@/context/AuthContext";
+import { useToast } from "@/hooks/use-toast";
+import {
+  productLandingPath,
+  resolveProductAuthPath,
+} from "@/lib/auth/productAuthRoutes";
 
 type Props = { appSlug: AppSlug };
 
 export function ProductForgotPasswordPage({ appSlug }: Props) {
   const { configured, resetPasswordForEmail } = useAuth();
   const { toast } = useToast();
-  const [email, setEmail] = useState('');
+  const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
   const [sent, setSent] = useState(false);
 
@@ -22,20 +25,23 @@ export function ProductForgotPasswordPage({ appSlug }: Props) {
     e.preventDefault();
     if (!configured) return;
     const trimmed = email.trim();
-    if (!trimmed.includes('@')) {
-      toast({ title: 'Enter a valid email', variant: 'destructive' });
+    if (!trimmed.includes("@")) {
+      toast({ title: "Enter a valid email", variant: "destructive" });
       return;
     }
     setBusy(true);
     try {
       await resetPasswordForEmail(trimmed);
       setSent(true);
-      toast({ title: 'Check your email', description: 'Password reset link sent.' });
+      toast({
+        title: "Check your email",
+        description: "Password reset link sent.",
+      });
     } catch (err) {
       toast({
-        title: 'Could not send reset email',
-        description: err instanceof Error ? err.message : 'Try again.',
-        variant: 'destructive',
+        title: "Could not send reset email",
+        description: err instanceof Error ? err.message : "Try again.",
+        variant: "destructive",
       });
     } finally {
       setBusy(false);
@@ -63,14 +69,20 @@ export function ProductForgotPasswordPage({ appSlug }: Props) {
               />
             </div>
             <Button type="submit" disabled={busy} className="w-full">
-              {busy ? 'Sending…' : 'Send reset link'}
+              {busy ? "Sending…" : "Send reset link"}
             </Button>
           </form>
         )}
-        <Link href={resolveProductAuthPath(appSlug, 'login')} className="mt-6 inline-block text-sm font-bold text-primary">
+        <Link
+          href={resolveProductAuthPath(appSlug, "login")}
+          className="mt-6 inline-block text-sm font-bold text-primary"
+        >
           Back to sign in
         </Link>
-        <Link href={productLandingPath(appSlug)} className="mt-2 block text-xs text-muted-foreground">
+        <Link
+          href={productLandingPath(appSlug)}
+          className="mt-2 block text-xs text-muted-foreground"
+        >
           Back to product
         </Link>
       </div>

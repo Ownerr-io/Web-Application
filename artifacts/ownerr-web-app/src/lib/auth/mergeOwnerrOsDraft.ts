@@ -1,14 +1,27 @@
-import type { User } from '@supabase/supabase-js';
-import type { CreateFounderInput } from '@/lib/founderTypes';
-import type { FounderSubmissionRecord } from '@/lib/founderTypes';
-import { clearReferralAttribution, getStoredReferralAttribution } from '@/lib/founderReferral';
-import { submitFounder, trackReferral, loadFounderSubmissionsForUser } from '@/lib/founderService';
-import { provisionOwnerrProduct } from '@/lib/products/provision';
-import { syncOwnerrFounderRole } from '@/lib/auth/syncOwnerrFounderRole';
-import { consumeOwnerrOsDraft, peekOwnerrOsDraft, type OwnerrOsDraft } from '@/lib/auth/ownerrOsDraft';
-import { PRODUCT_ROUTES } from '@/routing/routeRegistry';
+import type { User } from "@supabase/supabase-js";
+import type { CreateFounderInput } from "@/lib/founderTypes";
+import type { FounderSubmissionRecord } from "@/lib/founderTypes";
+import {
+  clearReferralAttribution,
+  getStoredReferralAttribution,
+} from "@/lib/founderReferral";
+import {
+  submitFounder,
+  trackReferral,
+  loadFounderSubmissionsForUser,
+} from "@/lib/founderService";
+import { provisionOwnerrProduct } from "@/lib/products/provision";
+import { syncOwnerrFounderRole } from "@/lib/auth/syncOwnerrFounderRole";
+import {
+  consumeOwnerrOsDraft,
+  peekOwnerrOsDraft,
+  type OwnerrOsDraft,
+} from "@/lib/auth/ownerrOsDraft";
+import { PRODUCT_ROUTES } from "@/routing/routeRegistry";
 
-export function draftToCreateFounderInput(draft: OwnerrOsDraft): CreateFounderInput {
+export function draftToCreateFounderInput(
+  draft: OwnerrOsDraft,
+): CreateFounderInput {
   const tagline =
     draft.ideaDescription.length > 120
       ? `${draft.ideaDescription.slice(0, 117).trim()}…`
@@ -18,7 +31,7 @@ export function draftToCreateFounderInput(draft: OwnerrOsDraft): CreateFounderIn
     startupName: draft.startupName,
     tagline,
     description: draft.ideaDescription,
-    category: draft.industry || 'Other',
+    category: draft.industry || "Other",
   };
 }
 
@@ -43,13 +56,19 @@ export async function mergeOwnerrOsDraftAfterAuth(user: User): Promise<{
   }
 
   const referralCode =
-    draft.referralCode ?? getStoredReferralAttribution()?.referralCode ?? undefined;
+    draft.referralCode ??
+    getStoredReferralAttribution()?.referralCode ??
+    undefined;
 
   const { record } = await submitFounder(draftToCreateFounderInput(draft));
   consumeOwnerrOsDraft();
 
   if (referralCode) {
-    await trackReferral(referralCode, 'signup', getStoredReferralAttribution()?.sourcePlatform);
+    await trackReferral(
+      referralCode,
+      "signup",
+      getStoredReferralAttribution()?.sourcePlatform,
+    );
     clearReferralAttribution();
   }
 
@@ -64,5 +83,5 @@ export function resolvePostOwnerrAuthPath(
   merged: boolean,
 ): string {
   if (record || merged) return PRODUCT_ROUTES.ownerrOsDashboard;
-  return PRODUCT_ROUTES.ownerrOsJoin;
+  return PRODUCT_ROUTES.ownerrOsListingNew;
 }

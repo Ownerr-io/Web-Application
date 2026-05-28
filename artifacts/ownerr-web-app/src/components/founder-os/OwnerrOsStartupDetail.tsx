@@ -1,18 +1,18 @@
-import { useEffect, useState } from 'react';
-import { Link, useLocation } from 'wouter';
-import { ArrowLeft } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { FounderCaptureSummary } from '@/components/founder-os/FounderCaptureSummary';
-import { recordToFounderDraft } from '@/components/founder-os/founderOsQuestions';
-import { OwnerrOsEditStartupForm } from '@/components/founder-os/OwnerrOsEditStartupForm';
-import { OwnerrOsAppPageShell } from '@/components/founder-os/OwnerrOsAppPageShell';
-import { useOwnerrFounderRecords } from '@/hooks/founder-os/useOwnerrFounderRecords';
-import { fetchFounderSubmissionById } from '@/lib/founderService';
-import { getFounderSharePageUrl } from '@/lib/founderShareUrls';
-import { PRODUCT_ROUTES } from '@/routing/routeRegistry';
-import { OWNERR_OS_APP_CONTENT_CLASS } from '@/lib/ownerrOsAppLayout';
-import { cn } from '@/lib/utils';
-import type { FounderSubmissionRecord } from '@/lib/founderTypes';
+import { useEffect, useState } from "react";
+import { Link, useLocation } from "wouter";
+import { ArrowLeft } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { FounderCaptureSummary } from "@/components/founder-os/FounderCaptureSummary";
+import { recordToFounderDraft } from "@/components/founder-os/founderOsQuestions";
+import { OwnerrOsEditStartupForm } from "@/components/founder-os/OwnerrOsEditStartupForm";
+import { OwnerrOsAppPageShell } from "@/components/founder-os/OwnerrOsAppPageShell";
+import { useOwnerrFounderRecords } from "@/hooks/founder-os/useOwnerrFounderRecords";
+import { fetchFounderSubmissionById } from "@/lib/founderService";
+import { getFounderSharePageUrl } from "@/lib/founderShareUrls";
+import { PRODUCT_ROUTES } from "@/routing/routeRegistry";
+import { OWNERR_OS_APP_CONTENT_CLASS } from "@/lib/ownerrOsAppLayout";
+import { cn } from "@/lib/utils";
+import type { FounderSubmissionRecord } from "@/lib/founderTypes";
 
 type Props = {
   startupId: string;
@@ -44,7 +44,7 @@ export function OwnerrOsStartupDetail({ startupId }: Props) {
       <div
         className={cn(
           OWNERR_OS_APP_CONTENT_CLASS,
-          'flex min-h-[40vh] items-center justify-center text-sm font-bold text-muted-foreground',
+          "flex min-h-[40vh] items-center justify-center text-sm font-bold text-muted-foreground",
         )}
       >
         Loading startup…
@@ -54,9 +54,14 @@ export function OwnerrOsStartupDetail({ startupId }: Props) {
 
   if (!record) {
     return (
-      <OwnerrOsAppPageShell title="Startup not found" description="This listing does not exist or you do not have access.">
+      <OwnerrOsAppPageShell
+        title="Startup not found"
+        description="This listing does not exist or you do not have access."
+      >
         <Button type="button" variant="secondary" asChild>
-          <Link href={PRODUCT_ROUTES.ownerrOsListings}>Back to My Startups</Link>
+          <Link href={PRODUCT_ROUTES.ownerrOsListings}>
+            Back to My Startups
+          </Link>
         </Button>
       </OwnerrOsAppPageShell>
     );
@@ -64,7 +69,10 @@ export function OwnerrOsStartupDetail({ startupId }: Props) {
 
   if (editing) {
     return (
-      <OwnerrOsAppPageShell title={record.startupName} description="Edit your public listing.">
+      <OwnerrOsAppPageShell
+        title={record.startupName}
+        description="Edit your public listing."
+      >
         <OwnerrOsEditStartupForm
           record={record}
           mode="edit"
@@ -82,7 +90,10 @@ export function OwnerrOsStartupDetail({ startupId }: Props) {
   const shareUrl = getFounderSharePageUrl(record);
 
   return (
-    <OwnerrOsAppPageShell title={record.startupName} description={record.tagline}>
+    <OwnerrOsAppPageShell
+      title={record.startupName}
+      description={record.tagline}
+    >
       <Button
         type="button"
         variant="ghost"
@@ -94,11 +105,13 @@ export function OwnerrOsStartupDetail({ startupId }: Props) {
         All startups
       </Button>
       <div className="flex flex-wrap gap-2">
-        <Button type="button" variant="secondary" size="sm" onClick={() => setEditing(true)}>
+        <Button
+          type="button"
+          variant="secondary"
+          size="sm"
+          onClick={() => setEditing(true)}
+        >
           Edit listing
-        </Button>
-        <Button type="button" variant="outline" size="sm" asChild>
-          <Link href={PRODUCT_ROUTES.ownerrOsReferrals}>Invite &amp; Stats</Link>
         </Button>
         <Button type="button" variant="outline" size="sm" asChild>
           <a href={shareUrl} target="_blank" rel="noopener noreferrer">

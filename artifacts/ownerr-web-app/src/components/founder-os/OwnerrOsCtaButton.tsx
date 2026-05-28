@@ -11,7 +11,11 @@ type Props = {
   variant?: "nav" | "hero";
 };
 
-export function OwnerrOsCtaButton({ className, size = "md", variant = "hero" }: Props) {
+export function OwnerrOsCtaButton({
+  className,
+  size = "md",
+  variant = "hero",
+}: Props) {
   const reduce = useReducedMotion();
   const [, setLocation] = useLocation();
 
@@ -35,7 +39,7 @@ export function OwnerrOsCtaButton({ className, size = "md", variant = "hero" }: 
         "group relative inline-flex shrink-0 items-center justify-center gap-2 overflow-hidden rounded-[10px] font-bold shadow-sm transition-colors",
         sizeClass,
         variant === "hero"
-          ? "btn-platform-gradient text-[color:var(--brand-accent-ink)]"
+          ? "btn-platform-gradient text-[color:var(--terminal-fg)]"
           : "border border-[color:var(--terminal-ochre)]/50 bg-[color:var(--terminal-surface-2)] text-[color:var(--terminal-fg)] hover:border-[color:var(--terminal-ochre)]",
         className,
       )}
@@ -48,7 +52,7 @@ export function OwnerrOsCtaButton({ className, size = "md", variant = "hero" }: 
             "linear-gradient(105deg, transparent 40%, rgba(255,255,255,0.18) 50%, transparent 60%)",
         }}
       />
-      <Sparkles className="h-4 w-4 shrink-0 text-[color:var(--brand-accent-ink)]" aria-hidden />
+      <Sparkles className="h-4 w-4 shrink-0 text-current" aria-hidden />
       <span className="relative tracking-wide">List on OWNERR OS</span>
     </motion.button>
   );

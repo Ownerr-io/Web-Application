@@ -1,28 +1,40 @@
-import { useEffect, useMemo, useState } from 'react';
-import { Link } from 'wouter';
-import { AnimatePresence, motion } from 'framer-motion';
-import { ChevronRight, Flame, Plus } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import { Link } from "wouter";
+import { AnimatePresence, motion } from "framer-motion";
+import { ChevronRight, Flame, Plus } from "lucide-react";
 
-import type { Startup } from '@/lib/marketplace/types';
-import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
-import { mergeWithUserStartups } from '@/lib/userStartups';
-import { useAddStartup } from '@/context/AddStartupContext';
-import { FEED_BONUS_DEAL, FEED_POSTING_STREAKS, FEED_TOP_STARTUPS } from '@/lib/feedSidebarData';
-import { cn, dicebearShapesSvg, formatShortCurrency, founderAvatarUrl } from '@/lib/utils';
-import { FounderLink, StartupLink } from '@/components/EntityLink';
-import { marketplacePath } from '@/lib/appPaths';
+import type { Startup } from "@/lib/marketplace/types";
+import { usePublicStartups } from "@/hooks/marketplace/usePublicStartups";
+import { mergeWithUserStartups } from "@/lib/userStartups";
+import { useAddStartup } from "@/context/AddStartupContext";
+import {
+  FEED_BONUS_DEAL,
+  FEED_POSTING_STREAKS,
+  FEED_TOP_STARTUPS,
+} from "@/lib/feedSidebarData";
+import {
+  cn,
+  dicebearShapesSvg,
+  formatShortCurrency,
+  founderAvatarUrl,
+} from "@/lib/utils";
+import { FounderLink, StartupLink } from "@/components/EntityLink";
+import { marketplacePath } from "@/lib/appPaths";
 
 type RotatingItem =
-  | { kind: 'startup'; startup: Startup }
-  | { kind: 'bonus'; deal: typeof FEED_BONUS_DEAL };
+  | { kind: "startup"; startup: Startup }
+  | { kind: "bonus"; deal: typeof FEED_BONUS_DEAL };
 
 export function FeedSidebar() {
   const { openAddStartup } = useAddStartup();
   const { data: publicStartups = [] } = usePublicStartups();
 
   const rotation = useMemo<RotatingItem[]>(() => {
-    const fromStartups = mergeWithUserStartups(publicStartups).map((s) => ({ kind: 'startup' as const, startup: s }));
-    return [...fromStartups, { kind: 'bonus' as const, deal: FEED_BONUS_DEAL }];
+    const fromStartups = mergeWithUserStartups(publicStartups).map((s) => ({
+      kind: "startup" as const,
+      startup: s,
+    }));
+    return [...fromStartups, { kind: "bonus" as const, deal: FEED_BONUS_DEAL }];
   }, [publicStartups]);
 
   const [dealIdx, setDealIdx] = useState(0);
@@ -37,10 +49,10 @@ export function FeedSidebar() {
 
   const current = rotation[dealIdx] ?? rotation[0];
   const currentKey = current
-    ? current.kind === 'startup'
+    ? current.kind === "startup"
       ? `s-${current.startup.slug}`
-      : 'bonus-deal'
-    : 'empty';
+      : "bonus-deal"
+    : "empty";
 
   return (
     <aside
@@ -57,7 +69,7 @@ export function FeedSidebar() {
             <button
               type="button"
               onClick={openAddStartup}
-              className="mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] bg-primary py-2.5 text-sm font-bold text-primary-foreground transition-transform hover:-translate-y-0.5"
+              className="btn-marketplace-primary mt-4 flex w-full items-center justify-center gap-2 rounded-[10px] py-2.5 text-sm font-bold transition-transform hover:-translate-y-0.5"
             >
               <Plus className="h-4 w-4" />
               Add your startup
@@ -68,17 +80,23 @@ export function FeedSidebar() {
             <div className="mb-3 flex items-center justify-between">
               <h3 className="text-sm font-bold">Top startups</h3>
               <Link
-                href={`${marketplacePath('/')}#leaderboard`}
+                href={`${marketplacePath("/")}#leaderboard`}
                 className="inline-flex items-center gap-0.5 text-[10px] font-bold text-muted-foreground hover:text-foreground"
               >
                 View all
-                <ChevronRight className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
+                <ChevronRight
+                  className="h-3 w-3 shrink-0 opacity-80"
+                  aria-hidden
+                />
               </Link>
             </div>
             <ol className="max-h-[min(200px,28vh)] space-y-3 overflow-y-auto pr-1 text-sm [scrollbar-gutter:stable]">
               {FEED_TOP_STARTUPS.map((row, i) => (
                 <li key={`${row.slug}-${i}`}>
-                  <StartupLink slug={row.slug} className="flex items-start gap-2 rounded-lg p-1.5 -m-1.5 transition-colors hover:bg-muted/50">
+                  <StartupLink
+                    slug={row.slug}
+                    className="flex items-start gap-2 rounded-lg p-1.5 -m-1.5 transition-colors hover:bg-muted/50"
+                  >
                     <span className="w-5 shrink-0 text-right text-xs font-bold text-muted-foreground">
                       {i + 1}
                     </span>
@@ -96,9 +114,13 @@ export function FeedSidebar() {
                       )}
                     </div>
                     <div className="min-w-0 flex-1">
-                      <div className="line-clamp-2 text-xs font-bold leading-tight">{row.name}</div>
+                      <div className="line-clamp-2 text-xs font-bold leading-tight">
+                        {row.name}
+                      </div>
                       <div className="mt-0.5 flex flex-wrap items-baseline gap-x-2 text-[11px]">
-                        <span className="font-bold tabular-nums">{row.mrr}</span>
+                        <span className="font-bold tabular-nums">
+                          {row.mrr}
+                        </span>
                         <span className="font-bold mp-text-positive tabular-nums">
                           +{row.growthPct.toLocaleString()}%
                         </span>
@@ -136,20 +158,20 @@ export function FeedSidebar() {
                   </>
                 );
                 return (
-                <li key={row.seed + i}>
-                  {row.founderHandle ? (
-                    <FounderLink
-                      handle={row.founderHandle}
-                      className="flex items-center gap-2 rounded-md py-1 text-foreground"
-                    >
-                      {rowInner}
-                    </FounderLink>
-                  ) : (
-                    <div className="flex items-center gap-2 rounded-md py-1">
-                      {rowInner}
-                    </div>
-                  )}
-                </li>
+                  <li key={row.seed + i}>
+                    {row.founderHandle ? (
+                      <FounderLink
+                        handle={row.founderHandle}
+                        className="flex items-center gap-2 rounded-md py-1 text-foreground"
+                      >
+                        {rowInner}
+                      </FounderLink>
+                    ) : (
+                      <div className="flex items-center gap-2 rounded-md py-1">
+                        {rowInner}
+                      </div>
+                    )}
+                  </li>
                 );
               })}
             </ol>
@@ -159,22 +181,31 @@ export function FeedSidebar() {
             <div className="flex items-center justify-between border-b border-border px-4 py-3">
               <h3 className="text-sm font-bold">Deals of the week</h3>
               <Link
-                href={marketplacePath('/acquire')}
+                href={marketplacePath("/acquire")}
                 className="inline-flex items-center gap-0.5 text-[10px] font-bold text-muted-foreground transition-colors hover:text-foreground"
               >
                 View all
-                <ChevronRight className="h-3 w-3 shrink-0 opacity-80" aria-hidden />
+                <ChevronRight
+                  className="h-3 w-3 shrink-0 opacity-80"
+                  aria-hidden
+                />
               </Link>
             </div>
             <div className="relative p-4">
               {rotation.length > 1 && (
-                <div className="mb-3 flex justify-center gap-1.5" role="tablist" aria-label="Deal carousel">
+                <div
+                  className="mb-3 flex justify-center gap-1.5"
+                  role="tablist"
+                  aria-label="Deal carousel"
+                >
                   {rotation.map((_, i) => (
                     <span
                       key={i}
                       className={cn(
-                        'h-1.5 w-1.5 rounded-full transition-colors',
-                        i === dealIdx ? 'bg-foreground' : 'bg-muted-foreground/30',
+                        "h-1.5 w-1.5 rounded-full transition-colors",
+                        i === dealIdx
+                          ? "bg-foreground"
+                          : "bg-muted-foreground/30",
                       )}
                     />
                   ))}
@@ -190,7 +221,7 @@ export function FeedSidebar() {
                       exit={{ opacity: 0, y: -6 }}
                       transition={{ duration: 0.18 }}
                     >
-                      {current.kind === 'startup' ? (
+                      {current.kind === "startup" ? (
                         <FeedDealFromStartup s={current.startup} />
                       ) : (
                         <FeedBonusDealCard />
@@ -214,34 +245,47 @@ function FeedBonusDealCard() {
       <div className="mb-1 flex items-start justify-between gap-2">
         <div
           className="flex h-11 w-11 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-border text-base font-bold shadow-inner"
-          style={{ backgroundColor: b.logoColor, color: 'rgba(255,255,255,0.95)' }}
+          style={{
+            backgroundColor: b.logoColor,
+            color: "rgba(255,255,255,0.95)",
+          }}
         >
           {b.name.charAt(0).toUpperCase()}
         </div>
         <div className="min-w-0 flex-1 text-right">
-          <StartupLink slug={b.slug} className="block text-right text-sm font-bold leading-tight line-clamp-2">
+          <StartupLink
+            slug={b.slug}
+            className="block text-right text-sm font-bold leading-tight line-clamp-2"
+          >
             {b.name}
           </StartupLink>
-
         </div>
       </div>
-      <p className="mt-2 line-clamp-3 text-xs text-muted-foreground leading-relaxed">{b.description}</p>
+      <p className="mt-2 line-clamp-3 text-xs text-muted-foreground leading-relaxed">
+        {b.description}
+      </p>
       <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg border border-dotted border-border/80 bg-background/50 py-2 text-center text-[10px]">
         <div>
           <div className="text-muted-foreground">Price</div>
-          <div className="mt-0.5 font-bold tabular-nums">{formatShortCurrency(b.price)}</div>
+          <div className="mt-0.5 font-bold tabular-nums">
+            {formatShortCurrency(b.price)}
+          </div>
         </div>
         <div>
           <div className="text-muted-foreground">MRR</div>
-          <div className="mt-0.5 font-bold tabular-nums">{formatShortCurrency(b.mrr)}</div>
+          <div className="mt-0.5 font-bold tabular-nums">
+            {formatShortCurrency(b.mrr)}
+          </div>
         </div>
         <div>
           <div className="text-muted-foreground">Multiple</div>
-          <div className="mt-0.5 font-bold tabular-nums">{b.multiple.toFixed(1)}x</div>
+          <div className="mt-0.5 font-bold tabular-nums">
+            {b.multiple.toFixed(1)}x
+          </div>
         </div>
       </div>
       <Link
-        href={marketplacePath('/acquire')}
+        href={marketplacePath("/acquire")}
         className="mt-3 flex w-full items-center justify-center rounded-lg border border-border bg-card py-2 text-center text-xs font-bold text-foreground transition-colors hover:bg-muted"
       >
         See listing
@@ -267,28 +311,34 @@ function FeedDealFromStartup({ s }: { s: Startup }) {
           />
         </div>
         <div className="min-w-0 flex-1 text-right">
-          <StartupLink slug={s.slug} className="text-sm font-bold leading-tight line-clamp-2 hover:underline">
+          <StartupLink
+            slug={s.slug}
+            className="text-sm font-bold leading-tight line-clamp-2 hover:underline"
+          >
             {s.name}
           </StartupLink>
-
         </div>
       </div>
-      <p className="mt-2 line-clamp-3 text-xs text-muted-foreground leading-relaxed">{s.description}</p>
+      <p className="mt-2 line-clamp-3 text-xs text-muted-foreground leading-relaxed">
+        {s.description}
+      </p>
       <div className="mt-4 grid grid-cols-3 gap-2 rounded-lg border border-dotted border-border/80 bg-background/50 py-2 text-center text-[10px]">
         <div>
           <div className="text-muted-foreground">Price</div>
           <div className="mt-0.5 font-bold tabular-nums">
-            {s.price != null ? formatShortCurrency(s.price) : '—'}
+            {s.price != null ? formatShortCurrency(s.price) : "—"}
           </div>
         </div>
         <div>
           <div className="text-muted-foreground">MRR</div>
-          <div className="mt-0.5 font-bold tabular-nums">{formatShortCurrency(s.revenue)}</div>
+          <div className="mt-0.5 font-bold tabular-nums">
+            {formatShortCurrency(s.revenue)}
+          </div>
         </div>
         <div>
           <div className="text-muted-foreground">Multiple</div>
           <div className="mt-0.5 font-bold tabular-nums">
-            {s.multiple != null ? `${s.multiple.toFixed(1)}x` : '—'}
+            {s.multiple != null ? `${s.multiple.toFixed(1)}x` : "—"}
           </div>
         </div>
       </div>

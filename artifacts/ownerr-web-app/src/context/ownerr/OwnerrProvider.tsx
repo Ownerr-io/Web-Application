@@ -7,25 +7,24 @@ import {
   useRef,
   useState,
   type ReactNode,
-} from 'react';
-import { useAuth } from '@/context/AuthContext';
-import { useActiveProduct } from '@/context/ActiveProductContext';
-import { loadFounderSubmissionsForUser } from '@/lib/founderService';
-import type { FounderSubmissionRecord } from '@/lib/founderTypes';
+} from "react";
+import { useAuth } from "@/context/AuthContext";
+import { useActiveProduct } from "@/context/ActiveProductContext";
+import { loadFounderSubmissionsForUser } from "@/lib/founderService";
+import type { FounderSubmissionRecord } from "@/lib/founderTypes";
 import {
   isDuplicateDbError,
   logProductIssue,
   toUserFacingProductError,
-} from '@/lib/observability/productErrors';
-import { provisionOwnerrProduct, touchProductSession } from '@/lib/products/provision';
-import { getSupabase, isSupabaseConfigured } from '@/lib/supabase/client';
+} from "@/lib/observability/productErrors";
+import {
+  loadOwnerrOsProviderProfile,
+  provisionOwnerrProduct,
+  touchProductSession,
+  type OwnerrOsIdentityProfile,
+} from "@/lib/products/provision";
 
-export type OwnerrProfileRow = {
-  id: string;
-  auth_user_id: string;
-  created_at: string;
-  updated_at: string;
-};
+export type OwnerrProfileRow = OwnerrOsIdentityProfile;
 
 type OwnerrContextValue = {
   loading: boolean;
@@ -47,7 +46,9 @@ export function OwnerrProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [profile, setProfile] = useState<OwnerrProfileRow | null>(null);
-  const [founderRecords, setFounderRecords] = useState<FounderSubmissionRecord[]>([]);
+  const [founderRecords, setFounderRecords] = useState<
+    FounderSubmissionRecord[]
+  >([]);
 
   const reload = useCallback(async () => {
     if (!userId) {
@@ -62,27 +63,20 @@ export function OwnerrProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      setActiveProduct('ownerr_os');
+      setActiveProduct("ownerr_os");
       await provisionOwnerrProduct(session!.user);
-      await touchProductSession(userId, 'ownerr_os');
+      await touchProductSession(userId, "ownerr_os");
 
-      if (isSupabaseConfigured()) {
-        const { data, error: profErr } = await getSupabase()
-          .from('ownerr_profiles')
-          .select('id, auth_user_id, created_at, updated_at')
-          .eq('auth_user_id', userId)
-          .maybeSingle();
-        if (profErr) throw profErr;
-        setProfile((data as OwnerrProfileRow | null) ?? null);
-      }
+      const identity = await loadOwnerrOsProviderProfile(userId);
+      setProfile(identity);
 
       const records = await loadFounderSubmissionsForUser(userId);
       setFounderRecords(records);
     } catch (err) {
       if (!isDuplicateDbError(err)) {
-        logProductIssue('provider.ownerr', err, { userId });
+        logProductIssue("provider.ownerr", err, { userId });
       }
-      setError(toUserFacingProductError(err, 'Failed to load OWNERR OS'));
+      setError(toUserFacingProductError(err, "Failed to load OWNERR OS"));
       setProfile(null);
       setFounderRecords([]);
     } finally {
@@ -102,11 +96,13 @@ export function OwnerrProvider({ children }: { children: ReactNode }) {
     [loading, error, profile, founderRecords, founderRecord, reload],
   );
 
-  return <OwnerrContext.Provider value={value}>{children}</OwnerrContext.Provider>;
+  return (
+    <OwnerrContext.Provider value={value}>{children}</OwnerrContext.Provider>
+  );
 }
 
 export function useOwnerr(): OwnerrContextValue {
   const ctx = useContext(OwnerrContext);
-  if (!ctx) throw new Error('useOwnerr must be used within OwnerrProvider');
+  if (!ctx) throw new Error("useOwnerr must be used within OwnerrProvider");
   return ctx;
 }

@@ -11,7 +11,9 @@ export function isSupabaseConfigured(): boolean {
 
 export function getSupabase(): SupabaseClient {
   if (!url || !anonKey) {
-    throw new Error("VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are required.");
+    throw new Error(
+      "VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY are required.",
+    );
   }
   if (!client) {
     client = createClient(url, anonKey, {

@@ -1,8 +1,8 @@
-import { motion, useReducedMotion } from 'framer-motion';
-import type { ValuationInputs } from '@/lib/valuationIntel';
-import { formatShortCurrency } from '@/lib/utils';
-import type { OnboardingMeta } from './types';
-import { VALUATION_QUESTIONS, getQuestionValue } from './valuationQuestions';
+import { motion, useReducedMotion } from "framer-motion";
+import type { ValuationInputs } from "@/lib/valuationIntel";
+import { formatShortCurrency } from "@/lib/utils";
+import type { OnboardingMeta } from "./types";
+import { VALUATION_QUESTIONS, getQuestionValue } from "./valuationQuestions";
 
 type Props = {
   inputs: ValuationInputs;
@@ -15,12 +15,13 @@ export function ValuationCaptureSummary({ inputs, meta }: Props) {
     const v = getQuestionValue(q, inputs, meta).trim();
     if (!v && q.optional) return null;
     let display = v;
-    if (q.id === 'mrr' || q.id === 'arr' || q.id === 'cac' || q.id === 'ltv') {
-      const n = Number(v.replace(/,/g, ''));
+    if (q.id === "mrr" || q.id === "arr" || q.id === "cac" || q.id === "ltv") {
+      const n = Number(v.replace(/,/g, ""));
       if (Number.isFinite(n) && n > 0) display = formatShortCurrency(n);
     }
-    if (q.id === 'monthlyGrowthPct' || q.id === 'churnPctMonthly') display = v ? `${v}%` : '—';
-    return { label: q.prompt.replace(/\?$/, ''), value: display || '—' };
+    if (q.id === "monthlyGrowthPct" || q.id === "churnPctMonthly")
+      display = v ? `${v}%` : "—";
+    return { label: q.prompt.replace(/\?$/, ""), value: display || "—" };
   }).filter(Boolean) as { label: string; value: string }[];
 
   return (
@@ -35,7 +36,8 @@ export function ValuationCaptureSummary({ inputs, meta }: Props) {
           VERIFIED DATA SUBMISSION MATRIX
         </h3>
         <p className="mt-1.5 text-sm font-medium text-[color:var(--terminal-muted)]">
-          Audit ledger of corporate and financial inputs provided during questionnaire synthesis.
+          Audit ledger of corporate and financial inputs provided during
+          questionnaire synthesis.
         </p>
       </div>
 

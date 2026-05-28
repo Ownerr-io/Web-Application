@@ -1,4 +1,4 @@
-import type { Founder, Startup } from '@/lib/marketplace/types';
+import type { Founder, Startup } from "@/lib/marketplace/types";
 
 export function buildFoundersFromStartups(startups: Startup[]): Founder[] {
   const map = new Map<string, Founder>();

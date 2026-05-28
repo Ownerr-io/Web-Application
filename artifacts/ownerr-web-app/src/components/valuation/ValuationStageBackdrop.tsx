@@ -1,14 +1,17 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import { motion, useReducedMotion } from "framer-motion";
 
 type Props = {
-  intensity?: 'intro' | 'flow' | 'results';
+  intensity?: "intro" | "flow" | "results";
   /** Minimal motion so form text stays readable. */
   calm?: boolean;
 };
 
-export function ValuationStageBackdrop({ intensity = 'flow', calm = false }: Props) {
+export function ValuationStageBackdrop({
+  intensity = "flow",
+  calm = false,
+}: Props) {
   const reduce = useReducedMotion();
-  const deep = intensity === 'intro';
+  const deep = intensity === "intro";
 
   return (
     <div
@@ -20,17 +23,17 @@ export function ValuationStageBackdrop({ intensity = 'flow', calm = false }: Pro
         style={{
           background:
             calm || deep
-              ? 'radial-gradient(ellipse 90% 50% at 50% 100%, color-mix(in srgb, var(--terminal-glow) 35%, transparent), transparent 55%), radial-gradient(ellipse 100% 80% at 50% 0%, color-mix(in srgb, var(--terminal-bg) 100%, transparent), transparent 70%)'
-              : 'radial-gradient(ellipse 120% 90% at 50% -30%, color-mix(in srgb, var(--terminal-glow) 70%, transparent), transparent 55%), radial-gradient(ellipse 80% 60% at 0% 100%, color-mix(in srgb, var(--terminal-ochre) 12%, transparent), transparent 45%)',
+              ? "radial-gradient(ellipse 90% 50% at 50% 100%, color-mix(in srgb, var(--terminal-glow) 35%, transparent), transparent 55%), radial-gradient(ellipse 100% 80% at 50% 0%, color-mix(in srgb, var(--terminal-bg) 100%, transparent), transparent 70%)"
+              : "radial-gradient(ellipse 120% 90% at 50% -30%, color-mix(in srgb, var(--terminal-glow) 70%, transparent), transparent 55%), radial-gradient(ellipse 80% 60% at 0% 100%, color-mix(in srgb, var(--terminal-ochre) 12%, transparent), transparent 45%)",
         }}
       />
 
       {!reduce && !calm ? (
         <motion.div
           className="absolute left-1/2 top-[10%] h-[min(55vh,440px)] w-[min(92vw,600px)] -translate-x-1/2 rounded-full opacity-40 blur-[100px]"
-          style={{ background: 'var(--terminal-glow)' }}
+          style={{ background: "var(--terminal-glow)" }}
           animate={{ scale: [1, 1.04, 1] }}
-          transition={{ duration: 12, repeat: Infinity, ease: 'easeInOut' }}
+          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut" }}
         />
       ) : null}
 

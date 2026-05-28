@@ -1,9 +1,9 @@
-import type { ReactNode } from 'react';
-import { Redirect } from 'wouter';
-import { useAuth } from '@/context/AuthContext';
-import type { AuthRole } from '@/lib/auth/types';
-import { MARKETPLACE_ROUTES } from '@/routing/routeRegistry';
-import { marketplaceWorkspaceForRole } from '@/routing/navigationRegistry';
+import type { ReactNode } from "react";
+import { Redirect } from "wouter";
+import { useAuth } from "@/context/AuthContext";
+import type { AuthRole } from "@/lib/auth/types";
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
+import { marketplaceWorkspaceForRole } from "@/routing/navigationRegistry";
 
 type Props = {
   role: AuthRole;

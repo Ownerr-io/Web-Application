@@ -1,7 +1,12 @@
-import { ChevronLeft } from 'lucide-react';
-import { Link, useLocation } from 'wouter';
-import { cn } from '@/lib/utils';
-import { MARKETPLACE_BASE, marketplacePath } from '@/lib/appPaths';
+import { ChevronLeft } from "lucide-react";
+import { Link, useLocation } from "wouter";
+import { cn } from "@/lib/utils";
+import {
+  MARKETPLACE_BASE,
+  isMarketplaceBuyerAppPath,
+  marketplaceBrowsePath,
+  marketplacePath,
+} from "@/lib/appPaths";
 
 type PageBackRowProps = {
   className?: string;
@@ -16,8 +21,13 @@ type PageBackRowProps = {
 export function PageBackRow({ className, showHome = true }: PageBackRowProps) {
   const [location, setLocation] = useLocation();
   const onMarketplace =
-    location.startsWith(`${MARKETPLACE_BASE}/`) || location === MARKETPLACE_BASE;
-  const homeHref = onMarketplace ? marketplacePath('/') : '/';
+    location.startsWith(`${MARKETPLACE_BASE}/`) ||
+    location === MARKETPLACE_BASE;
+  const homeHref = isMarketplaceBuyerAppPath(location)
+    ? marketplaceBrowsePath(location)
+    : onMarketplace
+      ? marketplacePath("/")
+      : "/";
 
   function goBack() {
     if (window.history.length > 1) {
@@ -30,7 +40,7 @@ export function PageBackRow({ className, showHome = true }: PageBackRowProps) {
   return (
     <div
       className={cn(
-        'flex flex-wrap items-center gap-2 [column-gap:0.5rem] [row-gap:0.5rem]',
+        "flex flex-wrap items-center gap-2 [column-gap:0.5rem] [row-gap:0.5rem]",
         className,
       )}
     >

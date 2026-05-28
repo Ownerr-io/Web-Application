@@ -1,4 +1,4 @@
-import type { Startup } from '@/lib/mockData';
+import type { Startup } from "@/lib/mockData";
 
 /** Inputs used to derive 0–100 Business, Lend, and Acquisition power scores. */
 export type StartupScoreInput = {
@@ -49,18 +49,34 @@ export function computeStartupScores(s: StartupScoreInput): {
   const growthTerm = Math.max(-18, Math.min(22, mom * 0.55));
   const scaleBonus = s.customers > 5000 ? 10 : s.customers > 500 ? 5 : 0;
   const businessScore = clamp100(
-    24 + logRev * 11.5 + growthTerm + scaleBonus * 0.5 + (marginHint > 0.15 ? 6 : 0) + j1,
+    24 +
+      logRev * 11.5 +
+      growthTerm +
+      scaleBonus * 0.5 +
+      (marginHint > 0.15 ? 6 : 0) +
+      j1,
   );
 
   const stability = mom >= -2 && mom <= 35 ? 6 : mom < -2 ? -4 : 2;
   const lendScore = clamp100(
-    30 + marginHint * 34 + logRev * 7 + (profit > rev * 3 ? 8 : 0) + stability + j2,
+    30 +
+      marginHint * 34 +
+      logRev * 7 +
+      (profit > rev * 3 ? 8 : 0) +
+      stability +
+      j2,
   );
 
   const saleBoost = s.forSale ? 14 : 0;
   const multipleAttract = mult > 0 && mult < 2 ? 12 : mult < 3.5 ? 7 : 3;
   const acquisitionPower = clamp100(
-    20 + saleBoost + multipleAttract + logRev * 8 + growthTerm * 0.35 + (s.price && s.forSale ? 4 : 0) + j3,
+    20 +
+      saleBoost +
+      multipleAttract +
+      logRev * 8 +
+      growthTerm * 0.35 +
+      (s.price && s.forSale ? 4 : 0) +
+      j3,
   );
 
   return { businessScore, lendScore, acquisitionPower };
@@ -68,11 +84,11 @@ export function computeStartupScores(s: StartupScoreInput): {
 
 export function ensureStartupScores(s: Startup): Startup {
   if (
-    typeof s.businessScore === 'number' &&
+    typeof s.businessScore === "number" &&
     !Number.isNaN(s.businessScore) &&
-    typeof s.lendScore === 'number' &&
+    typeof s.lendScore === "number" &&
     !Number.isNaN(s.lendScore) &&
-    typeof s.acquisitionPower === 'number' &&
+    typeof s.acquisitionPower === "number" &&
     !Number.isNaN(s.acquisitionPower)
   ) {
     return s;

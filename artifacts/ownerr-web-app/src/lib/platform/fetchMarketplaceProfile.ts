@@ -1,5 +1,5 @@
-import type { AuthRole } from '@/lib/auth/types';
-import { getSupabase, isSupabaseConfigured } from '@/lib/supabase/client';
+import type { AuthRole } from "@/lib/auth/types";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
 export type MarketplaceProfileRow = {
   id: string;
@@ -15,12 +15,13 @@ function pickProfileForRole(
   preferredRole: AuthRole | null,
 ): MarketplaceProfileRow | null {
   if (rows.length === 0) return null;
-  if (preferredRole === 'buyer') {
-    return rows.find((r) => r.desk_role === 'buyer') ?? rows[0]!;
+  if (preferredRole === "buyer") {
+    return rows.find((r) => r.desk_role === "buyer") ?? rows[0]!;
   }
-  if (preferredRole === 'founder') {
+  if (preferredRole === "founder") {
     return (
-      rows.find((r) => r.desk_role === 'seller' || r.desk_role === 'founder') ?? rows[0]!
+      rows.find((r) => r.desk_role === "seller" || r.desk_role === "founder") ??
+      rows[0]!
     );
   }
   return rows[0]!;
@@ -32,9 +33,9 @@ export async function fetchMarketplaceProfileForUser(
 ): Promise<MarketplaceProfileRow | null> {
   if (!isSupabaseConfigured()) return null;
   const { data, error } = await getSupabase()
-    .from('marketplace_profiles')
-    .select('id, auth_user_id, desk_role, metadata, created_at, updated_at')
-    .eq('auth_user_id', authUserId);
+    .from("marketplace_profiles")
+    .select("id, auth_user_id, desk_role, metadata, created_at, updated_at")
+    .eq("auth_user_id", authUserId);
   if (error) throw error;
   const rows = (data ?? []) as MarketplaceProfileRow[];
   return pickProfileForRole(rows, preferredRole);

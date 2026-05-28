@@ -1,11 +1,10 @@
-import type { ReactNode } from 'react';
-import { Link } from 'wouter';
-import { Button } from '@/components/ui/button';
-import { useAuth } from '@/context/AuthContext';
-import { PUBLIC_ROUTES } from '@/routing/routeRegistry';
-import type { AuthenticatedWorkspace } from '@/routing/routeRegistry';
-import { OWNERR_OS_APP_CONTENT_CLASS } from '@/lib/ownerrOsAppLayout';
-import { cn } from '@/lib/utils';
+import type { ReactNode } from "react";
+import { Link } from "wouter";
+import { Button } from "@/components/ui/button";
+import { useAuth } from "@/context/AuthContext";
+import { PUBLIC_ROUTES } from "@/routing/routeRegistry";
+import type { AuthenticatedWorkspace } from "@/routing/routeRegistry";
+import { OWNERR_OS_APP_CONTENT_CLASS } from "@/lib/ownerrOsAppLayout";
 
 type Props = {
   product: AuthenticatedWorkspace;
@@ -15,21 +14,26 @@ type Props = {
   wide?: boolean;
 };
 
-export function ProductSettingsShell({ product, title, children, wide }: Props) {
+export function ProductSettingsShell({
+  product,
+  title,
+  children,
+  wide,
+}: Props) {
   const { session, authUser, currentUser, logout } = useAuth();
-  const email = currentUser?.email ?? session?.user.email ?? '';
+  const email = currentUser?.email ?? session?.user.email ?? "";
   const displayName =
     currentUser?.name ??
     authUser?.user_metadata?.full_name?.toString() ??
-    email.split('@')[0] ??
-    'User';
+    email.split("@")[0] ??
+    "User";
 
   const shellClass =
-    product === 'ownerr-os'
+    product === "ownerr-os" || product === "ownerr-network"
       ? OWNERR_OS_APP_CONTENT_CLASS
       : wide
-        ? 'mx-auto max-w-3xl space-y-6 pb-8'
-        : 'mx-auto max-w-lg space-y-8';
+        ? "mx-auto max-w-3xl space-y-6 pb-8"
+        : "mx-auto max-w-lg space-y-8";
 
   return (
     <div className={shellClass}>
@@ -47,18 +51,27 @@ export function ProductSettingsShell({ product, title, children, wide }: Props) 
               Signed in as
             </h2>
             <p className="mt-2 text-lg font-bold">{displayName}</p>
-            {email ? <p className="text-sm text-muted-foreground">{email}</p> : null}
+            {email ? (
+              <p className="text-sm text-muted-foreground">{email}</p>
+            ) : null}
           </section>
           {children}
           <section className="space-y-3">
             <p className="text-sm text-muted-foreground">
-              To use another OWNERR product, log out and open it from{' '}
-              <Link href={PUBLIC_ROUTES.products} className="font-semibold text-primary hover:underline">
+              To use another OWNERR product, log out and open it from{" "}
+              <Link
+                href={PUBLIC_ROUTES.products}
+                className="font-semibold text-primary hover:underline"
+              >
                 Products
               </Link>
               .
             </p>
-            <Button type="button" variant="destructive" onClick={() => void logout()}>
+            <Button
+              type="button"
+              variant="destructive"
+              onClick={() => void logout()}
+            >
               Log out
             </Button>
           </section>

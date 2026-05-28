@@ -1,5 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
-import { normalizeEnterpriseDollars } from '@/lib/utils';
+import { useEffect, useMemo, useState } from "react";
+import { normalizeEnterpriseDollars } from "@/lib/utils";
 
 const easeOutCubic = (t: number) => 1 - (1 - t) ** 3;
 

@@ -10,7 +10,11 @@ import { useOwnerrNetworkLandingSession } from "@/hooks/useOwnerrNetworkLandingS
 import { ensureNetworkTablesDetected } from "@/lib/ownerr-network/dbTables";
 
 export default function OwnerrNetworkLandingPage() {
-  const { session, profile, loading: authLoading } = useOwnerrNetworkLandingSession();
+  const {
+    session,
+    profile,
+    loading: authLoading,
+  } = useOwnerrNetworkLandingSession();
   const [leaders, setLeaders] = useState<LeaderboardEntry[]>([]);
   const [liveCount] = useState(1284);
   const loggedIn = Boolean(session && profile);
@@ -22,7 +26,9 @@ export default function OwnerrNetworkLandingPage() {
   useEffect(() => {
     document.title = "Ownerr Network | OWNERR";
     captureOwnerrNetworkReferralFromSearch(window.location.search);
-    void trackOwnerrNetworkEvent("page_view", { path: "/products/ownerr-network" });
+    void trackOwnerrNetworkEvent("page_view", {
+      path: "/products/ownerr-network",
+    });
   }, []);
 
   useEffect(() => {

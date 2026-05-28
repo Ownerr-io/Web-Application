@@ -1,19 +1,19 @@
-import { useRef } from 'react';
-import { motion, useInView, useReducedMotion } from 'framer-motion';
-import { fadeUp } from '@/components/landing/saas/motion';
-import { cn } from '@/lib/utils';
+import { useRef } from "react";
+import { motion, useInView, useReducedMotion } from "framer-motion";
+import { fadeUp } from "@/components/landing/saas/motion";
+import { cn } from "@/lib/utils";
 
 type Props = {
   children: React.ReactNode;
   className?: string;
   delay?: number;
-  as?: 'div' | 'section';
+  as?: "div" | "section";
 };
 
-export function Reveal({ children, className, delay = 0, as = 'div' }: Props) {
+export function Reveal({ children, className, delay = 0, as = "div" }: Props) {
   const ref = useRef(null);
   const reduce = useReducedMotion();
-  const inView = useInView(ref, { once: true, margin: '-8% 0px' });
+  const inView = useInView(ref, { once: true, margin: "-8% 0px" });
   const Comp = motion[as];
 
   if (reduce) {
@@ -26,7 +26,7 @@ export function Reveal({ children, className, delay = 0, as = 'div' }: Props) {
       ref={ref}
       className={className}
       initial="hidden"
-      animate={inView ? 'visible' : 'hidden'}
+      animate={inView ? "visible" : "hidden"}
       variants={fadeUp}
       custom={delay}
     >
@@ -44,7 +44,7 @@ export function RevealStagger({
 }) {
   const ref = useRef(null);
   const reduce = useReducedMotion();
-  const inView = useInView(ref, { once: true, margin: '-6% 0px' });
+  const inView = useInView(ref, { once: true, margin: "-6% 0px" });
 
   if (reduce) {
     return <div className={className}>{children}</div>;
@@ -55,7 +55,7 @@ export function RevealStagger({
       ref={ref}
       className={cn(className)}
       initial="hidden"
-      animate={inView ? 'visible' : 'hidden'}
+      animate={inView ? "visible" : "hidden"}
       variants={{
         hidden: {},
         visible: { transition: { staggerChildren: 0.12, delayChildren: 0.06 } },
@@ -66,7 +66,13 @@ export function RevealStagger({
   );
 }
 
-export function RevealItem({ children, className }: { children: React.ReactNode; className?: string }) {
+export function RevealItem({
+  children,
+  className,
+}: {
+  children: React.ReactNode;
+  className?: string;
+}) {
   return (
     <motion.div className={className} variants={fadeUp}>
       {children}

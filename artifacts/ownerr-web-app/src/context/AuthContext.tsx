@@ -52,7 +52,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(configured);
   const [session, setSession] = useState<Session | null>(null);
 
-  const currentUser = useMemo(() => mapDeskUserFromSupabase(session?.user ?? null), [session]);
+  const currentUser = useMemo(
+    () => mapDeskUserFromSupabase(session?.user ?? null),
+    [session],
+  );
 
   useEffect(() => {
     if (!configured) {
@@ -73,7 +76,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const requireConfigured = useCallback(() => {
     if (!configured) {
-      throw new Error("Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.");
+      throw new Error(
+        "Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY.",
+      );
     }
   }, [configured]);
 
@@ -97,15 +102,26 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     clearActiveProduct();
   }, [configured]);
 
-  const signInWithEmail = useCallback(async (email: string, password: string) => {
-    requireConfigured();
-    const supabase = getSupabase();
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
-    if (error) throw error;
-  }, [requireConfigured]);
+  const signInWithEmail = useCallback(
+    async (email: string, password: string) => {
+      requireConfigured();
+      const supabase = getSupabase();
+      const { error } = await supabase.auth.signInWithPassword({
+        email,
+        password,
+      });
+      if (error) throw error;
+    },
+    [requireConfigured],
+  );
 
   const signUpWithEmail = useCallback(
-    async (email: string, password: string, name: string, metadata?: Record<string, unknown>) => {
+    async (
+      email: string,
+      password: string,
+      name: string,
+      metadata?: Record<string, unknown>,
+    ) => {
       requireConfigured();
       const supabase = getSupabase();
       const { error } = await supabase.auth.signUp({
@@ -123,40 +139,46 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [requireConfigured],
   );
 
-  const signInWithGoogle = useCallback(async (redirectTo: string) => {
-    requireConfigured();
-    const supabase = getSupabase();
-    const { data, error } = await supabase.auth.signInWithOAuth({
-      provider: "google",
-      options: {
-        redirectTo,
-        queryParams: {
-          prompt: "select_account",
+  const signInWithGoogle = useCallback(
+    async (redirectTo: string) => {
+      requireConfigured();
+      const supabase = getSupabase();
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo,
+          queryParams: {
+            prompt: "select_account",
+          },
         },
-      },
-    });
+      });
 
-    if (error) throw error;
+      if (error) throw error;
 
-    if (data?.url) {
-      window.location.assign(data.url);
-      return;
-    }
+      if (data?.url) {
+        window.location.assign(data.url);
+        return;
+      }
 
-    throw new Error(
-      "Google sign-in did not return a redirect URL. Enable the Google provider in Supabase (Authentication → Providers) and add this redirect URL to the allow list.",
-    );
-  }, [requireConfigured]);
+      throw new Error(
+        "Google sign-in did not return a redirect URL. Enable the Google provider in Supabase (Authentication → Providers) and add this redirect URL to the allow list.",
+      );
+    },
+    [requireConfigured],
+  );
 
-  const resetPasswordForEmail = useCallback(async (email: string) => {
-    requireConfigured();
-    const supabase = getSupabase();
-    const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-    const { error } = await supabase.auth.resetPasswordForEmail(email, {
-      redirectTo: `${window.location.origin}${base}/products`,
-    });
-    if (error) throw error;
-  }, [requireConfigured]);
+  const resetPasswordForEmail = useCallback(
+    async (email: string) => {
+      requireConfigured();
+      const supabase = getSupabase();
+      const base = import.meta.env.BASE_URL.replace(/\/$/, "");
+      const { error } = await supabase.auth.resetPasswordForEmail(email, {
+        redirectTo: `${window.location.origin}${base}/products`,
+      });
+      if (error) throw error;
+    },
+    [requireConfigured],
+  );
 
   const value = useMemo<AuthContextValue>(
     () => ({

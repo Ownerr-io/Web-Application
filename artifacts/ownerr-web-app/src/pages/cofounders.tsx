@@ -1,24 +1,27 @@
-import { useState, useEffect, useMemo } from 'react';
-import { motion } from 'framer-motion';
-import { Link } from 'wouter';
-import { buildFoundersFromStartups } from '@/lib/marketplace/founders';
-import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
-import { marketplacePath } from '@/lib/appPaths';
-import { founderAvatarUrl } from '@/lib/utils';
-import { Search } from 'lucide-react';
+import { useState, useEffect, useMemo } from "react";
+import { motion } from "framer-motion";
+import { Link } from "wouter";
+import { buildFoundersFromStartups } from "@/lib/marketplace/founders";
+import { usePublicStartups } from "@/hooks/marketplace/usePublicStartups";
+import { marketplacePath } from "@/lib/appPaths";
+import { founderAvatarUrl } from "@/lib/utils";
+import { Search } from "lucide-react";
 
 export default function Cofounders() {
   const { data: publicStartups = [] } = usePublicStartups();
-  const mockFounders = useMemo(() => buildFoundersFromStartups(publicStartups), [publicStartups]);
+  const mockFounders = useMemo(
+    () => buildFoundersFromStartups(publicStartups),
+    [publicStartups],
+  );
   const [isMounted, setIsMounted] = useState(false);
-  const [search, setSearch] = useState('');
+  const [search, setSearch] = useState("");
 
   useEffect(() => {
     setIsMounted(true);
   }, []);
 
   const lookingForCofounder = mockFounders.filter((f) => f.lookingForCofounder);
-  
+
   const q = search.trim().toLowerCase();
   const filtered = lookingForCofounder.filter((f) => {
     if (!q) return true;
@@ -38,9 +41,11 @@ export default function Cofounders() {
       <div className="flex flex-col md:flex-row gap-4 justify-between items-start md:items-center">
         <div>
           <h1 className="text-3xl font-bold mb-2">Co-founders directory</h1>
-          <p className="mp-body">Verified founders looking for their next partner.</p>
+          <p className="mp-body">
+            Verified founders looking for their next partner.
+          </p>
         </div>
-        
+
         <div className="relative w-full max-w-md md:max-w-lg md:shrink-0 md:ml-auto">
           <Search
             className="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
@@ -68,22 +73,29 @@ export default function Cofounders() {
             <Link href={marketplacePath(`/founder/${founder.handle}`)}>
               <div className="startup-card p-5 h-full flex flex-col group cursor-pointer">
                 <div className="flex items-center gap-3 mb-4">
-                  <img 
-                    src={founderAvatarUrl(founder.avatarSeed)} 
+                  <img
+                    src={founderAvatarUrl(founder.avatarSeed)}
                     alt={founder.name}
                     className="w-12 h-12 rounded-full bg-muted border border-border"
                   />
                   <div>
-                    <h3 className="font-bold text-lg group-hover:underline leading-tight">{founder.name}</h3>
-                    <p className="text-xs text-muted-foreground">{founder.twitter}</p>
+                    <h3 className="font-bold text-lg group-hover:underline leading-tight">
+                      {founder.name}
+                    </h3>
+                    <p className="text-xs text-muted-foreground">
+                      {founder.twitter}
+                    </p>
                   </div>
                 </div>
-                
+
                 <p className="text-sm mb-4 flex-1">{founder.bio}</p>
-                
+
                 <div className="flex flex-wrap gap-1 mt-auto pt-4 border-t border-border">
-                  {founder.skills.map(skill => (
-                    <span key={skill} className="text-[10px] bg-muted/50 border border-border px-2 py-1 rounded font-bold uppercase tracking-wider">
+                  {founder.skills.map((skill) => (
+                    <span
+                      key={skill}
+                      className="text-[10px] bg-muted/50 border border-border px-2 py-1 rounded font-bold uppercase tracking-wider"
+                    >
                       {skill}
                     </span>
                   ))}
@@ -98,7 +110,9 @@ export default function Cofounders() {
         <div className="startup-card p-12 text-center flex flex-col items-center justify-center bg-muted/10 border-dashed">
           <div className="text-4xl mb-4">🔍</div>
           <h3 className="font-bold text-lg mb-2">No founders found</h3>
-          <p className="text-muted-foreground text-sm">Try searching for different skills.</p>
+          <p className="text-muted-foreground text-sm">
+            Try searching for different skills.
+          </p>
         </div>
       )}
     </div>

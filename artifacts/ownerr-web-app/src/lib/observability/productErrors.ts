@@ -1,18 +1,18 @@
 type ProductErrorScope =
-  | 'auth.callback'
-  | 'auth.session'
-  | 'provision.ownerr'
-  | 'provision.marketplace'
-  | 'provision.ownerr_network'
-  | 'provider.ownerr'
-  | 'provider.marketplace'
-  | 'provider.ownerr_network';
+  | "auth.callback"
+  | "auth.session"
+  | "provision.ownerr"
+  | "provision.marketplace"
+  | "provision.ownerr_network"
+  | "provider.ownerr"
+  | "provider.marketplace"
+  | "provider.ownerr_network";
 
 /** Postgres unique violation or PostgREST conflict — expected during idempotent provision. */
 export function isDuplicateDbError(err: unknown): boolean {
   const code = (err as { code?: string })?.code;
   const status = (err as { status?: number })?.status;
-  return code === '23505' || status === 409;
+  return code === "23505" || status === 409;
 }
 
 /** Structured dev log for unexpected product failures (no noise for duplicates). */
@@ -32,7 +32,10 @@ export function logProductIssue(
   console.error(`[ownerr:product]`, payload);
 }
 
-export function toUserFacingProductError(err: unknown, fallback: string): string {
+export function toUserFacingProductError(
+  err: unknown,
+  fallback: string,
+): string {
   if (err instanceof Error && err.message.trim()) return err.message;
   return fallback;
 }

@@ -10,10 +10,10 @@ Environment files (repo root):
 
 1. Copy `.env.example` → `.env.local` and fill **Database password**, **anon key**, and **service role key** from the Supabase dashboard.
 2. Put the **connection string** (URI) into `DATABASE_URL` in `.env.local`.
-2. Run the migration in [migrations/20260521120000_founder_viral_system.sql](./migrations/20260521120000_founder_viral_system.sql) via the SQL editor or `supabase db push`.
-3. Founder flows use **Supabase RPC** (`founder_track_referral`, `founder_analytics_summary`, etc.). Set admin analytics key in Postgres:
+3. Run the migration in [migrations/20260521120000_founder_viral_system.sql](./migrations/20260521120000_founder_viral_system.sql) via the SQL editor or `supabase db push`.
+4. Founder flows use **Supabase RPC** (`founder_track_referral`, `founder_analytics_summary`, etc.). Set admin analytics key in Postgres:
    - `update public.founder_admin_secrets set secret = 'your-key' where id = 1;`
-4. Push schema (pick one):
+5. Push schema (pick one):
    - **SQL migrations (works with `.env.local`):** `npm run db:migrate`
    - **Supabase CLI:** `supabase login` → `npm run supabase:link` → `npm run supabase:push`
    - **Drizzle sync from TypeScript schema:** `npm run db:push` (loads `DATABASE_URL` from `.env.local`)

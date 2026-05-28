@@ -1,14 +1,18 @@
-import type { ReactNode } from 'react';
-import { Redirect, useLocation } from 'wouter';
-import { useAuth } from '@/context/AuthContext';
-import { isPlatformAdminUser } from '@/lib/auth/platformAdmin';
-import { useActiveProduct } from '@/context/ActiveProductContext';
-import { productDashboardPath, readActiveProduct, saveIntendedRoute } from '@/lib/auth/productLock';
-import { resolveMembershipAppForPath } from '@/lib/platform/appMembership';
-import { resolveRoleAccess } from '@/routing/authorize';
-import { useOptionalOwnerrNetwork } from '@/context/ownerr-network/OwnerrNetworkProvider';
-import { isDemoMarketplaceLockedSession } from '@/lib/marketplace/demoSessionLock';
-import { buildAuthStartRedirect } from '@/routing/authResolver';
+import type { ReactNode } from "react";
+import { Redirect, useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
+import { isPlatformAdminUser } from "@/lib/auth/platformAdmin";
+import { useActiveProduct } from "@/context/ActiveProductContext";
+import {
+  productDashboardPath,
+  readActiveProduct,
+  saveIntendedRoute,
+} from "@/lib/auth/productLock";
+import { resolveMembershipAppForPath } from "@/lib/platform/appMembership";
+import { resolveRoleAccess } from "@/routing/authorize";
+import { useOptionalOwnerrNetwork } from "@/context/ownerr-network/OwnerrNetworkProvider";
+import { isDemoMarketplaceLockedSession } from "@/lib/marketplace/demoSessionLock";
+import { buildAuthStartRedirect } from "@/routing/authResolver";
 type Props = {
   children: ReactNode;
   pathname?: string;
@@ -39,8 +43,8 @@ export function RouteGuard({ children, pathname }: Props) {
   if (routeApp && session) {
     const demoLocked = isDemoMarketplaceLockedSession(session.user.email);
     const locked = activeProduct ?? readActiveProduct();
-    if (demoLocked && routeApp === 'marketplace') {
-      if (locked !== 'marketplace') setActiveProduct('marketplace');
+    if (demoLocked && routeApp === "marketplace") {
+      if (locked !== "marketplace") setActiveProduct("marketplace");
     } else if (locked && locked !== routeApp) {
       return <Redirect to={productDashboardPath(locked)} />;
     } else if (!locked || locked !== routeApp) {
@@ -56,7 +60,7 @@ export function RouteGuard({ children, pathname }: Props) {
   });
 
   if (!access.allowed) {
-    if (access.reason === 'auth') {
+    if (access.reason === "auth") {
       saveIntendedRoute(path);
     }
     return <Redirect to={access.fallback} />;

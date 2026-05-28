@@ -1,8 +1,18 @@
-import { authLoginHrefForApp, authRegisterHrefForApp } from "@/lib/auth/authLogin";
+import {
+  authLoginHrefForApp,
+  authRegisterHrefForApp,
+} from "@/lib/auth/authLogin";
 import { captureProductIntentFromPath } from "@/lib/auth/productLock";
-import { matchRouteRule, normalizePathname } from "@/lib/platform/routeRegistry";
+import {
+  matchRouteRule,
+  normalizePathname,
+} from "@/lib/platform/routeRegistry";
 import { persistAuthIntent } from "@/lib/platform/authIntent";
-import type { AuthActionIntent, AuthGateInput, AuthGateResult } from "@/lib/platform/types";
+import type {
+  AuthActionIntent,
+  AuthGateInput,
+  AuthGateResult,
+} from "@/lib/platform/types";
 
 const DESK_ACTIONS = new Set<AuthActionIntent>([
   "bid",
@@ -70,7 +80,10 @@ export function evaluateAuthGate(input: AuthGateInput): AuthGateResult {
   return { allowed: true };
 }
 
-export function challengeAuthForAction(pathname: string, action: AuthActionIntent): AuthGateResult {
+export function challengeAuthForAction(
+  pathname: string,
+  action: AuthActionIntent,
+): AuthGateResult {
   return evaluateAuthGate({
     pathname,
     action,
@@ -79,7 +92,10 @@ export function challengeAuthForAction(pathname: string, action: AuthActionInten
   });
 }
 
-export function storeActionAndGetLoginHref(pathname: string, action: AuthActionIntent): string {
+export function storeActionAndGetLoginHref(
+  pathname: string,
+  action: AuthActionIntent,
+): string {
   persistAuthIntent({ action, returnPath: pathname });
   const challenged = challengeAuthForAction(pathname, action);
   if (!challenged.allowed) return challenged.loginHref;

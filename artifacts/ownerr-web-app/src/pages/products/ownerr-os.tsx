@@ -1,3 +1,3 @@
-import OwnerrOsPage from '@/pages/ownerr-os';
+import OwnerrOsPage from "@/pages/ownerr-os";
 
 export default OwnerrOsPage;

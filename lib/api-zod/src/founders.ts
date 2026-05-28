@@ -84,5 +84,9 @@ export const FounderAnalyticsResponse = z.object({
   ),
 });
 
-export type CreateFounderSubmissionBody = z.infer<typeof CreateFounderSubmissionBody>;
-export type FounderSubmissionResponse = z.infer<typeof FounderSubmissionResponse>;
+export type CreateFounderSubmissionBody = z.infer<
+  typeof CreateFounderSubmissionBody
+>;
+export type FounderSubmissionResponse = z.infer<
+  typeof FounderSubmissionResponse
+>;

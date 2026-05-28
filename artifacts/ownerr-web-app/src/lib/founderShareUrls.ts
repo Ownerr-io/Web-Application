@@ -1,5 +1,6 @@
 import type { FounderSubmissionRecord } from "./founderTypes";
 import {
+  OWNERR_OS_SHARE_CARD_FILE_NAME,
   OWNERR_OS_SHARE_CARD_PATH,
   getOwnerrOsShareCardUrl,
   getPublicSiteOrigin,
@@ -11,15 +12,24 @@ export function getPublicShareOrigin(): string {
   return getPublicSiteOrigin();
 }
 
-/** Static OWNERR OS share card (JPEG in /public). */
-export function getFounderCardImageUrl(_record?: FounderSubmissionRecord): string {
+/** Static OWNERR OS share card (`public/ownerr-os-share-card.jpg`). */
+export function getFounderCardImageUrl(
+  _record?: FounderSubmissionRecord,
+): string {
   return getOwnerrOsShareCardUrl();
 }
 
-export { OWNERR_OS_SHARE_CARD_PATH, getOwnerrOsShareCardUrl, getPublicSiteOrigin };
+export {
+  OWNERR_OS_SHARE_CARD_FILE_NAME,
+  OWNERR_OS_SHARE_CARD_PATH,
+  getOwnerrOsShareCardUrl,
+  getPublicSiteOrigin,
+};
 
 /** HTML share landing with OG tags — opens this page, not the raw image. */
-export function getFounderSharePageUrl(record: FounderSubmissionRecord): string {
+export function getFounderSharePageUrl(
+  record: FounderSubmissionRecord,
+): string {
   const origin = getPublicShareOrigin();
   return `${origin}/share/founder/${encodeURIComponent(record.referralCode)}`;
 }

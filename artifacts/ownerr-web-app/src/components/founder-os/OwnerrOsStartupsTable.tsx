@@ -1,4 +1,4 @@
-import { useLocation } from 'wouter';
+import { useLocation } from "wouter";
 import {
   Table,
   TableBody,
@@ -6,9 +6,9 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import type { FounderSubmissionRecord } from '@/lib/founderTypes';
-import { ownerrOsListingDetailPath } from '@/lib/ownerrOsRoutes';
+} from "@/components/ui/table";
+import type { FounderSubmissionRecord } from "@/lib/founderTypes";
+import { ownerrOsListingDetailPath } from "@/lib/ownerrOsRoutes";
 
 type Props = {
   records: FounderSubmissionRecord[];
@@ -33,8 +33,6 @@ export function OwnerrOsStartupsTable({ records }: Props) {
             <TableHead className="font-bold">Startup</TableHead>
             <TableHead className="font-bold">Category</TableHead>
             <TableHead className="text-right font-bold">Visits</TableHead>
-            <TableHead className="text-right font-bold">Signups</TableHead>
-            <TableHead className="font-bold">Referral code</TableHead>
             <TableHead className="font-bold">Listed</TableHead>
           </TableRow>
         </TableHeader>
@@ -42,19 +40,25 @@ export function OwnerrOsStartupsTable({ records }: Props) {
           {records.map((row) => {
             const listed = row.createdAt
               ? new Date(row.createdAt).toLocaleDateString()
-              : '—';
+              : "—";
             return (
               <TableRow
                 key={row.id}
                 className="cursor-pointer"
                 onClick={() => navigate(ownerrOsListingDetailPath(row.id))}
               >
-                <TableCell className="font-semibold">{row.startupName}</TableCell>
-                <TableCell className="text-muted-foreground">{row.category ?? '—'}</TableCell>
-                <TableCell className="text-right tabular-nums">{row.visitCount}</TableCell>
-                <TableCell className="text-right tabular-nums">{row.referralSignupCount}</TableCell>
-                <TableCell className="font-mono text-xs">{row.referralCode}</TableCell>
-                <TableCell className="text-muted-foreground">{listed}</TableCell>
+                <TableCell className="font-semibold">
+                  {row.startupName}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {row.category ?? "—"}
+                </TableCell>
+                <TableCell className="text-right tabular-nums">
+                  {row.visitCount}
+                </TableCell>
+                <TableCell className="text-muted-foreground">
+                  {listed}
+                </TableCell>
               </TableRow>
             );
           })}

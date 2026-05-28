@@ -1,6 +1,6 @@
-import { useLayoutEffect } from 'react';
-import { useLocation } from 'wouter';
-import { scrollPageToTop } from '@/lib/scrollPageToTop';
+import { useLayoutEffect } from "react";
+import { useLocation } from "wouter";
+import { scrollPageToTop } from "@/lib/scrollPageToTop";
 
 let scrollRestorationPatched = false;
 
@@ -11,8 +11,12 @@ export function ScrollToTop() {
   const [location] = useLocation();
 
   useLayoutEffect(() => {
-    if (!scrollRestorationPatched && typeof history !== 'undefined' && 'scrollRestoration' in history) {
-      history.scrollRestoration = 'manual';
+    if (
+      !scrollRestorationPatched &&
+      typeof history !== "undefined" &&
+      "scrollRestoration" in history
+    ) {
+      history.scrollRestoration = "manual";
       scrollRestorationPatched = true;
     }
 

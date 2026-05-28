@@ -1,4 +1,7 @@
-import type { CreateFounderInput, FounderSubmissionRecord } from "@/lib/founderTypes";
+import type {
+  CreateFounderInput,
+  FounderSubmissionRecord,
+} from "@/lib/founderTypes";
 import { OWNERR_OS_REFERENCE_DRAFT } from "./ownerrOsFormDefaults";
 
 export type FounderFormDraft = CreateFounderInput & {
@@ -8,7 +11,12 @@ export type FounderFormDraft = CreateFounderInput & {
   whatsapp: string;
 };
 
-export type FounderQuestionKind = "text" | "textarea" | "url" | "select" | "photo";
+export type FounderQuestionKind =
+  | "text"
+  | "textarea"
+  | "url"
+  | "select"
+  | "photo";
 
 export type FounderQuestion = {
   id: keyof FounderFormDraft | "photo";
@@ -125,7 +133,9 @@ export function defaultFounderDraft(): FounderFormDraft {
   };
 }
 
-export function recordToFounderDraft(record: FounderSubmissionRecord): FounderFormDraft {
+export function recordToFounderDraft(
+  record: FounderSubmissionRecord,
+): FounderFormDraft {
   const social = record.socialLinks ?? {};
   return {
     founderName: record.founderName,
@@ -149,13 +159,19 @@ export function questionProgress(index: number): number {
   return Math.round(((index + 1) / FOUNDER_QUESTIONS.length) * 100);
 }
 
-export function getQuestionValue(q: FounderQuestion, draft: FounderFormDraft): string {
+export function getQuestionValue(
+  q: FounderQuestion,
+  draft: FounderFormDraft,
+): string {
   if (q.id === "photo") return draft.founderPhoto ? "uploaded" : "";
   const v = draft[q.id as keyof FounderFormDraft];
   return typeof v === "string" ? v : "";
 }
 
-export function validateQuestion(q: FounderQuestion, draft: FounderFormDraft): string | undefined {
+export function validateQuestion(
+  q: FounderQuestion,
+  draft: FounderFormDraft,
+): string | undefined {
   if (q.id === "photo") return undefined;
   const raw = getQuestionValue(q, draft).trim();
   if (!raw && !q.optional) return "This field is required.";
@@ -173,7 +189,9 @@ export function validateQuestion(q: FounderQuestion, draft: FounderFormDraft): s
   return undefined;
 }
 
-export function draftToSubmitInput(draft: FounderFormDraft): CreateFounderInput {
+export function draftToSubmitInput(
+  draft: FounderFormDraft,
+): CreateFounderInput {
   return {
     founderName: draft.founderName.trim(),
     startupName: draft.startupName.trim(),

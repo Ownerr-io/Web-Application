@@ -9,14 +9,14 @@
 
 ## Tables still required (not launcher UI)
 
-| Table | Purpose |
-|-------|---------|
-| `platform_users` | Identity row (email, display_name) for upsert on first product provision |
-| `user_app_access` | Per-product membership (`app_slug`, role, status) |
-| `ownerr_profiles` / `marketplace_profiles` / `unemployed_profiles` | Product-specific profile rows |
-| `unemployed_users` | Unemployed network user record (RPC + legacy) |
-| `product_sessions` | Optional server-side last-active product audit |
-| `user_preferences` | Reserved for per-user JSON preferences (not wired in UI yet) |
+| Table                                                              | Purpose                                                                  |
+| ------------------------------------------------------------------ | ------------------------------------------------------------------------ |
+| `platform_users`                                                   | Identity row (email, display_name) for upsert on first product provision |
+| `user_app_access`                                                  | Per-product membership (`app_slug`, role, status)                        |
+| `ownerr_profiles` / `marketplace_profiles` / `unemployed_profiles` | Product-specific profile rows                                            |
+| `unemployed_users`                                                 | Unemployed network user record (RPC + legacy)                            |
+| `product_sessions`                                                 | Optional server-side last-active product audit                           |
+| `user_preferences`                                                 | Reserved for per-user JSON preferences (not wired in UI yet)             |
 
 ## Safe upsert assumptions
 
