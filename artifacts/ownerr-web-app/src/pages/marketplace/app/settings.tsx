@@ -1,5 +1,6 @@
-import { MarketplaceAppSettings } from '@/components/marketplace/MarketplaceAppSettings';
+import { RedirectToProductProfile } from "@/components/routing/RedirectToProductProfile";
 
+/** Legacy URL — profile holds account settings. */
 export default function MarketplaceAppSettingsPage() {
-  return <MarketplaceAppSettings />;
+  return <RedirectToProductProfile product="marketplace" />;
 }

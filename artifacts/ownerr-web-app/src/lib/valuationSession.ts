@@ -1,9 +1,12 @@
-import { getDB } from '@/lib/db';
-import type { ValuationInputs } from '@/lib/valuationIntel';
-import type { OnboardingMeta, ValuationPhase } from '@/components/valuation/types';
+import { getDB } from "@/lib/db";
+import type { ValuationInputs } from "@/lib/valuationIntel";
+import type {
+  OnboardingMeta,
+  ValuationPhase,
+} from "@/components/valuation/types";
 
-const STORE = 'valuation-session';
-const SESSION_ID = 'active';
+const STORE = "valuation-session";
+const SESSION_ID = "active";
 
 export type ValuationSessionSnapshot = {
   phase: ValuationPhase;
@@ -25,7 +28,9 @@ type Row = {
 export async function loadValuationSession(): Promise<ValuationSessionSnapshot | null> {
   try {
     const db = await getDB();
-    const row = (await db.get(STORE as 'valuation-session', SESSION_ID)) as Row | undefined;
+    const row = (await db.get(STORE as "valuation-session", SESSION_ID)) as
+      | Row
+      | undefined;
     if (!row) return null;
     return {
       phase: row.phase as ValuationPhase,
@@ -39,7 +44,9 @@ export async function loadValuationSession(): Promise<ValuationSessionSnapshot |
   }
 }
 
-export async function saveValuationSession(snapshot: ValuationSessionSnapshot): Promise<void> {
+export async function saveValuationSession(
+  snapshot: ValuationSessionSnapshot,
+): Promise<void> {
   try {
     const db = await getDB();
     const row: Row = {
@@ -50,7 +57,7 @@ export async function saveValuationSession(snapshot: ValuationSessionSnapshot): 
       meta: snapshot.meta,
       updatedAt: snapshot.updatedAt,
     };
-    await db.put(STORE as 'valuation-session', row);
+    await db.put(STORE as "valuation-session", row);
   } catch {
     /* ignore quota / private mode */
   }
@@ -59,7 +66,7 @@ export async function saveValuationSession(snapshot: ValuationSessionSnapshot): 
 export async function clearValuationSession(): Promise<void> {
   try {
     const db = await getDB();
-    await db.delete(STORE as 'valuation-session', SESSION_ID);
+    await db.delete(STORE as "valuation-session", SESSION_ID);
   } catch {
     /* ignore */
   }

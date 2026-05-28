@@ -1,10 +1,10 @@
-import { Link } from 'wouter';
-import { useAuth } from '@/context/AuthContext';
-import { useMarketplace } from '@/context/marketplace/MarketplaceProvider';
-import { marketplaceAppRoutes } from '@/routes/appRoutes';
-import { MARKETPLACE_ROUTES, PRODUCT_ROUTES } from '@/routing/routeRegistry';
-import { marketplaceWorkspaceForRole } from '@/routing/navigationRegistry';
-import type { AuthRole } from '@/lib/auth/types';
+import { Link } from "wouter";
+import { useAuth } from "@/context/AuthContext";
+import { useMarketplace } from "@/context/marketplace/MarketplaceProvider";
+import { marketplaceAppRoutes } from "@/routes/appRoutes";
+import { MARKETPLACE_ROUTES, PRODUCT_ROUTES } from "@/routing/routeRegistry";
+import { marketplaceWorkspaceForRole } from "@/routing/navigationRegistry";
+import type { AuthRole } from "@/lib/auth/types";
 
 /**
  * Authenticated hub at `/marketplace/app`.
@@ -14,18 +14,27 @@ export default function DashboardHubPage() {
   const { profile: marketplaceProfile, loading, error } = useMarketplace();
 
   const deskRole =
-    (marketplaceProfile?.desk_role as AuthRole | null | undefined) ?? currentUser?.role ?? null;
+    (marketplaceProfile?.desk_role as AuthRole | null | undefined) ??
+    currentUser?.role ??
+    null;
 
   return (
     <div className="mx-auto max-w-4xl space-y-8">
       <header className="space-y-2">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">Operations</p>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">Desk overview</h1>
+        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+          Operations
+        </p>
+        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          Desk overview
+        </h1>
         <p className="text-sm text-muted-foreground">
-          Profile and shortcuts for your marketplace desk (loaded from your database record).
+          Profile and shortcuts for your marketplace desk (loaded from your
+          database record).
         </p>
         {loading ? (
-          <p className="text-xs text-muted-foreground">Refreshing desk profile…</p>
+          <p className="text-xs text-muted-foreground">
+            Refreshing desk profile…
+          </p>
         ) : null}
         {error ? <p className="text-xs text-destructive">{error}</p> : null}
         {deskRole ? (
@@ -34,27 +43,37 @@ export default function DashboardHubPage() {
           </p>
         ) : (
           <p className="text-sm text-muted-foreground">
-            No desk role on file yet. Use buyer or founder flows to create your marketplace profile.
+            No desk role on file yet. Use buyer or founder flows to create your
+            marketplace profile.
           </p>
         )}
       </header>
 
-      {deskRole === 'buyer' ? (
+      {deskRole === "buyer" ? (
         <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-5">
           <h2 className="text-sm font-bold">Buyer</h2>
           <ul className="flex flex-col gap-2 text-sm font-medium">
             <li>
-              <Link className="text-primary underline-offset-4 hover:underline" href={marketplaceAppRoutes.buyerBids}>
+              <Link
+                className="text-primary underline-offset-4 hover:underline"
+                href={marketplaceAppRoutes.buyerBids}
+              >
                 My bids
               </Link>
             </li>
             <li>
-              <Link className="text-primary underline-offset-4 hover:underline" href={marketplaceAppRoutes.buyerInterests}>
+              <Link
+                className="text-primary underline-offset-4 hover:underline"
+                href={marketplaceAppRoutes.buyerInterests}
+              >
                 Saved startups
               </Link>
             </li>
             <li>
-              <Link className="text-primary underline-offset-4 hover:underline" href={marketplaceAppRoutes.buyerAcquire}>
+              <Link
+                className="text-primary underline-offset-4 hover:underline"
+                href={marketplaceAppRoutes.buyerAcquire}
+              >
                 Browse startups
               </Link>
             </li>
@@ -62,22 +81,31 @@ export default function DashboardHubPage() {
         </div>
       ) : null}
 
-      {deskRole === 'founder' ? (
+      {deskRole === "founder" ? (
         <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-5">
           <h2 className="text-sm font-bold">Seller</h2>
           <ul className="flex flex-col gap-2 text-sm font-medium">
             <li>
-              <Link className="text-primary underline-offset-4 hover:underline" href={marketplaceAppRoutes.founderListings}>
+              <Link
+                className="text-primary underline-offset-4 hover:underline"
+                href={marketplaceAppRoutes.founderListings}
+              >
                 My listings
               </Link>
             </li>
             <li>
-              <Link className="text-primary underline-offset-4 hover:underline" href={marketplaceAppRoutes.founderInbox}>
+              <Link
+                className="text-primary underline-offset-4 hover:underline"
+                href={marketplaceAppRoutes.founderInbox}
+              >
                 Inbox
               </Link>
             </li>
             <li>
-              <Link className="text-primary underline-offset-4 hover:underline" href={marketplaceAppRoutes.founderVerification}>
+              <Link
+                className="text-primary underline-offset-4 hover:underline"
+                href={marketplaceAppRoutes.founderVerification}
+              >
                 Verification
               </Link>
             </li>
@@ -85,13 +113,14 @@ export default function DashboardHubPage() {
         </div>
       ) : null}
 
-      {deskRole ? (
-        <ButtonRow deskRole={deskRole} />
-      ) : null}
+      {deskRole ? <ButtonRow deskRole={deskRole} /> : null}
 
       <p className="text-center text-xs text-muted-foreground">
-        <Link href={MARKETPLACE_ROUTES.settings} className="font-bold hover:text-foreground">
-          Marketplace settings
+        <Link
+          href={MARKETPLACE_ROUTES.sellerProfile}
+          className="font-bold hover:text-foreground"
+        >
+          Marketplace profile
         </Link>
       </p>
     </div>
@@ -108,8 +137,11 @@ function ButtonRow({ deskRole }: { deskRole: AuthRole }) {
       >
         Open {deskRole} workspace
       </Link>
-      <Link href={PRODUCT_ROUTES.ownerrOsSettings} className="text-sm font-bold text-muted-foreground hover:text-foreground">
-        OWNERR OS settings
+      <Link
+        href={PRODUCT_ROUTES.ownerrOsProfile}
+        className="text-sm font-bold text-muted-foreground hover:text-foreground"
+      >
+        OWNERR OS profile
       </Link>
     </div>
   );

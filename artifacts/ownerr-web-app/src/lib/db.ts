@@ -46,19 +46,27 @@ export function getDB(): Promise<IDBPDatabase<OwnerrDB>> {
     dbPromise = openDB<OwnerrDB>(DB_NAME, DB_VERSION, {
       upgrade(db, oldVersion) {
         if (!db.objectStoreNames.contains(USER_STARTUP_STORE)) {
-          const store = db.createObjectStore(USER_STARTUP_STORE, { keyPath: "slug" });
+          const store = db.createObjectStore(USER_STARTUP_STORE, {
+            keyPath: "slug",
+          });
           store.createIndex("by-slug", "slug", { unique: true });
         }
         if (!db.objectStoreNames.contains(AUTH_USERS_STORE)) {
-          const store = db.createObjectStore(AUTH_USERS_STORE, { keyPath: "id" });
+          const store = db.createObjectStore(AUTH_USERS_STORE, {
+            keyPath: "id",
+          });
           store.createIndex("by-email", "email", { unique: true });
         }
         if (!db.objectStoreNames.contains(VALUATION_SESSION_STORE)) {
           db.createObjectStore(VALUATION_SESSION_STORE, { keyPath: "id" });
         }
         if (!db.objectStoreNames.contains(FOUNDER_SUBMISSIONS_STORE)) {
-          const store = db.createObjectStore(FOUNDER_SUBMISSIONS_STORE, { keyPath: "id" });
-          store.createIndex("by-referral-code", "referralCode", { unique: true });
+          const store = db.createObjectStore(FOUNDER_SUBMISSIONS_STORE, {
+            keyPath: "id",
+          });
+          store.createIndex("by-referral-code", "referralCode", {
+            unique: true,
+          });
         }
         if (oldVersion < 10) {
           const legacyStores = new Set([
@@ -95,12 +103,16 @@ export async function getAuthUsersDB(): Promise<AuthUser[]> {
   return db.getAll(AUTH_USERS_STORE);
 }
 
-export async function getAuthUserByIdDB(id: string): Promise<AuthUser | undefined> {
+export async function getAuthUserByIdDB(
+  id: string,
+): Promise<AuthUser | undefined> {
   const db = await getDB();
   return db.get(AUTH_USERS_STORE, id);
 }
 
-export async function getAuthUserByEmailDB(email: string): Promise<AuthUser | undefined> {
+export async function getAuthUserByEmailDB(
+  email: string,
+): Promise<AuthUser | undefined> {
   const db = await getDB();
   return db.getFromIndex(AUTH_USERS_STORE, "by-email", email);
 }
@@ -110,12 +122,16 @@ export async function putAuthUserDB(user: AuthUser): Promise<void> {
   await db.put(AUTH_USERS_STORE, user);
 }
 
-export async function putFounderSubmissionDB(record: FounderSubmissionRecord): Promise<void> {
+export async function putFounderSubmissionDB(
+  record: FounderSubmissionRecord,
+): Promise<void> {
   const db = await getDB();
   await db.put(FOUNDER_SUBMISSIONS_STORE, record);
 }
 
-export async function getFounderSubmissionDB(id: string): Promise<FounderSubmissionRecord | undefined> {
+export async function getFounderSubmissionDB(
+  id: string,
+): Promise<FounderSubmissionRecord | undefined> {
   const db = await getDB();
   return db.get(FOUNDER_SUBMISSIONS_STORE, id);
 }
@@ -127,7 +143,9 @@ export async function getFounderByReferralCodeDB(
   return db.getFromIndex(FOUNDER_SUBMISSIONS_STORE, "by-referral-code", code);
 }
 
-export async function getAllFounderSubmissionsDB(): Promise<FounderSubmissionRecord[]> {
+export async function getAllFounderSubmissionsDB(): Promise<
+  FounderSubmissionRecord[]
+> {
   const db = await getDB();
   return db.getAll(FOUNDER_SUBMISSIONS_STORE);
 }

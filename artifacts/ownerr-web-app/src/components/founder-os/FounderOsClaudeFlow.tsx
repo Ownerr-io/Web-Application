@@ -96,13 +96,23 @@ export function FounderOsClaudeFlow({
   if (!q) return null;
 
   return (
-    <ValuationFullViewport center={false} className="grid grid-rows-[auto_1fr_auto] py-4">
-      <div className={cn(MARKETING_SHELL_CLASS, "relative z-20 shrink-0 pt-3 sm:pt-6")}>
+    <ValuationFullViewport
+      center={false}
+      className="grid grid-rows-[auto_1fr_auto] py-4"
+    >
+      <div
+        className={cn(
+          MARKETING_SHELL_CLASS,
+          "relative z-20 shrink-0 pt-3 sm:pt-6",
+        )}
+      >
         <div className="mx-auto flex max-w-2xl items-center justify-between gap-2 text-xs font-black uppercase tracking-[0.25em] text-[#EBFBBC]">
           <span>
             Listing step {questionIndex + 1} / {FOUNDER_QUESTIONS.length}
           </span>
-          <span className="tabular-nums text-[color:var(--terminal-lime)]">{progress}%</span>
+          <span className="tabular-nums text-[color:var(--terminal-lime)]">
+            {progress}%
+          </span>
         </div>
         {questionIndex > 0 ? (
           <p className="mx-auto mt-2 max-w-2xl text-center text-[11px] font-medium leading-snug text-[color:var(--terminal-muted)]">
@@ -126,7 +136,10 @@ export function FounderOsClaudeFlow({
           "max-sm:pb-28",
         )}
         style={{
-          paddingBottom: keyboardInset > 0 ? keyboardInset + mobileActionBarHeight + 12 : undefined,
+          paddingBottom:
+            keyboardInset > 0
+              ? keyboardInset + mobileActionBarHeight + 12
+              : undefined,
         }}
       >
         <AnimatePresence mode="wait">
@@ -178,7 +191,9 @@ export function FounderOsClaudeFlow({
                   error={error}
                 />
                 {error ? (
-                  <p className="mt-4 text-sm font-bold text-[color:var(--terminal-ochre)]">{error}</p>
+                  <p className="mt-4 text-sm font-bold text-[color:var(--terminal-ochre)]">
+                    {error}
+                  </p>
                 ) : null}
               </div>
             </form>
@@ -292,7 +307,11 @@ function FounderQuestionField({
         </SelectTrigger>
         <SelectContent className="rounded-xl border border-white/10 bg-[color:var(--terminal-bg)] p-1 text-white shadow-2xl">
           {q.selectOptions.map((opt) => (
-            <SelectItem key={opt} value={opt} className="cursor-pointer py-3 font-semibold uppercase">
+            <SelectItem
+              key={opt}
+              value={opt}
+              className="cursor-pointer py-3 font-semibold uppercase"
+            >
               {opt}
             </SelectItem>
           ))}

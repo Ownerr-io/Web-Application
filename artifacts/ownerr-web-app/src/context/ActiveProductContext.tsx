@@ -1,11 +1,18 @@
-import { createContext, useCallback, useContext, useMemo, useState, type ReactNode } from 'react';
-import type { AppSlug } from '@workspace/api-zod';
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+import type { AppSlug } from "@workspace/api-zod";
 import {
   clearActiveProduct,
   isAppSlug,
   persistActiveProduct,
   readActiveProduct,
-} from '@/lib/auth/productLock';
+} from "@/lib/auth/productLock";
 
 type ActiveProductContextValue = {
   activeProduct: AppSlug | null;
@@ -13,7 +20,9 @@ type ActiveProductContextValue = {
   clear: () => void;
 };
 
-const ActiveProductContext = createContext<ActiveProductContextValue | null>(null);
+const ActiveProductContext = createContext<ActiveProductContextValue | null>(
+  null,
+);
 
 function sanitizeStoredProduct(): AppSlug | null {
   const stored = readActiveProduct();
@@ -23,7 +32,9 @@ function sanitizeStoredProduct(): AppSlug | null {
 }
 
 export function ActiveProductProvider({ children }: { children: ReactNode }) {
-  const [activeProduct, setActiveProductState] = useState<AppSlug | null>(() => sanitizeStoredProduct());
+  const [activeProduct, setActiveProductState] = useState<AppSlug | null>(() =>
+    sanitizeStoredProduct(),
+  );
 
   const setActiveProduct = useCallback((slug: AppSlug) => {
     if (!isAppSlug(slug)) return;
@@ -36,14 +47,23 @@ export function ActiveProductProvider({ children }: { children: ReactNode }) {
     setActiveProductState(null);
   }, []);
 
-  const value = useMemo(() => ({ activeProduct, setActiveProduct, clear }), [activeProduct, setActiveProduct, clear]);
+  const value = useMemo(
+    () => ({ activeProduct, setActiveProduct, clear }),
+    [activeProduct, setActiveProduct, clear],
+  );
 
-  return <ActiveProductContext.Provider value={value}>{children}</ActiveProductContext.Provider>;
+  return (
+    <ActiveProductContext.Provider value={value}>
+      {children}
+    </ActiveProductContext.Provider>
+  );
 }
 
 export function useActiveProduct(): ActiveProductContextValue {
   const ctx = useContext(ActiveProductContext);
-  if (!ctx) throw new Error('useActiveProduct must be used within ActiveProductProvider');
+  if (!ctx)
+    throw new Error(
+      "useActiveProduct must be used within ActiveProductProvider",
+    );
   return ctx;
 }
-

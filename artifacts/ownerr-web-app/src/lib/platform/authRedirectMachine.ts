@@ -7,4 +7,4 @@ export {
   resolvePostAuthRedirect,
   resolveAuthDestination,
   buildAuthQueryContext,
-} from '@/routing/authResolver';
+} from "@/routing/authResolver";

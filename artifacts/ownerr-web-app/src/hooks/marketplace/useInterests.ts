@@ -1,20 +1,20 @@
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { useAuth } from '@/context/AuthContext';
-import { getSupabase } from '@/lib/supabase/client';
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useAuth } from "@/context/AuthContext";
+import { getSupabase } from "@/lib/supabase/client";
 import {
   expressInterest,
   listBuyerInterests,
   withdrawInterest,
-} from '@/lib/marketplace/interestService';
-import { marketplaceKeys } from '@/lib/marketplace/queryKeys';
-import { useToast } from '@/hooks/use-toast';
-import { MarketplaceError } from '@/lib/marketplace/errors';
+} from "@/lib/marketplace/interestService";
+import { marketplaceKeys } from "@/lib/marketplace/queryKeys";
+import { useToast } from "@/hooks/use-toast";
+import { MarketplaceError } from "@/lib/marketplace/errors";
 
 export function useMyInterests() {
   const { session } = useAuth();
   const authUserId = session?.user?.id;
   return useQuery({
-    queryKey: marketplaceKeys.interests.mine(authUserId ?? ''),
+    queryKey: marketplaceKeys.interests.mine(authUserId ?? ""),
     queryFn: () => listBuyerInterests(authUserId!),
     enabled: !!authUserId,
   });
@@ -26,9 +26,15 @@ export function useExpressInterest() {
   const { toast } = useToast();
 
   return useMutation({
-    mutationFn: async (input: { listingSlug: string; message: string; offerAmount?: number | null }) => {
-      const { data: { user } } = await getSupabase().auth.getUser();
-      if (!user) throw new MarketplaceError('Sign in required', 'forbidden');
+    mutationFn: async (input: {
+      listingSlug: string;
+      message: string;
+      offerAmount?: number | null;
+    }) => {
+      const {
+        data: { user },
+      } = await getSupabase().auth.getUser();
+      if (!user) throw new MarketplaceError("Sign in required", "forbidden");
       return expressInterest({
         user,
         listingSlug: input.listingSlug,
@@ -38,16 +44,20 @@ export function useExpressInterest() {
     },
     onSuccess: () => {
       if (currentUser) {
-        void qc.invalidateQueries({ queryKey: marketplaceKeys.interests.mine(currentUser.id) });
-        void qc.invalidateQueries({ queryKey: marketplaceKeys.bids.mine(currentUser.id) });
+        void qc.invalidateQueries({
+          queryKey: marketplaceKeys.interests.mine(currentUser.id),
+        });
+        void qc.invalidateQueries({
+          queryKey: marketplaceKeys.bids.mine(currentUser.id),
+        });
       }
-      toast({ title: 'Interest sent' });
+      toast({ title: "Interest sent" });
     },
     onError: (err: Error) => {
       toast({
-        title: 'Could not send interest',
+        title: "Could not send interest",
         description: err.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });
@@ -62,14 +72,16 @@ export function useWithdrawInterest() {
     mutationFn: (interestId: string) => withdrawInterest(interestId),
     onSuccess: () => {
       if (currentUser) {
-        void qc.invalidateQueries({ queryKey: marketplaceKeys.interests.mine(currentUser.id) });
+        void qc.invalidateQueries({
+          queryKey: marketplaceKeys.interests.mine(currentUser.id),
+        });
       }
     },
     onError: (err: Error) => {
       toast({
-        title: 'Could not withdraw interest',
+        title: "Could not withdraw interest",
         description: err.message,
-        variant: 'destructive',
+        variant: "destructive",
       });
     },
   });

@@ -11,11 +11,16 @@ export default function OwnerrOsPage() {
 
   useEffect(() => {
     const search = typeof window !== "undefined" ? window.location.search : "";
-    const params = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
+    const params = new URLSearchParams(
+      search.startsWith("?") ? search : `?${search}`,
+    );
     if (params.get("ref")?.trim()) {
-      navigate(`${PRODUCT_ROUTES.ownerrOsJoin}${search.startsWith("?") ? search : `?${search}`}`, {
-        replace: true,
-      });
+      navigate(
+        `${PRODUCT_ROUTES.ownerrOsJoin}${search.startsWith("?") ? search : `?${search}`}`,
+        {
+          replace: true,
+        },
+      );
       return;
     }
     const attr = captureReferralFromSearch(search);
@@ -25,7 +30,7 @@ export default function OwnerrOsPage() {
   }, [location, navigate]);
 
   return (
-    <MarketingLayout fullBleedMain hideFooter hideProductContext>
+    <MarketingLayout fullBleedMain hideProductContext>
       <FounderOsIntroScene
         onContinue={() => navigate(`${AUTH_ROUTES.start}?product=ownerr-os`)}
         secondaryCtaHref={PRODUCT_ROUTES.ownerrOsJoin}

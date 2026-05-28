@@ -1,9 +1,11 @@
-import type { AuthRole } from '@/lib/auth/types';
-import { inferAuthRoleFromMarketplaceAppPath } from '@/lib/auth/marketplaceDeskRole';
-import { getSupabase, isSupabaseConfigured } from '@/lib/supabase/client';
+import type { AuthRole } from "@/lib/auth/types";
+import { inferAuthRoleFromMarketplaceAppPath } from "@/lib/auth/marketplaceDeskRole";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 
 /** Align JWT user_metadata.role with the desk URL the user is opening. */
-export async function syncMarketplaceDeskRoleForPath(returnTo: string | null): Promise<AuthRole | null> {
+export async function syncMarketplaceDeskRoleForPath(
+  returnTo: string | null,
+): Promise<AuthRole | null> {
   if (!returnTo || !isSupabaseConfigured()) return null;
   const role = inferAuthRoleFromMarketplaceAppPath(returnTo);
   if (!role) return null;

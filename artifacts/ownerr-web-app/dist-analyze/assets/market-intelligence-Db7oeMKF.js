@@ -1,1 +1,293 @@
-import{j as e,E as a,c as t,M as l}from"./index-B-37iCee.js";const s=[{k:"M&A_VELOCITY",v:"↑ 6.2% q/q",sub:"Strategic > financial sponsor mix",tone:"up"},{k:"AI_DEAL_HEAT",v:"High · inflow",sub:"Bid depth concentrated in infra + workflow",tone:"hot"},{k:"MULTIPLE_DRIFT",v:"-0.4 turns",sub:"SaaS $2–8M ARR band tightening",tone:"down"},{k:"CROSS_BORDER",v:"Stable",sub:"FX-hedged processes unchanged w/w",tone:"flat"},{k:"SECONDARIES",v:"Thin",sub:"LP-led blocks below 12mo median",tone:"flat"},{k:"EARLY_STAGE",v:"Soft",sub:"Seed extension cadence elevated",tone:"down"}],o=[{sector:"B2B SaaS · workflow",multiple:"4.8–6.2× ARR",trend:"Tightening",note:"Buyers discount sub-85% NRR"},{sector:"AI infra · tooling",multiple:"7.5–11× ARR",trend:"Premium",note:"Strategic scarcity on verified data moats"},{sector:"Vertical fintech",multiple:"3.2–4.5× revenue",trend:"Stable",note:"Reg path drives diligence length"},{sector:"Consumer subscription",multiple:"2.1–3.0× revenue",trend:"Soft",note:"CAC payback >18mo penalized"},{sector:"Marketplace / network",multiple:"5.5–8.0× GMV net",trend:"Selective",note:"Liquidity depth matters more than GMV"}],n=[{label:"Median time-to-IOI",value:"11.4d",delta:"-1.2d vs 90d"},{label:"Verified listing share",value:"68%",delta:"+4pp w/w"},{label:"Strategic bid share",value:"41%",delta:"Flat w/w"}];function i(r){return r==="up"||r==="hot"?"text-[color:var(--terminal-lime)]":r==="down"?"text-[color:var(--terminal-ochre)]":"text-[color:var(--terminal-fg)]"}function c(){return e.jsx(a,{children:e.jsxs("div",{className:t(l,"space-y-10 py-10 sm:space-y-12 sm:py-14"),children:[e.jsxs("header",{className:"space-y-3.5 border-b border-[color:var(--terminal-border)] pb-8",children:[e.jsx("p",{className:"terminal-eyebrow",children:"Market intelligence"}),e.jsx("h1",{className:"text-balance leading-tight",children:"Startup liquidity radar"}),e.jsx("p",{className:"mt-2 max-w-2xl text-sm font-medium leading-relaxed text-[color:var(--terminal-muted)]",children:"Rolling desk notes distilled into a terminal-native snapshot. Figures are illustrative composites — pair with your own scenario outputs before allocation decisions."})]}),e.jsx("section",{className:"grid gap-3 sm:grid-cols-3",children:n.map(r=>e.jsxs("div",{className:"rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] px-4 py-3",children:[e.jsx("p",{className:"text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]",children:r.label}),e.jsx("p",{className:"mt-1 font-mono text-xl font-bold tabular-nums text-[color:var(--terminal-ochre)]",children:r.value}),e.jsx("p",{className:"mt-1 text-xs text-[color:var(--terminal-muted)]",children:r.delta})]},r.label))}),e.jsx("section",{className:"grid gap-3 sm:grid-cols-2 lg:grid-cols-3",children:s.map(r=>e.jsxs("div",{className:"rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4 transition-colors hover:border-[color:var(--terminal-ochre)]/30",children:[e.jsx("div",{className:"text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]",children:r.k}),e.jsx("div",{className:t("mt-2 font-mono text-lg font-bold tabular-nums",i(r.tone)),children:r.v}),e.jsx("p",{className:"mt-2 text-xs leading-relaxed text-[color:var(--terminal-muted)]",children:r.sub})]},r.k))}),e.jsxs("section",{className:"overflow-hidden rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]",children:[e.jsxs("div",{className:"border-b border-[color:var(--terminal-border)] px-4 py-3",children:[e.jsx("h2",{className:"text-balance text-base font-bold",children:"Sector multiple monitor"}),e.jsx("p",{className:"mt-1 text-xs text-[color:var(--terminal-muted)]",children:"Indicative bands · not investment advice"})]}),e.jsx("div",{className:"overflow-x-auto",children:e.jsxs("table",{className:"w-full min-w-[640px] text-left text-sm",children:[e.jsx("thead",{children:e.jsxs("tr",{className:"border-b border-[color:var(--terminal-border)] text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]",children:[e.jsx("th",{className:"px-4 py-3 font-bold",children:"Sector"}),e.jsx("th",{className:"px-4 py-3 font-bold",children:"Band"}),e.jsx("th",{className:"px-4 py-3 font-bold",children:"Trend"}),e.jsx("th",{className:"px-4 py-3 font-bold",children:"Desk read"})]})}),e.jsx("tbody",{children:o.map(r=>e.jsxs("tr",{className:"border-b border-[color:var(--terminal-border)]/60 last:border-0",children:[e.jsx("td",{className:"px-4 py-3 font-semibold text-[color:var(--terminal-fg)]",children:r.sector}),e.jsx("td",{className:"px-4 py-3 font-mono tabular-nums text-[color:var(--terminal-ochre)]",children:r.multiple}),e.jsx("td",{className:"px-4 py-3 text-[color:var(--terminal-muted)]",children:r.trend}),e.jsx("td",{className:"px-4 py-3 text-xs leading-relaxed text-[color:var(--terminal-muted)]",children:r.note})]},r.sector))})]})})]}),e.jsx("section",{className:"w-full",children:e.jsx("div",{className:"w-full rounded-[10px] border border-dashed border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface-2)] px-5 py-6 sm:px-6",children:e.jsx("div",{className:"flex w-full flex-col gap-5 lg:flex-row lg:items-end lg:justify-between",children:e.jsxs("div",{className:"min-w-0 flex-1",children:[e.jsx("h2",{className:"text-balance",children:"Desk note"}),e.jsx("p",{className:"mt-3 max-w-none text-sm leading-relaxed text-[color:var(--terminal-muted)]",children:"Buyers are underwriting slower but paying for verified retention and margin durability. Listings with a full verification stack clear diligence in fewer cycles — route through Ownerr verification before broad outreach."}),e.jsx("p",{className:"mt-3 max-w-none text-sm leading-relaxed text-[color:var(--terminal-muted)]/90",children:"Next refresh: composite roll-forward after weekly strategic bid tape. Export scenario PDFs from valuation before sharing externally."})]})})})})]})})}export{c as default};
+import { j as e, E as a, c as t, M as l } from "./index-B-37iCee.js";
+const s = [
+    {
+      k: "M&A_VELOCITY",
+      v: "↑ 6.2% q/q",
+      sub: "Strategic > financial sponsor mix",
+      tone: "up",
+    },
+    {
+      k: "AI_DEAL_HEAT",
+      v: "High · inflow",
+      sub: "Bid depth concentrated in infra + workflow",
+      tone: "hot",
+    },
+    {
+      k: "MULTIPLE_DRIFT",
+      v: "-0.4 turns",
+      sub: "SaaS $2–8M ARR band tightening",
+      tone: "down",
+    },
+    {
+      k: "CROSS_BORDER",
+      v: "Stable",
+      sub: "FX-hedged processes unchanged w/w",
+      tone: "flat",
+    },
+    {
+      k: "SECONDARIES",
+      v: "Thin",
+      sub: "LP-led blocks below 12mo median",
+      tone: "flat",
+    },
+    {
+      k: "EARLY_STAGE",
+      v: "Soft",
+      sub: "Seed extension cadence elevated",
+      tone: "down",
+    },
+  ],
+  o = [
+    {
+      sector: "B2B SaaS · workflow",
+      multiple: "4.8–6.2× ARR",
+      trend: "Tightening",
+      note: "Buyers discount sub-85% NRR",
+    },
+    {
+      sector: "AI infra · tooling",
+      multiple: "7.5–11× ARR",
+      trend: "Premium",
+      note: "Strategic scarcity on verified data moats",
+    },
+    {
+      sector: "Vertical fintech",
+      multiple: "3.2–4.5× revenue",
+      trend: "Stable",
+      note: "Reg path drives diligence length",
+    },
+    {
+      sector: "Consumer subscription",
+      multiple: "2.1–3.0× revenue",
+      trend: "Soft",
+      note: "CAC payback >18mo penalized",
+    },
+    {
+      sector: "Marketplace / network",
+      multiple: "5.5–8.0× GMV net",
+      trend: "Selective",
+      note: "Liquidity depth matters more than GMV",
+    },
+  ],
+  n = [
+    { label: "Median time-to-IOI", value: "11.4d", delta: "-1.2d vs 90d" },
+    { label: "Verified listing share", value: "68%", delta: "+4pp w/w" },
+    { label: "Strategic bid share", value: "41%", delta: "Flat w/w" },
+  ];
+function i(r) {
+  return r === "up" || r === "hot"
+    ? "text-[color:var(--terminal-lime)]"
+    : r === "down"
+      ? "text-[color:var(--terminal-ochre)]"
+      : "text-[color:var(--terminal-fg)]";
+}
+function c() {
+  return e.jsx(a, {
+    children: e.jsxs("div", {
+      className: t(l, "space-y-10 py-10 sm:space-y-12 sm:py-14"),
+      children: [
+        e.jsxs("header", {
+          className:
+            "space-y-3.5 border-b border-[color:var(--terminal-border)] pb-8",
+          children: [
+            e.jsx("p", {
+              className: "terminal-eyebrow",
+              children: "Market intelligence",
+            }),
+            e.jsx("h1", {
+              className: "text-balance leading-tight",
+              children: "Startup liquidity radar",
+            }),
+            e.jsx("p", {
+              className:
+                "mt-2 max-w-2xl text-sm font-medium leading-relaxed text-[color:var(--terminal-muted)]",
+              children:
+                "Rolling desk notes distilled into a terminal-native snapshot. Figures are illustrative composites — pair with your own scenario outputs before allocation decisions.",
+            }),
+          ],
+        }),
+        e.jsx("section", {
+          className: "grid gap-3 sm:grid-cols-3",
+          children: n.map((r) =>
+            e.jsxs(
+              "div",
+              {
+                className:
+                  "rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] px-4 py-3",
+                children: [
+                  e.jsx("p", {
+                    className:
+                      "text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]",
+                    children: r.label,
+                  }),
+                  e.jsx("p", {
+                    className:
+                      "mt-1 font-mono text-xl font-bold tabular-nums text-[color:var(--terminal-ochre)]",
+                    children: r.value,
+                  }),
+                  e.jsx("p", {
+                    className:
+                      "mt-1 text-xs text-[color:var(--terminal-muted)]",
+                    children: r.delta,
+                  }),
+                ],
+              },
+              r.label,
+            ),
+          ),
+        }),
+        e.jsx("section", {
+          className: "grid gap-3 sm:grid-cols-2 lg:grid-cols-3",
+          children: s.map((r) =>
+            e.jsxs(
+              "div",
+              {
+                className:
+                  "rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4 transition-colors hover:border-[color:var(--terminal-ochre)]/30",
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]",
+                    children: r.k,
+                  }),
+                  e.jsx("div", {
+                    className: t(
+                      "mt-2 font-mono text-lg font-bold tabular-nums",
+                      i(r.tone),
+                    ),
+                    children: r.v,
+                  }),
+                  e.jsx("p", {
+                    className:
+                      "mt-2 text-xs leading-relaxed text-[color:var(--terminal-muted)]",
+                    children: r.sub,
+                  }),
+                ],
+              },
+              r.k,
+            ),
+          ),
+        }),
+        e.jsxs("section", {
+          className:
+            "overflow-hidden rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]",
+          children: [
+            e.jsxs("div", {
+              className:
+                "border-b border-[color:var(--terminal-border)] px-4 py-3",
+              children: [
+                e.jsx("h2", {
+                  className: "text-balance text-base font-bold",
+                  children: "Sector multiple monitor",
+                }),
+                e.jsx("p", {
+                  className: "mt-1 text-xs text-[color:var(--terminal-muted)]",
+                  children: "Indicative bands · not investment advice",
+                }),
+              ],
+            }),
+            e.jsx("div", {
+              className: "overflow-x-auto",
+              children: e.jsxs("table", {
+                className: "w-full min-w-[640px] text-left text-sm",
+                children: [
+                  e.jsx("thead", {
+                    children: e.jsxs("tr", {
+                      className:
+                        "border-b border-[color:var(--terminal-border)] text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]",
+                      children: [
+                        e.jsx("th", {
+                          className: "px-4 py-3 font-bold",
+                          children: "Sector",
+                        }),
+                        e.jsx("th", {
+                          className: "px-4 py-3 font-bold",
+                          children: "Band",
+                        }),
+                        e.jsx("th", {
+                          className: "px-4 py-3 font-bold",
+                          children: "Trend",
+                        }),
+                        e.jsx("th", {
+                          className: "px-4 py-3 font-bold",
+                          children: "Desk read",
+                        }),
+                      ],
+                    }),
+                  }),
+                  e.jsx("tbody", {
+                    children: o.map((r) =>
+                      e.jsxs(
+                        "tr",
+                        {
+                          className:
+                            "border-b border-[color:var(--terminal-border)]/60 last:border-0",
+                          children: [
+                            e.jsx("td", {
+                              className:
+                                "px-4 py-3 font-semibold text-[color:var(--terminal-fg)]",
+                              children: r.sector,
+                            }),
+                            e.jsx("td", {
+                              className:
+                                "px-4 py-3 font-mono tabular-nums text-[color:var(--terminal-ochre)]",
+                              children: r.multiple,
+                            }),
+                            e.jsx("td", {
+                              className:
+                                "px-4 py-3 text-[color:var(--terminal-muted)]",
+                              children: r.trend,
+                            }),
+                            e.jsx("td", {
+                              className:
+                                "px-4 py-3 text-xs leading-relaxed text-[color:var(--terminal-muted)]",
+                              children: r.note,
+                            }),
+                          ],
+                        },
+                        r.sector,
+                      ),
+                    ),
+                  }),
+                ],
+              }),
+            }),
+          ],
+        }),
+        e.jsx("section", {
+          className: "w-full",
+          children: e.jsx("div", {
+            className:
+              "w-full rounded-[10px] border border-dashed border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface-2)] px-5 py-6 sm:px-6",
+            children: e.jsx("div", {
+              className:
+                "flex w-full flex-col gap-5 lg:flex-row lg:items-end lg:justify-between",
+              children: e.jsxs("div", {
+                className: "min-w-0 flex-1",
+                children: [
+                  e.jsx("h2", {
+                    className: "text-balance",
+                    children: "Desk note",
+                  }),
+                  e.jsx("p", {
+                    className:
+                      "mt-3 max-w-none text-sm leading-relaxed text-[color:var(--terminal-muted)]",
+                    children:
+                      "Buyers are underwriting slower but paying for verified retention and margin durability. Listings with a full verification stack clear diligence in fewer cycles — route through Ownerr verification before broad outreach.",
+                  }),
+                  e.jsx("p", {
+                    className:
+                      "mt-3 max-w-none text-sm leading-relaxed text-[color:var(--terminal-muted)]/90",
+                    children:
+                      "Next refresh: composite roll-forward after weekly strategic bid tape. Export scenario PDFs from valuation before sharing externally.",
+                  }),
+                ],
+              }),
+            }),
+          }),
+        }),
+      ],
+    }),
+  });
+}
+export { c as default };

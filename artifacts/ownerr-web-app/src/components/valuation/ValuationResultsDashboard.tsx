@@ -1,14 +1,18 @@
-import { useMemo } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import type { StrategicInsightCard, ValuationInputs, ValuationOutputs } from '@/lib/valuationIntel';
-import { formatEnterpriseValuation } from '@/lib/utils';
-import { useAnimatedNumber } from './useAnimatedNumber';
-import { StrategicInsights } from '@/components/landing/StrategicInsights';
-import { ValuationGauge } from './ValuationGauge';
-import { ValuationCaptureSummary } from './ValuationCaptureSummary';
-import { ValuationExportActions } from './ValuationExportActions';
-import { buildInvestorNarrative } from '@/lib/valuationExport';
-import type { OnboardingMeta } from './types';
+import { useMemo } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import type {
+  StrategicInsightCard,
+  ValuationInputs,
+  ValuationOutputs,
+} from "@/lib/valuationIntel";
+import { formatEnterpriseValuation } from "@/lib/utils";
+import { useAnimatedNumber } from "./useAnimatedNumber";
+import { StrategicInsights } from "@/components/landing/StrategicInsights";
+import { ValuationGauge } from "./ValuationGauge";
+import { ValuationCaptureSummary } from "./ValuationCaptureSummary";
+import { ValuationExportActions } from "./ValuationExportActions";
+import { buildInvestorNarrative } from "@/lib/valuationExport";
+import type { OnboardingMeta } from "./types";
 
 type Props = {
   inputs: ValuationInputs;
@@ -18,23 +22,41 @@ type Props = {
   meta: OnboardingMeta;
 };
 
-function valuationBand(mid: number, confidencePct: number): { low: number; high: number } {
+function valuationBand(
+  mid: number,
+  confidencePct: number,
+): { low: number; high: number } {
   const spread = 0.08 + (100 - confidencePct) / 1000;
   return { low: mid * (1 - spread), high: mid * (1 + spread) };
 }
 
-export function ValuationResultsDashboard({ inputs, outputs, insights, startupName, meta }: Props) {
+export function ValuationResultsDashboard({
+  inputs,
+  outputs,
+  insights,
+  startupName,
+  meta,
+}: Props) {
   const reduce = useReducedMotion();
   const band = useMemo(
     () => valuationBand(outputs.estimatedValuation, outputs.confidencePct),
     [outputs.estimatedValuation, outputs.confidencePct],
   );
-  const animatedMid = useAnimatedNumber(outputs.estimatedValuation, 1000, !reduce);
+  const animatedMid = useAnimatedNumber(
+    outputs.estimatedValuation,
+    1000,
+    !reduce,
+  );
 
-  const narrative = useMemo(() => buildInvestorNarrative(inputs, outputs), [inputs, outputs]);
+  const narrative = useMemo(
+    () => buildInvestorNarrative(inputs, outputs),
+    [inputs, outputs],
+  );
 
   const efficiencyLabel = useMemo(() => {
-    return inputs.burnMultiple > 0 ? `${inputs.burnMultiple.toFixed(1)}× burn multiple` : '—';
+    return inputs.burnMultiple > 0
+      ? `${inputs.burnMultiple.toFixed(1)}× burn multiple`
+      : "—";
   }, [inputs.burnMultiple]);
 
   return (
@@ -49,15 +71,17 @@ export function ValuationResultsDashboard({ inputs, outputs, insights, startupNa
           <div className="min-w-0 flex-1 space-y-2.5">
             <p className="report-kicker">Venture synthesis appraisal</p>
             <h1 className="report-title text-balance">
-              {startupName ? `${startupName} · ` : ''}Executive report
+              {startupName ? `${startupName} · ` : ""}Executive report
             </h1>
             <p className="report-lead max-w-2xl">
-              Desk model output for institutional M&amp;A planning. Metrics are indexed against venture comparables and
-              your operating profile.
+              Desk model output for institutional M&amp;A planning. Metrics are
+              indexed against venture comparables and your operating profile.
             </p>
           </div>
           <div className="flex w-full min-w-0 flex-col gap-3 border-t border-white/10 pt-5 sm:w-auto sm:max-w-[min(100%,20rem)] sm:items-stretch sm:border-0 sm:pt-0">
-            <p className="report-status text-left sm:text-right">Final · synthesized</p>
+            <p className="report-status text-left sm:text-right">
+              Final · synthesized
+            </p>
             <div className="hidden sm:block">
               <ValuationExportActions
                 inputs={inputs}
@@ -83,17 +107,20 @@ export function ValuationResultsDashboard({ inputs, outputs, insights, startupNa
           <p className="report-kicker">Implied enterprise value range</p>
           {outputs.estimatedValuation <= 0 ? (
             <p className="text-base leading-relaxed text-[color:var(--terminal-muted)]">
-              No implied range yet — add{' '}
+              No implied range yet — add{" "}
               <span className="font-bold text-white">MRR or ARR</span> in the
               questionnaire so the model can anchor on revenue.
             </p>
           ) : (
             <p className="report-hero-amount" aria-live="polite">
-              {formatEnterpriseValuation(band.low)} – {formatEnterpriseValuation(band.high)}
+              {formatEnterpriseValuation(band.low)} –{" "}
+              {formatEnterpriseValuation(band.high)}
             </p>
           )}
           <div className="flex flex-col gap-1.5 sm:flex-row sm:flex-wrap sm:items-baseline sm:gap-3 pt-1">
-            <span className="report-midpoint-label">Midpoint anchor valuation</span>
+            <span className="report-midpoint-label">
+              Midpoint anchor valuation
+            </span>
             <span className="report-midpoint-value tabular-nums">
               {formatEnterpriseValuation(animatedMid)}
             </span>
@@ -183,7 +210,8 @@ export function ValuationResultsDashboard({ inputs, outputs, insights, startupNa
             </h4>
           </div>
           <p className="mt-4 text-sm text-[color:var(--terminal-muted)] leading-relaxed font-medium">
-            Strategic liquidity events and private equity transaction volume currently shape this timing corridor.
+            Strategic liquidity events and private equity transaction volume
+            currently shape this timing corridor.
           </p>
         </motion.div>
 
@@ -194,13 +222,16 @@ export function ValuationResultsDashboard({ inputs, outputs, insights, startupNa
           transition={{ delay: 0.36 }}
         >
           <div>
-            <span className="report-section-title">Capital efficiency anchor</span>
+            <span className="report-section-title">
+              Capital efficiency anchor
+            </span>
             <h4 className="mt-3.5 font-mono text-3xl font-black text-white">
               {efficiencyLabel}
             </h4>
           </div>
           <p className="mt-4 text-sm text-[color:var(--terminal-muted)] leading-relaxed font-medium">
-            Appraises Net ARR returns relative to operating capital burn rate, scaling baseline exit multiples.
+            Appraises Net ARR returns relative to operating capital burn rate,
+            scaling baseline exit multiples.
           </p>
         </motion.div>
       </motion.div>
@@ -217,7 +248,9 @@ export function ValuationResultsDashboard({ inputs, outputs, insights, startupNa
               transition={{ delay: 0.4 + i * 0.06 }}
               className="px-0 py-2.5 text-sm font-semibold leading-relaxed text-[color:var(--terminal-muted)] flex items-start gap-3.5 bg-transparent border-0 shadow-none"
             >
-              <span className="text-[color:var(--terminal-lime)] shrink-0 font-extrabold font-mono select-none">&gt;&gt;</span>
+              <span className="text-[color:var(--terminal-lime)] shrink-0 font-extrabold font-mono select-none">
+                &gt;&gt;
+              </span>
               <span className="text-white/80">{line}</span>
             </motion.li>
           ))}

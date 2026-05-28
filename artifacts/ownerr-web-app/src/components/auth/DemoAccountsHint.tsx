@@ -1,19 +1,10 @@
-import {
-  DEMO_MARKETPLACE_BUYER_EMAIL,
-  DEMO_MARKETPLACE_SELLER_EMAIL,
-  showDemoAccountHints,
-} from '@/lib/demo/demoAccountCatalog';
+import { showDemoAccountHints } from "@/lib/demo/demoAccountCatalog";
 
 /**
  * Reminds devs/QA that demo users are real Supabase Auth users (seeded), not env-based auth.
  */
 export function DemoAccountsHint() {
   if (!showDemoAccountHints()) return null;
-
-  const lines = [
-    { label: 'Buyer', email: DEMO_MARKETPLACE_BUYER_EMAIL },
-    { label: 'Seller', email: DEMO_MARKETPLACE_SELLER_EMAIL },
-  ];
 
   // return (
   //   <div className="mt-4 space-y-2 border-t border-[color:var(--terminal-border)] pt-4">

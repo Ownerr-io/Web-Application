@@ -1,16 +1,16 @@
-import { useCallback, useEffect, useRef, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from "react";
 import {
   clearValuationSession,
   loadValuationSession,
   saveValuationSession,
-} from '@/lib/valuationSession';
+} from "@/lib/valuationSession";
 import {
   hasValuationSessionProgress,
   resolveValuationSessionFromSnapshot,
   shouldAutoResumeValuationPhase,
   type RestoredValuationSession,
-} from '@/lib/valuationSessionRestore';
-import type { ValuationPhase } from './types';
+} from "@/lib/valuationSessionRestore";
+import type { ValuationPhase } from "./types";
 
 const SAVE_MS = 400;
 
@@ -19,7 +19,7 @@ export type ValuationSessionState = RestoredValuationSession & {
 };
 
 export function useValuationSessionPersist(defaults: ValuationSessionState) {
-  const [status, setStatus] = useState<'loading' | 'ready'>('loading');
+  const [status, setStatus] = useState<"loading" | "ready">("loading");
   const [session, setSession] = useState<ValuationSessionState>(defaults);
   const persistEnabled = useRef(false);
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -35,11 +35,11 @@ export function useValuationSessionPersist(defaults: ValuationSessionState) {
         if (shouldAutoResumeValuationPhase(restored.phase)) {
           setSession(restored);
         } else {
-          pendingQuestionResume.current = { ...restored, phase: 'questions' };
+          pendingQuestionResume.current = { ...restored, phase: "questions" };
         }
       }
       persistEnabled.current = true;
-      setStatus('ready');
+      setStatus("ready");
     })();
     return () => {
       cancelled = true;
@@ -47,7 +47,7 @@ export function useValuationSessionPersist(defaults: ValuationSessionState) {
   }, []);
 
   useEffect(() => {
-    if (status !== 'ready' || !persistEnabled.current) return;
+    if (status !== "ready" || !persistEnabled.current) return;
 
     const snapshot = {
       phase: session.phase,
@@ -76,7 +76,7 @@ export function useValuationSessionPersist(defaults: ValuationSessionState) {
     const pending = pendingQuestionResume.current;
     if (!pending) return null;
     pendingQuestionResume.current = null;
-    const next = { ...pending, phase: 'questions' as const };
+    const next = { ...pending, phase: "questions" as const };
     setSession(next);
     return next;
   }, []);

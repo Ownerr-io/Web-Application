@@ -39,7 +39,10 @@ export function FounderCaptureSummary({ draft }: Props) {
       </div>
       <dl className="grid gap-x-6 gap-y-5 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6">
         {rows.map((row) => (
-          <div key={row.label} className="flex flex-col justify-between border-b border-white/[0.04] pb-4">
+          <div
+            key={row.label}
+            className="flex flex-col justify-between border-b border-white/[0.04] pb-4"
+          >
             <dt className="text-[10px] font-black uppercase tracking-widest text-[color:var(--terminal-muted)]">
               {row.label}
             </dt>

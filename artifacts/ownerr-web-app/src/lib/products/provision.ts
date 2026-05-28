@@ -1,30 +1,35 @@
-import type { AppSlug } from '@workspace/api-zod';
-import { isAppSlug } from '@/lib/auth/productLock';
-import type { User } from '@supabase/supabase-js';
-import { getSupabase, isSupabaseConfigured } from '@/lib/supabase/client';
-import { ensureMarketplaceProfile } from '@/lib/marketplace/profiles';
+import type { AppSlug } from "@workspace/api-zod";
+import { isAppSlug } from "@/lib/auth/productLock";
+import type { User } from "@supabase/supabase-js";
+import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { ensureMarketplaceProfile } from "@/lib/marketplace/profiles";
 import {
   fetchCurrentOwnerrNetworkUser,
   provisionOwnerrNetworkUser,
-} from '@/lib/ownerr-network/api';
+} from "@/lib/ownerr-network/api";
 import {
   clearOwnerrNetworkReferral,
   getStoredOwnerrNetworkReferral,
-} from '@/lib/ownerr-network/referral';
-import { ensureNetworkTablesDetected, networkTables, isUsersTableActive } from '@/lib/ownerr-network/dbTables';
+} from "@/lib/ownerr-network/referral";
+import {
+  ensureNetworkTablesDetected,
+  isUsersTableActive,
+} from "@/lib/ownerr-network/dbTables";
 
-type DeskRole = 'buyer' | 'founder' | null;
+type DeskRole = "buyer" | "founder" | null;
 
-function parseDeskRole(metadata: Record<string, unknown> | undefined): DeskRole {
+function parseDeskRole(
+  metadata: Record<string, unknown> | undefined,
+): DeskRole {
   const role = metadata?.role;
-  if (role === 'buyer' || role === 'founder') return role;
+  if (role === "buyer" || role === "founder") return role;
   return null;
 }
 
 function displayNameFromUser(user: User): string | null {
   const meta = user.user_metadata as Record<string, unknown> | undefined;
   const full = meta?.full_name;
-  if (typeof full === 'string' && full.trim()) return full.trim();
+  if (typeof full === "string" && full.trim()) return full.trim();
   return null;
 }
 
@@ -42,7 +47,9 @@ function isLegacySlugEnforced(): boolean {
       detectedLegacySlugEnforced = false;
       return false;
     }
-  } catch {}
+  } catch {
+    void 0;
+  }
   return false;
 }
 
@@ -50,11 +57,18 @@ function setLegacySlugEnforced(val: boolean) {
   detectedLegacySlugEnforced = val;
   try {
     localStorage.setItem("ownerr_legacy_slug_enforced", val ? "true" : "false");
-  } catch {}
+  } catch {
+    void 0;
+  }
 }
 
-async function upsertPlatformUser(authUserId: string, email: string, displayName: string | null) {
+async function upsertPlatformUser(
+  authUserId: string,
+  email: string,
+  displayName: string | null,
+) {
   const supabase = getSupabase();
+  await ensureNetworkTablesDetected(supabase);
   const isNew = isUsersTableActive();
 
   if (isNew) {
@@ -62,27 +76,36 @@ async function upsertPlatformUser(authUserId: string, email: string, displayName
     if (displayName) {
       updateData.full_name = displayName;
     }
-    console.log("[Provisioning] Updating central 'users' table for user:", authUserId);
+    console.log(
+      "[Provisioning] Updating central 'users' table for user:",
+      authUserId,
+    );
     const { error: userUpdateErr } = await supabase
-      .from('users')
+      .from("users")
       .update(updateData)
-      .eq('auth_user_id', authUserId);
+      .eq("auth_user_id", authUserId);
     if (userUpdateErr) {
-      console.error("[Provisioning] Failed to update public.users:", userUpdateErr);
+      console.error(
+        "[Provisioning] Failed to update public.users:",
+        userUpdateErr,
+      );
       throw userUpdateErr;
     }
     return;
   }
 
   // Legacy schema: platform_users table
-  console.log("[Provisioning] Upserting 'platform_users' table for user:", authUserId);
-  const { error } = await supabase.from('platform_users').upsert(
+  console.log(
+    "[Provisioning] Upserting 'platform_users' table for user:",
+    authUserId,
+  );
+  const { error } = await supabase.from("platform_users").upsert(
     {
       auth_user_id: authUserId,
       email,
       display_name: displayName,
     },
-    { onConflict: 'auth_user_id' },
+    { onConflict: "auth_user_id" },
   );
   if (error) {
     console.error("[Provisioning] Failed to upsert platform_users:", error);
@@ -97,36 +120,45 @@ async function upsertMembership(
   profileId: string | null,
 ): Promise<void> {
   const supabase = getSupabase();
-  const usesLegacy = appSlug === 'ownerr_network' && (!isUsersTableActive() || isLegacySlugEnforced());
-  const targetSlug = usesLegacy ? ('unemployed' as AppSlug) : appSlug;
-  
-  console.log(`[Provisioning] Upserting user_app_access membership for user ${authUserId}. targetSlug: ${targetSlug} (original appSlug: ${appSlug})`);
-  const { error } = await supabase.from('user_app_access').upsert(
+  const usesLegacy =
+    appSlug === "ownerr_network" &&
+    (!isUsersTableActive() || isLegacySlugEnforced());
+  const targetSlug = usesLegacy ? ("unemployed" as AppSlug) : appSlug;
+
+  console.log(
+    `[Provisioning] Upserting user_app_access membership for user ${authUserId}. targetSlug: ${targetSlug} (original appSlug: ${appSlug})`,
+  );
+  const { error } = await supabase.from("user_app_access").upsert(
     {
       auth_user_id: authUserId,
       app_slug: targetSlug,
       role,
-      status: 'active',
+      status: "active",
       profile_id: profileId,
     },
-    { onConflict: 'auth_user_id,app_slug' },
+    { onConflict: "auth_user_id,app_slug" },
   );
   if (error) {
-    if (error.code === '23514' && targetSlug === 'ownerr_network') {
-      console.warn("[Provisioning] Check constraint violation for 'ownerr_network' in user_app_access. Retrying with 'unemployed' and caching legacy fallback.");
+    if (error.code === "23514" && targetSlug === "ownerr_network") {
+      console.warn(
+        "[Provisioning] Check constraint violation for 'ownerr_network' in user_app_access. Retrying with 'unemployed' and caching legacy fallback.",
+      );
       setLegacySlugEnforced(true);
-      const { error: retryErr } = await supabase.from('user_app_access').upsert(
+      const { error: retryErr } = await supabase.from("user_app_access").upsert(
         {
           auth_user_id: authUserId,
-          app_slug: 'unemployed' as AppSlug,
+          app_slug: "unemployed" as AppSlug,
           role,
-          status: 'active',
+          status: "active",
           profile_id: profileId,
         },
-        { onConflict: 'auth_user_id,app_slug' },
+        { onConflict: "auth_user_id,app_slug" },
       );
       if (retryErr) {
-        console.error("[Provisioning] Retry failed for 'unemployed' slug:", retryErr);
+        console.error(
+          "[Provisioning] Retry failed for 'unemployed' slug:",
+          retryErr,
+        );
         throw retryErr;
       }
       return;
@@ -136,18 +168,56 @@ async function upsertMembership(
   }
 }
 
-async function fetchCanonicalUserId(authUserId: string): Promise<string | null> {
+export type OwnerrOsIdentityProfile = {
+  id: string;
+  auth_user_id: string;
+  created_at: string;
+  updated_at: string;
+};
+
+async function fetchCanonicalUserId(
+  authUserId: string,
+): Promise<string | null> {
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from('users')
-    .select('id')
-    .eq('auth_user_id', authUserId)
+    .from("users")
+    .select("id")
+    .eq("auth_user_id", authUserId)
     .maybeSingle();
   if (error) return null;
   return data?.id ?? null;
 }
 
-async function fetchOrCreateOwnerrProfileId(authUserId: string): Promise<string> {
+/** OWNERR OS shell identity — canonical `users` row, not legacy `ownerr_profiles`. */
+export async function loadOwnerrOsProviderProfile(
+  authUserId: string,
+): Promise<OwnerrOsIdentityProfile | null> {
+  if (!isSupabaseConfigured()) return null;
+  const supabase = getSupabase();
+  await ensureNetworkTablesDetected(supabase);
+
+  if (isUsersTableActive()) {
+    const { data, error } = await supabase
+      .from("users")
+      .select("id, auth_user_id, created_at, updated_at")
+      .eq("auth_user_id", authUserId)
+      .maybeSingle();
+    if (error) throw error;
+    return (data as OwnerrOsIdentityProfile | null) ?? null;
+  }
+
+  const { data, error } = await supabase
+    .from("ownerr_profiles")
+    .select("id, auth_user_id, created_at, updated_at")
+    .eq("auth_user_id", authUserId)
+    .maybeSingle();
+  if (error) throw error;
+  return (data as OwnerrOsIdentityProfile | null) ?? null;
+}
+
+async function fetchOrCreateOwnerrProfileId(
+  authUserId: string,
+): Promise<string> {
   const supabase = getSupabase();
   await ensureNetworkTablesDetected();
   const isNewSchema = isUsersTableActive();
@@ -155,60 +225,27 @@ async function fetchOrCreateOwnerrProfileId(authUserId: string): Promise<string>
   if (isNewSchema) {
     const canonicalId = await fetchCanonicalUserId(authUserId);
     if (canonicalId) return canonicalId;
-    throw new Error('User not found in canonical users table');
+    throw new Error("User not found in canonical users table");
   }
 
   const { data: existing, error: selErr } = await supabase
-    .from('ownerr_profiles')
-    .select('id')
-    .eq('auth_user_id', authUserId)
+    .from("ownerr_profiles")
+    .select("id")
+    .eq("auth_user_id", authUserId)
     .maybeSingle();
   if (selErr) throw selErr;
   if (existing?.id) return existing.id;
 
   const { data: created, error: insErr } = await supabase
-    .from('ownerr_profiles')
-    .upsert({ auth_user_id: authUserId }, { onConflict: 'auth_user_id' })
-    .select('id')
+    .from("ownerr_profiles")
+    .upsert({ auth_user_id: authUserId }, { onConflict: "auth_user_id" })
+    .select("id")
     .single();
   if (insErr) {
     const { data: retry } = await supabase
-      .from('ownerr_profiles')
-      .select('id')
-      .eq('auth_user_id', authUserId)
-      .maybeSingle();
-    if (retry?.id) return retry.id;
-    throw insErr;
-  }
-  return created.id;
-}
-
-async function fetchOrCreateMarketplaceProfileId(
-  authUserId: string,
-  deskRole: 'buyer' | 'founder',
-): Promise<string> {
-  const supabase = getSupabase();
-  const { data: existing, error: selErr } = await supabase
-    .from('marketplace_profiles')
-    .select('id, desk_role')
-    .eq('auth_user_id', authUserId)
-    .maybeSingle();
-  if (selErr) throw selErr;
-  if (existing?.id) return existing.id;
-
-  const { data: created, error: insErr } = await supabase
-    .from('marketplace_profiles')
-    .upsert(
-      { auth_user_id: authUserId, desk_role: deskRole },
-      { onConflict: 'auth_user_id' },
-    )
-    .select('id')
-    .single();
-  if (insErr) {
-    const { data: retry } = await supabase
-      .from('marketplace_profiles')
-      .select('id')
-      .eq('auth_user_id', authUserId)
+      .from("ownerr_profiles")
+      .select("id")
+      .eq("auth_user_id", authUserId)
       .maybeSingle();
     if (retry?.id) return retry.id;
     throw insErr;
@@ -227,27 +264,27 @@ async function fetchOrCreateOwnerrNetworkProfilesRow(
   if (isNewSchema) {
     if (!networkUserId) return null;
     const { data: existing, error: selErr } = await supabase
-      .from('user_profiles')
-      .select('user_id')
-      .eq('user_id', networkUserId)
+      .from("user_profiles")
+      .select("user_id")
+      .eq("user_id", networkUserId)
       .maybeSingle();
     if (selErr) throw selErr;
     if (existing?.user_id) return existing.user_id;
 
     const { data: created, error: insErr } = await supabase
-      .from('user_profiles')
+      .from("user_profiles")
       .insert({
         user_id: networkUserId,
         metadata: { ownerr_network_user_id: networkUserId },
       })
-      .select('user_id')
+      .select("user_id")
       .single();
 
     if (insErr) {
       const { data: retry } = await supabase
-        .from('user_profiles')
-        .select('user_id')
-        .eq('user_id', networkUserId)
+        .from("user_profiles")
+        .select("user_id")
+        .eq("user_id", networkUserId)
         .maybeSingle();
       if (retry?.user_id) return retry.user_id;
       throw insErr;
@@ -256,29 +293,31 @@ async function fetchOrCreateOwnerrNetworkProfilesRow(
   }
 
   const { data: existing, error: selErr } = await supabase
-    .from('ownerr_network_profiles')
-    .select('id')
-    .eq('auth_user_id', authUserId)
+    .from("ownerr_network_profiles")
+    .select("id")
+    .eq("auth_user_id", authUserId)
     .maybeSingle();
   if (selErr) throw selErr;
   if (existing?.id) return existing.id;
 
   const { data: created, error: insErr } = await supabase
-    .from('ownerr_network_profiles')
+    .from("ownerr_network_profiles")
     .upsert(
       {
         auth_user_id: authUserId,
-        metadata: networkUserId ? { ownerr_network_user_id: networkUserId } : {},
+        metadata: networkUserId
+          ? { ownerr_network_user_id: networkUserId }
+          : {},
       },
-      { onConflict: 'auth_user_id' },
+      { onConflict: "auth_user_id" },
     )
-    .select('id')
+    .select("id")
     .single();
   if (insErr) {
     const { data: retry } = await supabase
-      .from('ownerr_network_profiles')
-      .select('id')
-      .eq('auth_user_id', authUserId)
+      .from("ownerr_network_profiles")
+      .select("id")
+      .eq("auth_user_id", authUserId)
       .maybeSingle();
     if (retry?.id) return retry.id;
     throw insErr;
@@ -289,32 +328,39 @@ async function fetchOrCreateOwnerrNetworkProfilesRow(
 export async function provisionOwnerrProduct(user: User): Promise<void> {
   if (!isSupabaseConfigured()) return;
   const authUserId = user.id;
-  const email = user.email ?? '';
+  const email = user.email ?? "";
   await upsertPlatformUser(authUserId, email, displayNameFromUser(user));
   const profileId = await fetchOrCreateOwnerrProfileId(authUserId);
-  await upsertMembership(authUserId, 'ownerr_os', 'founder', profileId);
+  await upsertMembership(authUserId, "ownerr_os", "founder", profileId);
 }
 
 export async function provisionMarketplaceProduct(user: User): Promise<void> {
   if (!isSupabaseConfigured()) return;
   const authUserId = user.id;
-  const email = user.email ?? '';
-  const deskRole = parseDeskRole(user.user_metadata as Record<string, unknown> | undefined) ?? 'buyer';
-  const membershipRole = deskRole === 'founder' ? 'founder' : 'buyer';
+  const email = user.email ?? "";
+  const deskRole =
+    parseDeskRole(user.user_metadata as Record<string, unknown> | undefined) ??
+    "buyer";
+  const membershipRole = deskRole === "founder" ? "founder" : "buyer";
   await upsertPlatformUser(authUserId, email, displayNameFromUser(user));
   const profileRow = await ensureMarketplaceProfile(
     user,
-    membershipRole === 'founder' ? 'seller' : 'buyer',
+    membershipRole === "founder" ? "seller" : "buyer",
   );
-  await upsertMembership(authUserId, 'marketplace', membershipRole, profileRow.id);
+  await upsertMembership(
+    authUserId,
+    "marketplace",
+    membershipRole,
+    profileRow.id,
+  );
 }
 
 export async function provisionOwnerrNetworkProduct(user: User): Promise<void> {
   if (!isSupabaseConfigured()) return;
   const authUserId = user.id;
-  const email = user.email ?? '';
+  const email = user.email ?? "";
   const name =
-    displayNameFromUser(user) ?? user.email?.split('@')[0] ?? 'Member';
+    displayNameFromUser(user) ?? user.email?.split("@")[0] ?? "Member";
   await upsertPlatformUser(authUserId, email, displayNameFromUser(user));
 
   let networkUserId: string | null = null;
@@ -322,13 +368,17 @@ export async function provisionOwnerrNetworkProduct(user: User): Promise<void> {
     let row = await fetchCurrentOwnerrNetworkUser();
     if (!row) {
       const ref = getStoredOwnerrNetworkReferral();
-      row = await provisionOwnerrNetworkUser(name, ref?.referralCode ?? null, ref?.sourcePlatform);
+      row = await provisionOwnerrNetworkUser(
+        name,
+        ref?.referralCode ?? null,
+        ref?.sourcePlatform,
+      );
       if (ref) clearOwnerrNetworkReferral();
     }
     networkUserId = row?.id ?? null;
   } catch (err) {
     const code = (err as { code?: string })?.code;
-    if (code === '23505') {
+    if (code === "23505") {
       const row = await fetchCurrentOwnerrNetworkUser();
       networkUserId = row?.id ?? null;
     } else {
@@ -336,18 +386,28 @@ export async function provisionOwnerrNetworkProduct(user: User): Promise<void> {
     }
   }
 
-  const profileId = await fetchOrCreateOwnerrNetworkProfilesRow(authUserId, networkUserId);
-  await upsertMembership(authUserId, 'ownerr_network', 'member', profileId ?? networkUserId);
+  const profileId = await fetchOrCreateOwnerrNetworkProfilesRow(
+    authUserId,
+    networkUserId,
+  );
+  await upsertMembership(
+    authUserId,
+    "ownerr_network",
+    "member",
+    profileId ?? networkUserId,
+  );
 }
 
 /** Active product memberships for auth routing (0 / 1 / N app flows). */
-export async function listActiveUserAppSlugs(authUserId: string): Promise<AppSlug[]> {
+export async function listActiveUserAppSlugs(
+  authUserId: string,
+): Promise<AppSlug[]> {
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from('user_app_access')
-    .select('app_slug')
-    .eq('auth_user_id', authUserId)
-    .eq('status', 'active');
+    .from("user_app_access")
+    .select("app_slug")
+    .eq("auth_user_id", authUserId)
+    .eq("status", "active");
   if (error) {
     console.error("[Provisioning] Failed to list active app slugs:", error);
     throw error;
@@ -355,9 +415,11 @@ export async function listActiveUserAppSlugs(authUserId: string): Promise<AppSlu
   const slugs: AppSlug[] = [];
   for (const row of data ?? []) {
     let raw = (row as { app_slug?: string }).app_slug;
-    if (raw === 'unemployed') {
-      raw = 'ownerr_network';
-      console.log("[Provisioning] Active 'unemployed' slug detected in database. Activating cached legacy slug mapping.");
+    if (raw === "unemployed") {
+      raw = "ownerr_network";
+      console.log(
+        "[Provisioning] Active 'unemployed' slug detected in database. Activating cached legacy slug mapping.",
+      );
       setLegacySlugEnforced(true);
     }
     if (isAppSlug(raw)) slugs.push(raw);
@@ -365,47 +427,58 @@ export async function listActiveUserAppSlugs(authUserId: string): Promise<AppSlu
   return slugs;
 }
 
-export async function touchProductSession(authUserId: string, product: AppSlug): Promise<void> {
+export async function touchProductSession(
+  authUserId: string,
+  product: AppSlug,
+): Promise<void> {
   if (!isSupabaseConfigured()) return;
   const supabase = getSupabase();
-  const usesLegacy = product === 'ownerr_network' && (!isUsersTableActive() || isLegacySlugEnforced());
-  const targetProduct = usesLegacy ? ('unemployed' as AppSlug) : product;
+  const usesLegacy =
+    product === "ownerr_network" &&
+    (!isUsersTableActive() || isLegacySlugEnforced());
+  const targetProduct = usesLegacy ? ("unemployed" as AppSlug) : product;
 
-  console.log(`[Provisioning] Touching product session for ${authUserId}. targetProduct: ${targetProduct} (original product: ${product})`);
-  const { error } = await supabase.from('product_sessions').upsert(
+  console.log(
+    `[Provisioning] Touching product session for ${authUserId}. targetProduct: ${targetProduct} (original product: ${product})`,
+  );
+  const { error } = await supabase.from("product_sessions").upsert(
     {
       auth_user_id: authUserId,
       product: targetProduct,
       last_active_at: new Date().toISOString(),
     },
-    { onConflict: 'auth_user_id' },
+    { onConflict: "auth_user_id" },
   );
   if (error) {
-    if (error.code === '23514' && targetProduct === 'ownerr_network') {
-      console.warn("[Provisioning] touchProductSession check constraint violation for 'ownerr_network'. Retrying with 'unemployed' and caching.");
-      setLegacySlugEnforced(true);
-      const { error: retryErr } = await supabase.from('product_sessions').upsert(
-        {
-          auth_user_id: authUserId,
-          product: 'unemployed' as AppSlug,
-          last_active_at: new Date().toISOString(),
-        },
-        { onConflict: 'auth_user_id' },
+    if (error.code === "23514" && targetProduct === "ownerr_network") {
+      console.warn(
+        "[Provisioning] touchProductSession check constraint violation for 'ownerr_network'. Retrying with 'unemployed' and caching.",
       );
+      setLegacySlugEnforced(true);
+      const { error: retryErr } = await supabase
+        .from("product_sessions")
+        .upsert(
+          {
+            auth_user_id: authUserId,
+            product: "unemployed" as AppSlug,
+            last_active_at: new Date().toISOString(),
+          },
+          { onConflict: "auth_user_id" },
+        );
       if (!retryErr) return;
     }
 
     console.error("[Provisioning] Failed to touch product session:", error);
-    const code = error.code ?? '';
+    const code = error.code ?? "";
     const status = (error as { status?: number }).status;
-    const message = typeof error.message === 'string' ? error.message : '';
+    const message = typeof error.message === "string" ? error.message : "";
 
     if (
-      code === '42P01' ||
-      code === 'PGRST205' ||
-      code === 'PGRST204' ||
+      code === "42P01" ||
+      code === "PGRST205" ||
+      code === "PGRST204" ||
       status === 404 ||
-      message.includes('product_sessions')
+      message.includes("product_sessions")
     ) {
       return;
     }

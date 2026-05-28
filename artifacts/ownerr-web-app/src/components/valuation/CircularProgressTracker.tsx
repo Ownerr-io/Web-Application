@@ -1,6 +1,6 @@
-import { useEffect, useId, useState } from 'react';
-import { motion, useReducedMotion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { useEffect, useId, useState } from "react";
+import { motion, useReducedMotion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 type Props = {
   percent: number;
@@ -9,9 +9,14 @@ type Props = {
   className?: string;
 };
 
-export function CircularProgressTracker({ percent, helperText, compact, className }: Props) {
+export function CircularProgressTracker({
+  percent,
+  helperText,
+  compact,
+  className,
+}: Props) {
   const reduce = useReducedMotion();
-  const gradId = useId().replace(/:/g, '');
+  const gradId = useId().replace(/:/g, "");
   const [display, setDisplay] = useState(percent);
   const size = compact ? 112 : 168;
   const stroke = compact ? 7 : 9;
@@ -44,23 +49,25 @@ export function CircularProgressTracker({ percent, helperText, compact, classNam
     <motion.div
       layout
       className={cn(
-        'flex flex-col items-center rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/80 p-4 shadow-sm backdrop-blur-sm',
-        compact ? 'p-3' : 'p-5',
+        "flex flex-col items-center rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/80 p-4 shadow-sm backdrop-blur-sm",
+        compact ? "p-3" : "p-5",
         className,
       )}
       style={{
-        boxShadow: '0 0 40px -12px color-mix(in srgb, var(--terminal-ochre) 35%, transparent)',
+        boxShadow:
+          "0 0 40px -12px color-mix(in srgb, var(--terminal-ochre) 35%, transparent)",
       }}
     >
       <motion.div
         className="relative"
         animate={reduce ? undefined : { scale: [1, 1.02, 1] }}
-        transition={{ duration: 2.4, repeat: Infinity, ease: 'easeInOut' }}
+        transition={{ duration: 2.4, repeat: Infinity, ease: "easeInOut" }}
       >
         <div
           className="pointer-events-none absolute inset-0 rounded-full opacity-60 blur-xl"
           style={{
-            background: 'radial-gradient(circle, var(--terminal-glow), transparent 70%)',
+            background:
+              "radial-gradient(circle, var(--terminal-glow), transparent 70%)",
           }}
         />
         <svg width={size} height={size} className="relative -rotate-90">
@@ -89,9 +96,13 @@ export function CircularProgressTracker({ percent, helperText, compact, classNam
             strokeLinecap="round"
             strokeDasharray={c}
             animate={{ strokeDashoffset: offset }}
-            transition={{ duration: reduce ? 0 : 0.55, ease: [0.22, 1, 0.36, 1] }}
+            transition={{
+              duration: reduce ? 0 : 0.55,
+              ease: [0.22, 1, 0.36, 1],
+            }}
             style={{
-              filter: 'drop-shadow(0 0 6px color-mix(in srgb, var(--terminal-ochre) 45%, transparent))',
+              filter:
+                "drop-shadow(0 0 6px color-mix(in srgb, var(--terminal-ochre) 45%, transparent))",
             }}
           />
         </svg>
@@ -104,8 +115,8 @@ export function CircularProgressTracker({ percent, helperText, compact, classNam
         >
           <span
             className={cn(
-              'font-mono font-bold tabular-nums text-[color:var(--terminal-fg)]',
-              compact ? 'text-2xl' : 'text-4xl',
+              "font-mono font-bold tabular-nums text-[color:var(--terminal-fg)]",
+              compact ? "text-2xl" : "text-4xl",
             )}
           >
             {Math.round(display)}%
@@ -117,8 +128,8 @@ export function CircularProgressTracker({ percent, helperText, compact, classNam
       </motion.div>
       <p
         className={cn(
-          'mt-3 text-center font-medium leading-snug text-[color:var(--terminal-muted)]',
-          compact ? 'text-[11px]' : 'text-xs',
+          "mt-3 text-center font-medium leading-snug text-[color:var(--terminal-muted)]",
+          compact ? "text-[11px]" : "text-xs",
         )}
       >
         {helperText}

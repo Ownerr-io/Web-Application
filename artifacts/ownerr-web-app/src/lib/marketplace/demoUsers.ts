@@ -4,4 +4,4 @@ export {
   DEMO_MARKETPLACE_SELLER_EMAIL,
   showDemoAccountHints as isDemoUsersEnabled,
   isDemoAccountEmail,
-} from '@/lib/demo/demoAccountCatalog';
+} from "@/lib/demo/demoAccountCatalog";

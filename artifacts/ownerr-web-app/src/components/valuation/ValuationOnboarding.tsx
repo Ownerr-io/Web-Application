@@ -1,20 +1,20 @@
-import { useCallback, useMemo, type ReactNode } from 'react';
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
-import { Label } from '@/components/ui/label';
-import { Input } from '@/components/ui/input';
-import { Button } from '@/components/ui/button';
+import { useCallback, useMemo, type ReactNode } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
+import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import type { ValuationInputs } from '@/lib/valuationIntel';
-import { cn } from '@/lib/utils';
-import { CircularProgressTracker } from './CircularProgressTracker';
-import { LivePreviewChips } from './LivePreviewChips';
-import { buildPreviewChips } from './previewInsights';
+} from "@/components/ui/select";
+import type { ValuationInputs } from "@/lib/valuationIntel";
+import { cn } from "@/lib/utils";
+import { CircularProgressTracker } from "./CircularProgressTracker";
+import { LivePreviewChips } from "./LivePreviewChips";
+import { buildPreviewChips } from "./previewInsights";
 import {
   ONBOARDING_STEP_COUNT,
   STEP_HELPER,
@@ -22,23 +22,45 @@ import {
   type OnboardingMeta,
   type StepFieldErrors,
   isValidEmail,
-} from './types';
+} from "./types";
 
-const INDUSTRIES = ['SaaS', 'AI', 'Fintech', 'Consumer', 'DevTools', 'Healthcare', 'Other'] as const;
-const STAGES = ['Pre-seed', 'Seed', 'Series A', 'Series B', 'Growth'] as const;
-const GEO = ['United States', 'Europe', 'UK', 'Asia', 'LATAM', 'Global remote'] as const;
-const MARKETS = ['B2B SaaS', 'B2C', 'Marketplace', 'Infrastructure', 'Vertical SaaS', 'Other'] as const;
+const INDUSTRIES = [
+  "SaaS",
+  "AI",
+  "Fintech",
+  "Consumer",
+  "DevTools",
+  "Healthcare",
+  "Other",
+] as const;
+const STAGES = ["Pre-seed", "Seed", "Series A", "Series B", "Growth"] as const;
+const GEO = [
+  "United States",
+  "Europe",
+  "UK",
+  "Asia",
+  "LATAM",
+  "Global remote",
+] as const;
+const MARKETS = [
+  "B2B SaaS",
+  "B2C",
+  "Marketplace",
+  "Infrastructure",
+  "Vertical SaaS",
+  "Other",
+] as const;
 
 const STEP_TITLES = [
-  'Startup basics',
-  'Revenue signals',
-  'Efficiency metrics',
-  'Team + market',
-  'Almost there',
+  "Startup basics",
+  "Revenue signals",
+  "Efficiency metrics",
+  "Team + market",
+  "Almost there",
 ];
 
 function num(v: string, fallback: number): number {
-  const n = Number(String(v).replace(/,/g, ''));
+  const n = Number(String(v).replace(/,/g, ""));
   return Number.isFinite(n) ? n : fallback;
 }
 
@@ -71,7 +93,8 @@ export function ValuationOnboarding({
   const helper = STEP_HELPER[step] ?? STEP_HELPER[0];
 
   const patchInputs = useCallback(
-    (fn: (prev: ValuationInputs) => ValuationInputs) => onInputsChange(fn(inputs)),
+    (fn: (prev: ValuationInputs) => ValuationInputs) =>
+      onInputsChange(fn(inputs)),
     [inputs, onInputsChange],
   );
 
@@ -103,7 +126,11 @@ export function ValuationOnboarding({
         initial={reduce ? false : { opacity: 0, y: 6 }}
         animate={{ opacity: 1, y: 0 }}
       >
-        <CircularProgressTracker percent={progress} helperText={helper} compact />
+        <CircularProgressTracker
+          percent={progress}
+          helperText={helper}
+          compact
+        />
       </motion.div>
 
       <motion.div
@@ -117,15 +144,19 @@ export function ValuationOnboarding({
           <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--terminal-muted)]">
             Step {step + 1} of {ONBOARDING_STEP_COUNT}
           </p>
-          <p className="text-xs font-semibold text-[color:var(--terminal-fg)]">{STEP_TITLES[step]}</p>
+          <p className="text-xs font-semibold text-[color:var(--terminal-fg)]">
+            {STEP_TITLES[step]}
+          </p>
         </motion.div>
         <motion.div className="flex gap-1.5" aria-hidden>
           {Array.from({ length: ONBOARDING_STEP_COUNT }, (_, i) => (
             <motion.span
               key={i}
               className={cn(
-                'h-1 flex-1 rounded-full transition-colors',
-                i <= step ? 'bg-[color:var(--terminal-ochre)]' : 'bg-[color:var(--terminal-border)]',
+                "h-1 flex-1 rounded-full transition-colors",
+                i <= step
+                  ? "bg-[color:var(--terminal-ochre)]"
+                  : "bg-[color:var(--terminal-border)]",
               )}
             />
           ))}
@@ -137,14 +168,24 @@ export function ValuationOnboarding({
           layout
           className="min-w-0 rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] shadow-sm"
         >
-          <motion.div layout className="border-b border-[color:var(--terminal-border)] px-5 py-4 sm:px-6">
-            <h2 className="text-lg font-bold text-[color:var(--terminal-fg)]">{STEP_TITLES[step]}</h2>
+          <motion.div
+            layout
+            className="border-b border-[color:var(--terminal-border)] px-5 py-4 sm:px-6"
+          >
+            <h2 className="text-lg font-bold text-[color:var(--terminal-fg)]">
+              {STEP_TITLES[step]}
+            </h2>
             <p className="mt-1 text-xs text-[color:var(--terminal-muted)]">
-              {step === 0 && 'Tell us about your company so we can anchor sector benchmarks.'}
-              {step === 1 && 'Revenue quality drives most of the valuation band.'}
-              {step === 2 && 'Unit economics and burn shape investor and acquirer appetite.'}
-              {step === 3 && 'Scale and geography refine comparable transactions.'}
-              {step === 4 && 'We’ll deliver your intelligence report — details stay private.'}
+              {step === 0 &&
+                "Tell us about your company so we can anchor sector benchmarks."}
+              {step === 1 &&
+                "Revenue quality drives most of the valuation band."}
+              {step === 2 &&
+                "Unit economics and burn shape investor and acquirer appetite."}
+              {step === 3 &&
+                "Scale and geography refine comparable transactions."}
+              {step === 4 &&
+                "We’ll deliver your intelligence report — details stay private."}
             </p>
           </motion.div>
 
@@ -170,7 +211,12 @@ export function ValuationOnboarding({
                       <Input
                         placeholder="Acme Inc."
                         value={meta.startupName}
-                        onChange={(e) => patchMeta((s) => ({ ...s, startupName: e.target.value }))}
+                        onChange={(e) =>
+                          patchMeta((s) => ({
+                            ...s,
+                            startupName: e.target.value,
+                          }))
+                        }
                         className="text-sm"
                         aria-invalid={Boolean(errors.startupName)}
                       />
@@ -179,14 +225,20 @@ export function ValuationOnboarding({
                       <Field label="Industry" error={errors.industry}>
                         <Select
                           value={inputs.industry}
-                          onValueChange={(v) => patchInputs((s) => ({ ...s, industry: v }))}
+                          onValueChange={(v) =>
+                            patchInputs((s) => ({ ...s, industry: v }))
+                          }
                         >
                           <SelectTrigger className="text-sm">
                             <SelectValue placeholder="Select industry" />
                           </SelectTrigger>
                           <SelectContent>
                             {INDUSTRIES.map((ind) => (
-                              <SelectItem key={ind} value={ind} className="text-sm">
+                              <SelectItem
+                                key={ind}
+                                value={ind}
+                                className="text-sm"
+                              >
                                 {ind}
                               </SelectItem>
                             ))}
@@ -196,14 +248,20 @@ export function ValuationOnboarding({
                       <Field label="Funding stage" error={errors.stage}>
                         <Select
                           value={inputs.stage}
-                          onValueChange={(v) => patchInputs((s) => ({ ...s, stage: v }))}
+                          onValueChange={(v) =>
+                            patchInputs((s) => ({ ...s, stage: v }))
+                          }
                         >
                           <SelectTrigger className="text-sm">
                             <SelectValue placeholder="Select stage" />
                           </SelectTrigger>
                           <SelectContent>
                             {STAGES.map((st) => (
-                              <SelectItem key={st} value={st} className="text-sm">
+                              <SelectItem
+                                key={st}
+                                value={st}
+                                className="text-sm"
+                              >
                                 {st}
                               </SelectItem>
                             ))}
@@ -216,7 +274,12 @@ export function ValuationOnboarding({
                         inputMode="numeric"
                         placeholder="e.g. 2021"
                         value={meta.foundingYear}
-                        onChange={(e) => patchMeta((s) => ({ ...s, foundingYear: e.target.value }))}
+                        onChange={(e) =>
+                          patchMeta((s) => ({
+                            ...s,
+                            foundingYear: e.target.value,
+                          }))
+                        }
                         className="font-mono text-sm"
                       />
                     </Field>
@@ -225,21 +288,34 @@ export function ValuationOnboarding({
 
                 {step === 1 && (
                   <motion.div className="grid gap-4 sm:grid-cols-2">
-                    <Field label="ARR ($)" hint="Leave blank to derive from MRR">
+                    <Field
+                      label="ARR ($)"
+                      hint="Leave blank to derive from MRR"
+                    >
                       <Input
                         inputMode="decimal"
                         placeholder="0"
                         className="font-mono text-sm"
-                        value={inputs.arr || ''}
-                        onChange={(e) => patchInputs((s) => ({ ...s, arr: num(e.target.value, 0) }))}
+                        value={inputs.arr || ""}
+                        onChange={(e) =>
+                          patchInputs((s) => ({
+                            ...s,
+                            arr: num(e.target.value, 0),
+                          }))
+                        }
                       />
                     </Field>
                     <Field label="MRR ($)" error={errors.revenue}>
                       <Input
                         inputMode="decimal"
                         className="font-mono text-sm"
-                        value={inputs.mrr || ''}
-                        onChange={(e) => patchInputs((s) => ({ ...s, mrr: num(e.target.value, s.mrr) }))}
+                        value={inputs.mrr || ""}
+                        onChange={(e) =>
+                          patchInputs((s) => ({
+                            ...s,
+                            mrr: num(e.target.value, s.mrr),
+                          }))
+                        }
                         aria-invalid={Boolean(errors.revenue)}
                       />
                     </Field>
@@ -249,7 +325,13 @@ export function ValuationOnboarding({
                         className="font-mono text-sm"
                         value={inputs.monthlyGrowthPct}
                         onChange={(e) =>
-                          patchInputs((s) => ({ ...s, monthlyGrowthPct: num(e.target.value, s.monthlyGrowthPct) }))
+                          patchInputs((s) => ({
+                            ...s,
+                            monthlyGrowthPct: num(
+                              e.target.value,
+                              s.monthlyGrowthPct,
+                            ),
+                          }))
                         }
                       />
                     </Field>
@@ -262,16 +344,26 @@ export function ValuationOnboarding({
                       <Input
                         inputMode="decimal"
                         className="font-mono text-sm"
-                        value={inputs.cac || ''}
-                        onChange={(e) => patchInputs((s) => ({ ...s, cac: num(e.target.value, s.cac) }))}
+                        value={inputs.cac || ""}
+                        onChange={(e) =>
+                          patchInputs((s) => ({
+                            ...s,
+                            cac: num(e.target.value, s.cac),
+                          }))
+                        }
                       />
                     </Field>
                     <Field label="LTV ($)">
                       <Input
                         inputMode="decimal"
                         className="font-mono text-sm"
-                        value={inputs.ltv || ''}
-                        onChange={(e) => patchInputs((s) => ({ ...s, ltv: num(e.target.value, s.ltv) }))}
+                        value={inputs.ltv || ""}
+                        onChange={(e) =>
+                          patchInputs((s) => ({
+                            ...s,
+                            ltv: num(e.target.value, s.ltv),
+                          }))
+                        }
                       />
                     </Field>
                     <Field label="Churn % (monthly)">
@@ -280,7 +372,13 @@ export function ValuationOnboarding({
                         className="font-mono text-sm"
                         value={inputs.churnPctMonthly}
                         onChange={(e) =>
-                          patchInputs((s) => ({ ...s, churnPctMonthly: num(e.target.value, s.churnPctMonthly) }))
+                          patchInputs((s) => ({
+                            ...s,
+                            churnPctMonthly: num(
+                              e.target.value,
+                              s.churnPctMonthly,
+                            ),
+                          }))
                         }
                       />
                     </Field>
@@ -290,7 +388,10 @@ export function ValuationOnboarding({
                         className="font-mono text-sm"
                         value={inputs.burnMultiple}
                         onChange={(e) =>
-                          patchInputs((s) => ({ ...s, burnMultiple: num(e.target.value, s.burnMultiple) }))
+                          patchInputs((s) => ({
+                            ...s,
+                            burnMultiple: num(e.target.value, s.burnMultiple),
+                          }))
                         }
                       />
                     </Field>
@@ -305,7 +406,12 @@ export function ValuationOnboarding({
                           inputMode="numeric"
                           placeholder="e.g. 24"
                           value={meta.teamSize}
-                          onChange={(e) => patchMeta((s) => ({ ...s, teamSize: e.target.value }))}
+                          onChange={(e) =>
+                            patchMeta((s) => ({
+                              ...s,
+                              teamSize: e.target.value,
+                            }))
+                          }
                           className="font-mono text-sm"
                         />
                       </Field>
@@ -314,7 +420,12 @@ export function ValuationOnboarding({
                           inputMode="numeric"
                           placeholder="Optional"
                           value={meta.customerCount}
-                          onChange={(e) => patchMeta((s) => ({ ...s, customerCount: e.target.value }))}
+                          onChange={(e) =>
+                            patchMeta((s) => ({
+                              ...s,
+                              customerCount: e.target.value,
+                            }))
+                          }
                           className="font-mono text-sm"
                         />
                       </Field>
@@ -322,7 +433,9 @@ export function ValuationOnboarding({
                     <Field label="Geography" error={errors.geography}>
                       <Select
                         value={inputs.geography}
-                        onValueChange={(v) => patchInputs((s) => ({ ...s, geography: v }))}
+                        onValueChange={(v) =>
+                          patchInputs((s) => ({ ...s, geography: v }))
+                        }
                       >
                         <SelectTrigger className="text-sm">
                           <SelectValue placeholder="Select region" />
@@ -339,7 +452,9 @@ export function ValuationOnboarding({
                     <Field label="Market category">
                       <Select
                         value={meta.marketCategory || MARKETS[0]}
-                        onValueChange={(v) => patchMeta((s) => ({ ...s, marketCategory: v }))}
+                        onValueChange={(v) =>
+                          patchMeta((s) => ({ ...s, marketCategory: v }))
+                        }
                       >
                         <SelectTrigger className="text-sm">
                           <SelectValue />
@@ -361,7 +476,12 @@ export function ValuationOnboarding({
                     <Field label="Founder name" error={errors.founderName}>
                       <Input
                         value={meta.founderName}
-                        onChange={(e) => patchMeta((s) => ({ ...s, founderName: e.target.value }))}
+                        onChange={(e) =>
+                          patchMeta((s) => ({
+                            ...s,
+                            founderName: e.target.value,
+                          }))
+                        }
                         className="text-sm"
                       />
                     </Field>
@@ -370,7 +490,12 @@ export function ValuationOnboarding({
                         type="email"
                         autoComplete="email"
                         value={meta.workEmail}
-                        onChange={(e) => patchMeta((s) => ({ ...s, workEmail: e.target.value }))}
+                        onChange={(e) =>
+                          patchMeta((s) => ({
+                            ...s,
+                            workEmail: e.target.value,
+                          }))
+                        }
                         className="text-sm"
                       />
                     </Field>
@@ -380,7 +505,12 @@ export function ValuationOnboarding({
                           type="url"
                           placeholder="https://"
                           value={meta.companyWebsite}
-                          onChange={(e) => patchMeta((s) => ({ ...s, companyWebsite: e.target.value }))}
+                          onChange={(e) =>
+                            patchMeta((s) => ({
+                              ...s,
+                              companyWebsite: e.target.value,
+                            }))
+                          }
                           className="text-sm"
                         />
                       </Field>
@@ -388,7 +518,12 @@ export function ValuationOnboarding({
                         <Input
                           placeholder="linkedin.com/in/…"
                           value={meta.linkedIn}
-                          onChange={(e) => patchMeta((s) => ({ ...s, linkedIn: e.target.value }))}
+                          onChange={(e) =>
+                            patchMeta((s) => ({
+                              ...s,
+                              linkedIn: e.target.value,
+                            }))
+                          }
                           className="text-sm"
                         />
                       </Field>
@@ -397,7 +532,9 @@ export function ValuationOnboarding({
                       <Input
                         type="tel"
                         value={meta.phone}
-                        onChange={(e) => patchMeta((s) => ({ ...s, phone: e.target.value }))}
+                        onChange={(e) =>
+                          patchMeta((s) => ({ ...s, phone: e.target.value }))
+                        }
                         className="text-sm"
                       />
                     </Field>
@@ -423,10 +560,14 @@ export function ValuationOnboarding({
                 type="submit"
                 className="ml-auto h-11 rounded-[10px] border-0 bg-[color:var(--terminal-ochre)] px-6 font-bold text-[#0b0b0c] hover:bg-[color:var(--terminal-ochre-hover)]"
               >
-                {step === ONBOARDING_STEP_COUNT - 1 ? 'Generate intelligence' : 'Continue'}
+                {step === ONBOARDING_STEP_COUNT - 1
+                  ? "Generate intelligence"
+                  : "Continue"}
               </Button>
             </div>
-            <p className="mt-2 text-right text-[10px] text-[color:var(--terminal-muted)]">Press Enter to continue</p>
+            <p className="mt-2 text-right text-[10px] text-[color:var(--terminal-muted)]">
+              Press Enter to continue
+            </p>
           </form>
         </motion.div>
 
@@ -438,7 +579,8 @@ export function ValuationOnboarding({
                 Live preview
               </p>
               <p className="mt-1 mb-3 text-[11px] leading-snug text-[color:var(--terminal-muted)]">
-                Signals update as you type — final valuation unlocks after analysis.
+                Signals update as you type — final valuation unlocks after
+                analysis.
               </p>
               <LivePreviewChips chips={chips} />
             </div>
@@ -460,26 +602,33 @@ export function validateOnboardingStep(
 ): StepFieldErrors {
   const err: StepFieldErrors = {};
   if (step === 0) {
-    if (!meta.startupName.trim()) err.startupName = 'Enter your startup name';
-    if (!inputs.industry) err.industry = 'Select an industry';
-    if (!inputs.stage) err.stage = 'Select a funding stage';
+    if (!meta.startupName.trim()) err.startupName = "Enter your startup name";
+    if (!inputs.industry) err.industry = "Select an industry";
+    if (!inputs.stage) err.stage = "Select a funding stage";
     const y = Number(meta.foundingYear);
-    if (!meta.foundingYear.trim() || !Number.isFinite(y) || y < 1990 || y > new Date().getFullYear()) {
-      err.foundingYear = 'Enter a valid founding year';
+    if (
+      !meta.foundingYear.trim() ||
+      !Number.isFinite(y) ||
+      y < 1990 ||
+      y > new Date().getFullYear()
+    ) {
+      err.foundingYear = "Enter a valid founding year";
     }
   }
   if (step === 1) {
     const hasArr = inputs.arr > 0;
     const hasMrr = inputs.mrr > 0;
-    if (!hasArr && !hasMrr) err.revenue = 'Enter ARR or MRR';
+    if (!hasArr && !hasMrr) err.revenue = "Enter ARR or MRR";
   }
   if (step === 3) {
-    if (!meta.teamSize.trim() || Number(meta.teamSize) < 1) err.teamSize = 'Enter team size';
-    if (!inputs.geography) err.geography = 'Select geography';
+    if (!meta.teamSize.trim() || Number(meta.teamSize) < 1)
+      err.teamSize = "Enter team size";
+    if (!inputs.geography) err.geography = "Select geography";
   }
   if (step === 4) {
-    if (!meta.founderName.trim()) err.founderName = 'Enter your name';
-    if (!isValidEmail(meta.workEmail)) err.workEmail = 'Enter a valid work email';
+    if (!meta.founderName.trim()) err.founderName = "Enter your name";
+    if (!isValidEmail(meta.workEmail))
+      err.workEmail = "Enter a valid work email";
   }
   return err;
 }
@@ -498,13 +647,19 @@ function Field({
   className?: string;
 }) {
   return (
-    <motion.div className={cn('space-y-1.5', className)} layout="position">
+    <motion.div className={cn("space-y-1.5", className)} layout="position">
       <Label className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]">
         {label}
       </Label>
       {children}
-      {hint && !error ? <p className="text-[11px] text-[color:var(--terminal-muted)]">{hint}</p> : null}
-      {error ? <p className="text-[11px] font-medium text-[color:var(--terminal-ochre)]">{error}</p> : null}
+      {hint && !error ? (
+        <p className="text-[11px] text-[color:var(--terminal-muted)]">{hint}</p>
+      ) : null}
+      {error ? (
+        <p className="text-[11px] font-medium text-[color:var(--terminal-ochre)]">
+          {error}
+        </p>
+      ) : null}
     </motion.div>
   );
 }

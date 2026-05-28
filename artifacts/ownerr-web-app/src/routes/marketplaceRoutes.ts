@@ -1,5 +1,5 @@
-import { MARKETPLACE_ROUTES } from '@/routing/routeRegistry';
-import { marketplacePath } from '@/lib/appPaths';
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
+import { marketplacePath } from "@/lib/appPaths";
 
 export const marketplaceRoutes = {
   root: MARKETPLACE_ROUTES.root,
@@ -15,6 +15,8 @@ export const marketplaceRoutes = {
   buyerBids: MARKETPLACE_ROUTES.buyerBids,
   buyerInterests: MARKETPLACE_ROUTES.buyerInterests,
   buyerAcquire: MARKETPLACE_ROUTES.buyerAcquire,
+  buyerStartup: MARKETPLACE_ROUTES.buyerStartup,
+  buyerFounder: MARKETPLACE_ROUTES.buyerFounder,
   founderHub: MARKETPLACE_ROUTES.founderHub,
   founderListings: MARKETPLACE_ROUTES.founderListings,
   founderInbox: MARKETPLACE_ROUTES.founderInbox,

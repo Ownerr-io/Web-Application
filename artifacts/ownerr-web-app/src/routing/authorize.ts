@@ -1,9 +1,9 @@
-import type { DeskUser } from '@/lib/auth/types';
-import { inferAuthRoleFromMarketplaceAppPath } from '@/lib/auth/marketplaceDeskRole';
-import { AUTH_ROUTES } from '@/routing/routeRegistry';
-import { buildAuthStartRedirect } from '@/routing/authResolver';
-import { normalizePathname, resolveRoute } from '@/routing/routeResolver';
-import type { RouteRole } from '@/routing/routeRegistry';
+import type { DeskUser } from "@/lib/auth/types";
+import { inferAuthRoleFromMarketplaceAppPath } from "@/lib/auth/marketplaceDeskRole";
+import { AUTH_ROUTES } from "@/routing/routeRegistry";
+import { buildAuthStartRedirect } from "@/routing/authResolver";
+import { normalizePathname, resolveRoute } from "@/routing/routeResolver";
+import type { RouteRole } from "@/routing/routeRegistry";
 
 export type AccessSubject = {
   session: boolean;
@@ -12,14 +12,16 @@ export type AccessSubject = {
   platformAdmin?: boolean;
 };
 
-function deskRoleToRouteRole(role: DeskUser['role']): RouteRole {
+function deskRoleToRouteRole(role: DeskUser["role"]): RouteRole {
   return role;
 }
 
 export function resolveRoleAccess(
   pathname: string,
   subject: AccessSubject,
-): { allowed: true } | { allowed: false; fallback: string; reason: 'auth' | 'role' } {
+):
+  | { allowed: true }
+  | { allowed: false; fallback: string; reason: "auth" | "role" } {
   const route = resolveRoute(pathname);
 
   if (!route.authRequired) {
@@ -27,7 +29,11 @@ export function resolveRoleAccess(
   }
 
   if (!subject.session) {
-    return { allowed: false, fallback: buildAuthStartRedirect(pathname), reason: 'auth' };
+    return {
+      allowed: false,
+      fallback: buildAuthStartRedirect(pathname),
+      reason: "auth",
+    };
   }
 
   if (!route.requiredRoles?.length) {
@@ -36,14 +42,14 @@ export function resolveRoleAccess(
 
   const roles = route.requiredRoles;
 
-  if (roles.includes('admin')) {
+  if (roles.includes("admin")) {
     if (subject.platformAdmin) return { allowed: true };
-    return { allowed: false, fallback: AUTH_ROUTES.forbidden, reason: 'role' };
+    return { allowed: false, fallback: AUTH_ROUTES.forbidden, reason: "role" };
   }
 
-  if (roles.includes('network_member')) {
+  if (roles.includes("network_member")) {
     if (subject.networkProfile) return { allowed: true };
-    return { allowed: false, fallback: AUTH_ROUTES.forbidden, reason: 'role' };
+    return { allowed: false, fallback: AUTH_ROUTES.forbidden, reason: "role" };
   }
 
   let deskRole: RouteRole | null = subject.deskUser
@@ -56,10 +62,14 @@ export function resolveRoleAccess(
 
   if (!deskRole) {
     const path = normalizePathname(pathname);
-    if (roles.includes('founder') && path.startsWith('/ownerr-os/app') && subject.session) {
+    if (
+      roles.includes("founder") &&
+      path.startsWith("/ownerr-os/app") &&
+      subject.session
+    ) {
       return { allowed: true };
     }
-    return { allowed: false, fallback: AUTH_ROUTES.forbidden, reason: 'role' };
+    return { allowed: false, fallback: AUTH_ROUTES.forbidden, reason: "role" };
   }
 
   const deskRoleResolved = deskRole;
@@ -68,13 +78,20 @@ export function resolveRoleAccess(
   }
 
   const path = normalizePathname(pathname);
-  if (roles.includes('founder') && path.startsWith('/ownerr-os/app') && subject.session) {
+  if (
+    roles.includes("founder") &&
+    path.startsWith("/ownerr-os/app") &&
+    subject.session
+  ) {
     return { allowed: true };
   }
 
-  return { allowed: false, fallback: AUTH_ROUTES.forbidden, reason: 'role' };
+  return { allowed: false, fallback: AUTH_ROUTES.forbidden, reason: "role" };
 }
 
-export function canAccessPath(pathname: string, subject: AccessSubject): boolean {
+export function canAccessPath(
+  pathname: string,
+  subject: AccessSubject,
+): boolean {
   return resolveRoleAccess(pathname, subject).allowed;
 }

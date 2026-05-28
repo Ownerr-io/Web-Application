@@ -10,7 +10,9 @@ export type OwnerrNetworkReferralAttribution = {
 export function captureOwnerrNetworkReferralFromSearch(
   search: string,
 ): OwnerrNetworkReferralAttribution | null {
-  const params = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
+  const params = new URLSearchParams(
+    search.startsWith("?") ? search : `?${search}`,
+  );
   const ref = params.get("ref")?.trim();
   if (!ref) return null;
   const sourcePlatform =
@@ -49,7 +51,10 @@ export function clearOwnerrNetworkReferral(): void {
   }
 }
 
-export function buildOwnerrNetworkReferralLink(origin: string, code: string): string {
+export function buildOwnerrNetworkReferralLink(
+  origin: string,
+  code: string,
+): string {
   const base = origin.replace(/\/+$/, "");
   return `${base}/products/ownerr-network?ref=${encodeURIComponent(code)}`;
 }

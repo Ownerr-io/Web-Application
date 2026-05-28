@@ -1,4 +1,12 @@
-import { jsonb, pgTable, text, timestamp, uuid, index, uniqueIndex } from "drizzle-orm/pg-core";
+import {
+  jsonb,
+  pgTable,
+  text,
+  timestamp,
+  uuid,
+  index,
+  uniqueIndex,
+} from "drizzle-orm/pg-core";
 
 export const APP_SLUGS = ["ownerr_os", "marketplace", "unemployed"] as const;
 export type AppSlugDb = (typeof APP_SLUGS)[number];
@@ -15,13 +23,22 @@ export const platformUsersTable = pgTable(
     displayName: text("display_name"),
     avatarUrl: text("avatar_url"),
     preferredAppSlug: text("preferred_app_slug"),
-    metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => ({
     authUserIdx: index("platform_users_auth_user_id_idx").on(table.authUserId),
-    preferredAppSlugIdx: index("platform_users_preferred_app_slug_idx").on(table.preferredAppSlug),
+    preferredAppSlugIdx: index("platform_users_preferred_app_slug_idx").on(
+      table.preferredAppSlug,
+    ),
     createdAtIdx: index("platform_users_created_at_idx").on(table.createdAt),
   }),
 );
@@ -33,11 +50,21 @@ export const userAppAccessTable = pgTable(
     authUserId: uuid("auth_user_id").notNull(),
     appSlug: text("app_slug").$type<AppSlugDb>().notNull(),
     role: text("role").notNull().default("member"),
-    status: text("status").$type<MembershipStatusDb>().notNull().default("active"),
+    status: text("status")
+      .$type<MembershipStatusDb>()
+      .notNull()
+      .default("active"),
     profileId: uuid("profile_id"),
-    metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => ({
     authAppUnique: uniqueIndex("user_app_access_auth_user_app_slug_key").on(
@@ -61,9 +88,16 @@ export const ownerrProfilesTable = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     authUserId: uuid("auth_user_id").notNull().unique(),
-    metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => ({
     authUserIdx: index("ownerr_profiles_auth_user_id_idx").on(table.authUserId),
@@ -77,14 +111,25 @@ export const marketplaceProfilesTable = pgTable(
     id: uuid("id").primaryKey().defaultRandom(),
     authUserId: uuid("auth_user_id").notNull().unique(),
     deskRole: text("desk_role"),
-    metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => ({
-    authUserIdx: index("marketplace_profiles_auth_user_id_idx").on(table.authUserId),
+    authUserIdx: index("marketplace_profiles_auth_user_id_idx").on(
+      table.authUserId,
+    ),
     deskRoleIdx: index("marketplace_profiles_desk_role_idx").on(table.deskRole),
-    createdAtIdx: index("marketplace_profiles_created_at_idx").on(table.createdAt),
+    createdAtIdx: index("marketplace_profiles_created_at_idx").on(
+      table.createdAt,
+    ),
   }),
 );
 
@@ -93,12 +138,23 @@ export const unemployedProfilesTable = pgTable(
   {
     id: uuid("id").primaryKey().defaultRandom(),
     authUserId: uuid("auth_user_id").notNull().unique(),
-    metadata: jsonb("metadata").$type<Record<string, unknown>>().notNull().default({}),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
-    updatedAt: timestamp("updated_at", { withTimezone: true }).notNull().defaultNow(),
+    metadata: jsonb("metadata")
+      .$type<Record<string, unknown>>()
+      .notNull()
+      .default({}),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
+    updatedAt: timestamp("updated_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => ({
-    authUserIdx: index("unemployed_profiles_auth_user_id_idx").on(table.authUserId),
-    createdAtIdx: index("unemployed_profiles_created_at_idx").on(table.createdAt),
+    authUserIdx: index("unemployed_profiles_auth_user_id_idx").on(
+      table.authUserId,
+    ),
+    createdAtIdx: index("unemployed_profiles_created_at_idx").on(
+      table.createdAt,
+    ),
   }),
 );

@@ -1,12 +1,12 @@
-import { useCallback, useEffect, useRef } from 'react';
-import { DotLottieReact } from '@lottiefiles/dotlottie-react';
-import { useReducedMotion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { useCallback, useEffect, useRef } from "react";
+import { DotLottieReact } from "@lottiefiles/dotlottie-react";
+import { useReducedMotion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 /** Minimal player surface for the `complete` event. */
 type DotLottiePlayer = {
-  addEventListener: (event: 'complete', handler: () => void) => void;
-  removeEventListener: (event: 'complete', handler: () => void) => void;
+  addEventListener: (event: "complete", handler: () => void) => void;
+  removeEventListener: (event: "complete", handler: () => void) => void;
 };
 
 type Props = {
@@ -16,7 +16,7 @@ type Props = {
   className?: string;
   /** Decorative motion only — no visible caption from assistive labels. */
   decorative?: boolean;
-  'aria-label'?: string;
+  "aria-label"?: string;
   onComplete?: () => void;
 };
 
@@ -25,13 +25,16 @@ export function ValuationLottieAnimation({
   loop = false,
   className,
   decorative = false,
-  'aria-label': ariaLabel,
+  "aria-label": ariaLabel,
   onComplete,
 }: Props) {
   const reduce = useReducedMotion();
   const onCompleteRef = useRef(onComplete);
   onCompleteRef.current = onComplete;
-  const listenerRef = useRef<{ player: DotLottiePlayer; handler: () => void } | null>(null);
+  const listenerRef = useRef<{
+    player: DotLottiePlayer;
+    handler: () => void;
+  } | null>(null);
 
   useEffect(() => {
     if (!reduce || !onComplete) return;
@@ -42,12 +45,15 @@ export function ValuationLottieAnimation({
   const dotLottieRefCallback = useCallback(
     (player: DotLottiePlayer | null) => {
       if (listenerRef.current) {
-        listenerRef.current.player.removeEventListener('complete', listenerRef.current.handler);
+        listenerRef.current.player.removeEventListener(
+          "complete",
+          listenerRef.current.handler,
+        );
         listenerRef.current = null;
       }
       if (!player || reduce) return;
       const handler = () => onCompleteRef.current?.();
-      player.addEventListener('complete', handler);
+      player.addEventListener("complete", handler);
       listenerRef.current = { player, handler };
     },
     [reduce],
@@ -56,13 +62,16 @@ export function ValuationLottieAnimation({
   useEffect(() => {
     return () => {
       if (listenerRef.current) {
-        listenerRef.current.player.removeEventListener('complete', listenerRef.current.handler);
+        listenerRef.current.player.removeEventListener(
+          "complete",
+          listenerRef.current.handler,
+        );
         listenerRef.current = null;
       }
     };
   }, []);
 
-  const a11yLabel = decorative ? undefined : ariaLabel ?? 'Loading animation';
+  const a11yLabel = decorative ? undefined : (ariaLabel ?? "Loading animation");
 
   return (
     <DotLottieReact
@@ -72,8 +81,8 @@ export function ValuationLottieAnimation({
       dotLottieRefCallback={dotLottieRefCallback}
       aria-hidden={decorative ? true : undefined}
       aria-label={a11yLabel}
-      role={decorative ? 'presentation' : undefined}
-      className={cn('mx-auto max-w-full', className)}
+      role={decorative ? "presentation" : undefined}
+      className={cn("mx-auto max-w-full", className)}
     />
   );
 }

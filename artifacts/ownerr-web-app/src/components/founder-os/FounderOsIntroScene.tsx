@@ -1,11 +1,17 @@
 import { useLocation } from "wouter";
-import { motion, useReducedMotion, useScroll, useTransform } from "framer-motion";
-import { ArrowRight, Link2, Share2, Sparkles, TrendingUp, Users } from "lucide-react";
+import {
+  motion,
+  useReducedMotion,
+  useScroll,
+  useTransform,
+} from "framer-motion";
+import { Link2, Share2, Sparkles, TrendingUp, Users } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { fadeUp } from "@/components/landing/saas/motion";
 import { useRequireAuth } from "@/lib/platform/requireAuth";
 import { PRODUCT_ITEMS } from "@/routes/publicNavConfig";
 import { cn } from "@/lib/utils";
+import { OwnerrOsSocialSection } from "@/components/founder-os/OwnerrOsSocialSection";
 
 type Props = {
   onContinue: () => void;
@@ -52,7 +58,7 @@ const STEPS = [
 ] as const;
 
 export function FounderOsIntroScene({
-  onContinue,
+  onContinue: _onContinue,
   secondaryCtaHref,
   secondaryCtaLabel,
 }: Props) {
@@ -67,7 +73,9 @@ export function FounderOsIntroScene({
       setLocation(secondaryCtaHref);
       return;
     }
-    requireSession(() => setLocation(ownerrOsProduct.appHref), { productPath: ownerrOsProduct.appHref });
+    requireSession(() => setLocation(ownerrOsProduct.appHref), {
+      productPath: ownerrOsProduct.appHref,
+    });
   };
 
   return (
@@ -81,13 +89,15 @@ export function FounderOsIntroScene({
             className="saas-hero-orb left-[-12%] top-0 h-[min(420px,55vw)] w-[min(420px,55vw)] opacity-45"
             style={{
               y: orbY,
-              background: "color-mix(in srgb, var(--brand-lime) 20%, transparent)",
+              background:
+                "color-mix(in srgb, var(--brand-lime) 20%, transparent)",
             }}
           />
           <motion.div
             className="saas-hero-orb right-[-8%] bottom-[-10%] h-[min(360px,45vw)] w-[min(360px,45vw)] opacity-35"
             style={{
-              background: "color-mix(in srgb, var(--brand-orange) 18%, transparent)",
+              background:
+                "color-mix(in srgb, var(--brand-orange) 18%, transparent)",
             }}
           />
         </div>
@@ -99,13 +109,25 @@ export function FounderOsIntroScene({
             variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
             className="md:col-span-6 lg:col-span-7"
           >
-            <motion.span variants={fadeUp} custom={0} className="luxury-hero-kicker">
+            <motion.span
+              variants={fadeUp}
+              custom={0}
+              className="luxury-hero-kicker"
+            >
               OWNERR OS
             </motion.span>
 
-            <motion.h1 variants={fadeUp} custom={1} className="marketing-hero-title max-w-[24ch]">
-              <span className="text-[color:var(--terminal-display)]">List your startup.</span>
-              <span className="mt-1.5 block platform-gradient-text">Grow with referrals.</span>
+            <motion.h1
+              variants={fadeUp}
+              custom={1}
+              className="marketing-hero-title max-w-[24ch]"
+            >
+              <span className="text-[color:var(--terminal-display)]">
+                List your startup.
+              </span>
+              <span className="mt-1.5 block platform-gradient-text">
+                Grow with referrals.
+              </span>
             </motion.h1>
 
             <motion.p
@@ -113,11 +135,15 @@ export function FounderOsIntroScene({
               custom={2}
               className="marketing-lead max-w-lg"
             >
-              Founder listing, share cards, and referral attribution in one flow — built for operators who ship, not
-              slide decks.
+              Founder listing, share cards, and referral attribution in one flow
+              — built for operators who ship, not slide decks.
             </motion.p>
 
-            <motion.div variants={fadeUp} custom={3} className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <motion.div
+              variants={fadeUp}
+              custom={3}
+              className="mt-8 flex flex-col gap-3 sm:flex-row sm:items-center"
+            >
               <Button
                 type="button"
                 onClick={openApp}
@@ -127,11 +153,25 @@ export function FounderOsIntroScene({
               </Button>
             </motion.div>
 
-            <motion.p variants={fadeUp} custom={4} className="mt-8 text-xs font-medium text-[color:var(--terminal-muted)]">
-              <span className="text-[color:var(--terminal-fg)]">~3 min setup</span>
-              <span className="mx-2 text-[color:var(--terminal-border)]">·</span>
+            <motion.div variants={fadeUp} custom={4} className="mt-6">
+              <OwnerrOsSocialSection variant="hero" />
+            </motion.div>
+
+            <motion.p
+              variants={fadeUp}
+              custom={5}
+              className="mt-8 text-xs font-medium text-[color:var(--terminal-muted)]"
+            >
+              <span className="text-[color:var(--terminal-fg)]">
+                ~3 min setup
+              </span>
+              <span className="mx-2 text-[color:var(--terminal-border)]">
+                ·
+              </span>
               Sample data included
-              <span className="mx-2 text-[color:var(--terminal-border)]">·</span>
+              <span className="mx-2 text-[color:var(--terminal-border)]">
+                ·
+              </span>
               <a href="#features" className="text-brand-orange hover:underline">
                 See capabilities
               </a>
@@ -156,11 +196,19 @@ export function FounderOsIntroScene({
               </div>
               <div className="grid gap-px bg-[color:var(--terminal-border)]/50 p-px sm:grid-cols-2">
                 {PANEL_STATS.map((m) => (
-                  <div key={m.k} className="bg-[color:var(--terminal-bg)]/90 px-4 py-4 backdrop-blur-sm sm:px-5 sm:py-5">
+                  <div
+                    key={m.k}
+                    className="bg-[color:var(--terminal-bg)]/90 px-4 py-4 backdrop-blur-sm sm:px-5 sm:py-5"
+                  >
                     <p className="text-[10px] font-bold uppercase tracking-wider text-[color:var(--terminal-muted)]">
                       {m.k}
                     </p>
-                    <p className={cn("mt-1.5 font-mono text-lg font-bold tabular-nums sm:text-xl", toneText[m.tone])}>
+                    <p
+                      className={cn(
+                        "mt-1.5 font-mono text-lg font-bold tabular-nums sm:text-xl",
+                        toneText[m.tone],
+                      )}
+                    >
                       {m.v}
                     </p>
                   </div>
@@ -172,7 +220,9 @@ export function FounderOsIntroScene({
                     <Users className="h-4 w-4" aria-hidden />
                   </div>
                   <div className="min-w-0">
-                    <p className="truncate text-xs font-bold text-[color:var(--terminal-fg)]">Acme Labs · Seed</p>
+                    <p className="truncate text-xs font-bold text-[color:var(--terminal-fg)]">
+                      Acme Labs · Seed
+                    </p>
                     <p className="mt-0.5 text-[11px] leading-snug text-[color:var(--terminal-muted)]">
                       Referral link active · 24h share window
                     </p>
@@ -184,14 +234,20 @@ export function FounderOsIntroScene({
         </div>
       </section>
 
-      <section id="features" className="saas-section-shell border-b border-[color:var(--terminal-border)]/60 py-12 md:py-16">
+      <section
+        id="features"
+        className="saas-section-shell border-b border-[color:var(--terminal-border)]/60 py-12 md:py-16"
+      >
         <div className="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
           <div>
             <p className="luxury-kicker">Capabilities</p>
-            <h2 className="marketing-section-heading">Everything in the listing flow</h2>
+            <h2 className="marketing-section-heading">
+              Everything in the listing flow
+            </h2>
           </div>
           <p className="marketing-body-sm max-w-sm">
-            One product surface for founders — no separate tools for cards, links, and tracking.
+            One product surface for founders — no separate tools for cards,
+            links, and tracking.
           </p>
         </div>
 
@@ -208,7 +264,9 @@ export function FounderOsIntroScene({
               <div className="flex h-10 w-10 items-center justify-center rounded-[10px] border border-[color:var(--terminal-border)]/80 bg-[color:var(--terminal-surface)]/80 text-[color:var(--brand-orange)]">
                 <f.icon className="h-4 w-4" aria-hidden />
               </div>
-              <h3 className="mt-4 text-sm font-bold text-[color:var(--terminal-fg)]">{f.title}</h3>
+              <h3 className="mt-4 text-sm font-bold text-[color:var(--terminal-fg)]">
+                {f.title}
+              </h3>
               <p className="marketing-body-sm mt-2">{f.body}</p>
             </motion.article>
           ))}
@@ -220,32 +278,47 @@ export function FounderOsIntroScene({
         <div className="grid gap-8 lg:grid-cols-12 lg:items-center">
           <div className="lg:col-span-5">
             <p className="luxury-kicker">How it works</p>
-            <h2 className="marketing-section-heading">Three steps to go live</h2>
+            <h2 className="marketing-section-heading">
+              Three steps to go live
+            </h2>
             <ul className="mt-6 space-y-4">
               {STEPS.map((s) => (
                 <li key={s.n} className="flex gap-4">
-                  <span className="font-mono text-xs font-bold tabular-nums text-[color:var(--terminal-ochre)]">{s.n}</span>
+                  <span className="font-mono text-xs font-bold tabular-nums text-[color:var(--terminal-ochre)]">
+                    {s.n}
+                  </span>
                   <span>
-                    <span className="block text-sm font-bold text-[color:var(--terminal-fg)]">{s.label}</span>
-                    <span className="text-sm text-[color:var(--terminal-muted)]">{s.detail}</span>
+                    <span className="block text-sm font-bold text-[color:var(--terminal-fg)]">
+                      {s.label}
+                    </span>
+                    <span className="text-sm text-[color:var(--terminal-muted)]">
+                      {s.detail}
+                    </span>
                   </span>
                 </li>
               ))}
             </ul>
           </div>
 
-          <div className="lg:col-span-7">
+          <div className="lg:col-span-7 space-y-6">
             <div className="saas-glass-card flex flex-col items-start justify-between gap-6 rounded-[14px] border border-[color:var(--terminal-border)]/80 p-6 sm:flex-row sm:items-center sm:p-8">
               <div className="flex gap-3">
-                <Sparkles className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand-lime)]" aria-hidden />
+                <Sparkles
+                  className="mt-0.5 h-5 w-5 shrink-0 text-[color:var(--brand-lime)]"
+                  aria-hidden
+                />
                 <div>
-                  <p className="text-sm font-bold text-[color:var(--terminal-fg)]">Ready to publish your listing?</p>
+                  <p className="text-sm font-bold text-[color:var(--terminal-fg)]">
+                    Ready to publish your listing?
+                  </p>
                   <p className="mt-1 max-w-md text-sm text-[color:var(--terminal-muted)]">
-                    The guided form pre-fills a sample startup so you can see the full experience in minutes.
+                    The guided form pre-fills a sample startup so you can see
+                    the full experience in minutes.
                   </p>
                 </div>
               </div>
             </div>
+            <OwnerrOsSocialSection />
           </div>
         </div>
       </section>

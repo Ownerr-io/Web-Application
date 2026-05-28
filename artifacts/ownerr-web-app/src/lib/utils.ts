@@ -1,8 +1,8 @@
-import { clsx, type ClassValue } from "clsx"
-import { twMerge } from "tailwind-merge"
+import { clsx, type ClassValue } from "clsx";
+import { twMerge } from "tailwind-merge";
 
 export function cn(...inputs: ClassValue[]) {
-  return twMerge(clsx(inputs))
+  return twMerge(clsx(inputs));
 }
 
 export function formatCurrency(value: number): string {
@@ -22,7 +22,7 @@ export function formatEnterpriseValuation(value: number): string {
 }
 
 export function formatShortCurrency(value: number): string {
-  if (!Number.isFinite(value)) return '—';
+  if (!Number.isFinite(value)) return "—";
   const abs = Math.abs(value);
   if (abs >= 1e12) {
     const t = value / 1e12;

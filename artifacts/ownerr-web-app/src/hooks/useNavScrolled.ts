@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState } from "react";
 
 export function useNavScrolled(threshold = 8) {
   const [scrolled, setScrolled] = useState(false);
@@ -6,8 +6,8 @@ export function useNavScrolled(threshold = 8) {
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > threshold);
     onScroll();
-    window.addEventListener('scroll', onScroll, { passive: true });
-    return () => window.removeEventListener('scroll', onScroll);
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
   }, [threshold]);
 
   return scrolled;

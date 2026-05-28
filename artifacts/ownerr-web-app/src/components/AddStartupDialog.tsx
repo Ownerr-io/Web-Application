@@ -1,9 +1,12 @@
-import { useState } from 'react';
-import type { Category, Startup } from '@/lib/mockData';
-import { PASTEL_COLORS, generateMonthlyRevenue } from '@/lib/mockData';
-import { computeStartupScores } from '@/lib/startupScores';
-import { addUserStartupDB } from '@/lib/db';
-import { buildMarketplaceListingFromStartup, upsertMarketplaceListing } from '@/lib/marketplace/service';
+import { useState } from "react";
+import type { Category, Startup } from "@/lib/mockData";
+import { PASTEL_COLORS, generateMonthlyRevenue } from "@/lib/mockData";
+import { computeStartupScores } from "@/lib/startupScores";
+import { addUserStartupDB } from "@/lib/db";
+import {
+  buildMarketplaceListingFromStartup,
+  upsertMarketplaceListing,
+} from "@/lib/marketplace/service";
 import {
   Dialog,
   DialogContent,
@@ -11,45 +14,45 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Button } from '@/components/ui/button';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Checkbox } from '@/components/ui/checkbox';
-import { useToast } from '@/hooks/use-toast';
-import { cn } from '@/lib/utils';
-import { ExternalLink } from 'lucide-react';
-import { useAuth } from '@/context/AuthContext';
-import { useRequireAuth } from '@/lib/platform/requireAuth';
+} from "@/components/ui/select";
+import { Checkbox } from "@/components/ui/checkbox";
+import { useToast } from "@/hooks/use-toast";
+import { cn } from "@/lib/utils";
+import { ExternalLink } from "lucide-react";
+import { useAuth } from "@/context/AuthContext";
+import { useRequireAuth } from "@/lib/platform/requireAuth";
 
 function slugify(name: string) {
   const base = name
     .toLowerCase()
     .trim()
-    .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-|-$/g, '');
-  return `${base || 'startup'}-${Date.now().toString(36)}`;
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+  return `${base || "startup"}-${Date.now().toString(36)}`;
 }
 
 const CATEGORIES: Category[] = [
-  'SaaS',
-  'Mobile Apps',
-  'Developer Tools',
-  'Marketing',
-  'Artificial Intelligence',
-  'Education',
-  'Content Creation',
-  'Health',
-  'Crypto & Web3',
-  'Customer Support',
-  'Social Media',
+  "SaaS",
+  "Mobile Apps",
+  "Developer Tools",
+  "Marketing",
+  "Artificial Intelligence",
+  "Education",
+  "Content Creation",
+  "Health",
+  "Crypto & Web3",
+  "Customer Support",
+  "Social Media",
 ];
 
 type Props = {
@@ -61,32 +64,34 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
   const { toast } = useToast();
   const { currentUser, isFounder, isAuthenticated } = useAuth();
   const { requireAuth } = useRequireAuth();
-  const [name, setName] = useState('');
-  const [founderName, setFounderName] = useState('');
-  const [username, setUsername] = useState('');
-  const [mrrRaw, setMrrRaw] = useState('');
-  const [description, setDescription] = useState('');
-  const [category, setCategory] = useState<Category>('SaaS');
-  const [stripeKey, setStripeKey] = useState('');
+  const [name, setName] = useState("");
+  const [founderName, setFounderName] = useState("");
+  const [username, setUsername] = useState("");
+  const [mrrRaw, setMrrRaw] = useState("");
+  const [description, setDescription] = useState("");
+  const [category, setCategory] = useState<Category>("SaaS");
+  const [stripeKey, setStripeKey] = useState("");
   const [listForSale, setListForSale] = useState(false);
-  const [askingPriceRaw, setAskingPriceRaw] = useState('');
+  const [askingPriceRaw, setAskingPriceRaw] = useState("");
   const [revenueVerified, setRevenueVerified] = useState(false);
-  const [revenueProvider, setRevenueProvider] = useState<'Stripe' | 'RevenueCat'>('Stripe');
+  const [revenueProvider, setRevenueProvider] = useState<
+    "Stripe" | "RevenueCat"
+  >("Stripe");
   const [domainVerified, setDomainVerified] = useState(false);
   const [trafficVerified, setTrafficVerified] = useState(false);
 
   function reset() {
-    setName('');
-    setFounderName('');
-    setUsername('');
-    setMrrRaw('');
-    setDescription('');
-    setCategory('SaaS');
-    setStripeKey('');
+    setName("");
+    setFounderName("");
+    setUsername("");
+    setMrrRaw("");
+    setDescription("");
+    setCategory("SaaS");
+    setStripeKey("");
     setListForSale(false);
-    setAskingPriceRaw('');
+    setAskingPriceRaw("");
     setRevenueVerified(false);
-    setRevenueProvider('Stripe');
+    setRevenueProvider("Stripe");
     setDomainVerified(false);
     setTrafficVerified(false);
   }
@@ -94,37 +99,46 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
   async function submit() {
     if (!isAuthenticated || !currentUser) {
       onOpenChange(false);
-      requireAuth({ action: 'create_listing', onAllowed: () => {} });
+      requireAuth({ action: "create_listing", onAllowed: () => {} });
       return;
     }
     if (!isFounder) {
       toast({
-        title: 'Founder mode required',
-        description: 'Switch to a founder persona to create or manage a listing.',
-        variant: 'destructive',
+        title: "Founder mode required",
+        description:
+          "Switch to a founder persona to create or manage a listing.",
+        variant: "destructive",
       });
       return;
     }
     const trimmed = name.trim();
     if (!trimmed) {
-      toast({ title: 'Name required', description: 'Enter a startup name.', variant: 'destructive' });
+      toast({
+        title: "Name required",
+        description: "Enter a startup name.",
+        variant: "destructive",
+      });
       return;
     }
-    const mrr = Number(mrrRaw.replace(/[^0-9.]/g, ''));
+    const mrr = Number(mrrRaw.replace(/[^0-9.]/g, ""));
     if (!Number.isFinite(mrr) || mrr < 0) {
-      toast({ title: 'Invalid MRR', description: 'Enter a valid monthly revenue number.', variant: 'destructive' });
+      toast({
+        title: "Invalid MRR",
+        description: "Enter a valid monthly revenue number.",
+        variant: "destructive",
+      });
       return;
     }
 
     let price: number | undefined;
     let multiple: number | undefined;
     if (listForSale) {
-      const ap = Number(askingPriceRaw.replace(/[^0-9.]/g, ''));
+      const ap = Number(askingPriceRaw.replace(/[^0-9.]/g, ""));
       if (!Number.isFinite(ap) || ap <= 0) {
         toast({
-          title: 'Asking price required',
-          description: 'Enter an asking price when listing for sale.',
-          variant: 'destructive',
+          title: "Asking price required",
+          description: "Enter an asking price when listing for sale.",
+          variant: "destructive",
         });
         return;
       }
@@ -161,9 +175,10 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
       founderHandle,
       founderDisplayName: founderName.trim() || currentUser.name,
       listingUsername: username.trim() || undefined,
-      description: description.trim() || 'Added via Ownerr',
+      description: description.trim() || "Added via Ownerr",
       monthlyRevenueSeries: generateMonthlyRevenue(revenue),
-      logoColor: PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)],
+      logoColor:
+        PASTEL_COLORS[Math.floor(Math.random() * PASTEL_COLORS.length)],
       foundedYear: new Date().getFullYear(),
       customers: 0,
       momGrowth: 0,
@@ -172,8 +187,14 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
       revenueProvider: revenueVerified ? revenueProvider : null,
       domainVerified,
       trafficVerified,
-      trafficMonthlyVisitors: trafficVerified ? Math.max(200, Math.round(Math.random() * 5000)) : null,
-      trafficTrend: trafficVerified ? (Math.random() > 0.3 ? 'up' : 'flat') : null,
+      trafficMonthlyVisitors: trafficVerified
+        ? Math.max(200, Math.round(Math.random() * 5000))
+        : null,
+      trafficTrend: trafficVerified
+        ? Math.random() > 0.3
+          ? "up"
+          : "flat"
+        : null,
       ...computeStartupScores(scoreInput),
     };
 
@@ -186,11 +207,14 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
     );
     if (stripeKey.trim()) {
       toast({
-        title: 'Startup added',
+        title: "Startup added",
         description: `${trimmed} is on the leaderboard. (Your Stripe key was not stored.)`,
       });
     } else {
-      toast({ title: 'Startup added', description: `${trimmed} is on the leaderboard.` });
+      toast({
+        title: "Startup added",
+        description: `${trimmed} is on the leaderboard.`,
+      });
     }
     reset();
     onOpenChange(false);
@@ -200,17 +224,25 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent
         className={cn(
-          'flex max-h-[min(92dvh,calc(100dvh-1rem))] w-[calc(100vw-1.25rem)] max-w-lg flex-col gap-0 overflow-hidden p-0',
-          'rounded-xl sm:w-full sm:max-w-lg',
-          'pb-[max(0px,env(safe-area-inset-bottom,0px))]',
+          "flex max-h-[min(92dvh,calc(100dvh-1rem))] w-[calc(100vw-1.25rem)] max-w-lg flex-col gap-0 overflow-hidden p-0",
+          "rounded-xl sm:w-full sm:max-w-lg",
+          "pb-[max(0px,env(safe-area-inset-bottom,0px))]",
         )}
       >
         <DialogHeader className="shrink-0 space-y-2 px-4 pb-2 pt-5 pr-11 text-left sm:px-6 sm:pb-2 sm:pt-6 sm:pr-12">
-          <DialogTitle className="text-base leading-snug sm:text-xl">Add your startup</DialogTitle>
+          <DialogTitle className="text-base leading-snug sm:text-xl">
+            Add your startup
+          </DialogTitle>
           <DialogDescription className="text-pretty text-xs leading-relaxed text-foreground/90 sm:text-base sm:leading-snug">
-            Showcase your verified revenue to{' '}
-            <span className="font-bold text-foreground">120,000+ monthly visitors</span> and get a{' '}
-            <span className="font-bold text-foreground">54+ DR dofollow backlink</span>.
+            Showcase your verified revenue to{" "}
+            <span className="font-bold text-foreground">
+              120,000+ monthly visitors
+            </span>{" "}
+            and get a{" "}
+            <span className="font-bold text-foreground">
+              54+ DR dofollow backlink
+            </span>
+            .
           </DialogDescription>
         </DialogHeader>
 
@@ -219,8 +251,8 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
             {!isFounder ? (
               <div className="rounded-xl border border-amber-500/30 bg-amber-500/10 p-4 text-sm text-amber-900 dark:text-amber-100">
                 {!isAuthenticated
-                  ? 'Login to create a mock founder listing.'
-                  : 'Buyer accounts can browse and bid, but only founder accounts can create or edit listings in this mock.'}
+                  ? "Login to create a mock founder listing."
+                  : "Buyer accounts can browse and bid, but only founder accounts can create or edit listings in this mock."}
               </div>
             ) : null}
             <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-4">
@@ -239,14 +271,18 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
                     </span>
                   </div>
                   <p className="text-xs text-muted-foreground leading-relaxed">
-                    Verify revenue with a read-only key. We never store your key in this browser build unless you
-                    submit the form—use a restricted key in production.
+                    Verify revenue with a read-only key. We never store your key
+                    in this browser build unless you submit the form—use a
+                    restricted key in production.
                   </p>
                 </div>
               </div>
 
               <div className="space-y-2">
-                <Label htmlFor="as-stripe-key" className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                <Label
+                  htmlFor="as-stripe-key"
+                  className="text-xs font-bold uppercase tracking-wide text-muted-foreground"
+                >
                   Restricted key
                 </Label>
                 <Input
@@ -270,7 +306,9 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
                 <ul className="text-xs text-muted-foreground space-y-1.5 list-disc pl-4">
                   <li>Scroll down and click &quot;Create key&quot;.</li>
                   <li>Don&apos;t change the permissions on the template.</li>
-                  <li>Don&apos;t delete the key or we can&apos;t refresh revenue.</li>
+                  <li>
+                    Don&apos;t delete the key or we can&apos;t refresh revenue.
+                  </li>
                 </ul>
               </div>
             </div>
@@ -352,7 +390,9 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
             )}
 
             <div className="rounded-xl border border-border bg-muted/40 p-4 space-y-3">
-              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">Verification</p>
+              <p className="text-xs font-bold uppercase tracking-wide text-muted-foreground">
+                Verification
+              </p>
               <div className="flex items-start gap-3">
                 <Checkbox
                   id="as-rev-verified"
@@ -360,16 +400,26 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
                   onCheckedChange={(v) => setRevenueVerified(v === true)}
                 />
                 <div className="grid gap-1 leading-none">
-                  <Label htmlFor="as-rev-verified" className="font-bold cursor-pointer">
+                  <Label
+                    htmlFor="as-rev-verified"
+                    className="font-bold cursor-pointer"
+                  >
                     Verify revenue
                   </Label>
-                  <p className="text-xs text-muted-foreground">Shows a verified revenue badge on your listing.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Shows a verified revenue badge on your listing.
+                  </p>
                 </div>
               </div>
               {revenueVerified && (
                 <div className="grid min-w-0 gap-2 pl-7">
                   <Label>Provider</Label>
-                  <Select value={revenueProvider} onValueChange={(v) => setRevenueProvider(v as 'Stripe' | 'RevenueCat')}>
+                  <Select
+                    value={revenueProvider}
+                    onValueChange={(v) =>
+                      setRevenueProvider(v as "Stripe" | "RevenueCat")
+                    }
+                  >
                     <SelectTrigger className="h-9">
                       <SelectValue />
                     </SelectTrigger>
@@ -387,10 +437,15 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
                   onCheckedChange={(v) => setDomainVerified(v === true)}
                 />
                 <div className="grid gap-1 leading-none">
-                  <Label htmlFor="as-domain-verified" className="font-bold cursor-pointer">
+                  <Label
+                    htmlFor="as-domain-verified"
+                    className="font-bold cursor-pointer"
+                  >
                     Verify domain
                   </Label>
-                  <p className="text-xs text-muted-foreground">Shows a verified domain badge.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Shows a verified domain badge.
+                  </p>
                 </div>
               </div>
               <div className="flex items-start gap-3">
@@ -400,17 +455,25 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
                   onCheckedChange={(v) => setTrafficVerified(v === true)}
                 />
                 <div className="grid gap-1 leading-none">
-                  <Label htmlFor="as-traffic-verified" className="font-bold cursor-pointer">
+                  <Label
+                    htmlFor="as-traffic-verified"
+                    className="font-bold cursor-pointer"
+                  >
                     Verify traffic
                   </Label>
-                  <p className="text-xs text-muted-foreground">Shows a verified traffic badge with mock visitor data.</p>
+                  <p className="text-xs text-muted-foreground">
+                    Shows a verified traffic badge with mock visitor data.
+                  </p>
                 </div>
               </div>
             </div>
 
             <div className="grid min-w-0 gap-2">
               <Label>Category</Label>
-              <Select value={category} onValueChange={(v) => setCategory(v as Category)}>
+              <Select
+                value={category}
+                onValueChange={(v) => setCategory(v as Category)}
+              >
                 <SelectTrigger className="h-11 min-h-11 sm:h-9 sm:min-h-9">
                   <SelectValue />
                 </SelectTrigger>
@@ -437,10 +500,19 @@ export function AddStartupDialog({ open, onOpenChange }: Props) {
         </div>
 
         <DialogFooter className="mt-0 flex w-full shrink-0 flex-row flex-wrap justify-end gap-2 border-t border-border bg-muted/20 px-4 py-4 sm:px-6 sm:py-4 sm:justify-end">
-          <Button type="button" variant="outline" className="min-h-10 shrink-0" onClick={() => onOpenChange(false)}>
+          <Button
+            type="button"
+            variant="outline"
+            className="min-h-10 shrink-0"
+            onClick={() => onOpenChange(false)}
+          >
             Cancel
           </Button>
-          <Button type="button" onClick={submit} className="min-h-10 shrink-0 font-bold">
+          <Button
+            type="button"
+            onClick={submit}
+            className="min-h-10 shrink-0 font-bold"
+          >
             Add startup
           </Button>
         </DialogFooter>

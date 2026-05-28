@@ -2,12 +2,17 @@ import { useEffect, useState } from "react";
 import { Link, useParams } from "wouter";
 import { motion } from "framer-motion";
 import { MarketingLayout } from "@/components/MarketingLayout";
-import { OwnerrOsShareSocialButtons } from "@/components/founder-os/OwnerrOsShareSocialButtons";
 import { Button } from "@/components/ui/button";
 import { MARKETING_SHELL_CLASS } from "@/lib/marketingShell";
-import { fetchFounderByReferralCodePublic, trackReferral } from "@/lib/founderService";
+import {
+  fetchFounderByReferralCodePublic,
+  trackReferral,
+} from "@/lib/founderService";
 import type { FounderSubmissionRecord } from "@/lib/founderTypes";
-import { getFounderCardImageUrl, getFounderSharePageUrl } from "@/lib/founderShareUrls";
+import {
+  getFounderCardImageUrl,
+  getFounderSharePageUrl,
+} from "@/lib/founderShareUrls";
 import { buildReferralLink } from "@/lib/founderReferral";
 import { getPublicShareOrigin } from "@/lib/founderShareUrls";
 
@@ -48,7 +53,9 @@ export default function FounderSharePage() {
       <motion.div
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className={MARKETING_SHELL_CLASS + " mx-auto max-w-lg space-y-6 px-4 py-12"}
+        className={
+          MARKETING_SHELL_CLASS + " mx-auto max-w-lg space-y-6 px-4 py-12"
+        }
       >
         <motion.div className="space-y-6 rounded-[12px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/80 p-6">
           <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[color:var(--terminal-lime)]">
@@ -59,20 +66,23 @@ export default function FounderSharePage() {
               <h1 className="text-2xl font-bold text-[color:var(--terminal-display)]">
                 Chance to win up to $250k
               </h1>
-              <p className="text-sm text-[color:var(--terminal-muted)]">{record.tagline}</p>
+              <p className="text-sm text-[color:var(--terminal-muted)]">
+                {record.tagline}
+              </p>
               <p className="text-xs text-[color:var(--terminal-muted)]">
                 {record.founderName} · {record.startupName}
               </p>
             </>
           ) : (
-            <p className="text-sm text-[color:var(--terminal-muted)]">Founder listing not found.</p>
+            <p className="text-sm text-[color:var(--terminal-muted)]">
+              Founder listing not found.
+            </p>
           )}
           <img
             src={getFounderCardImageUrl(record ?? undefined)}
             alt="OWNERR OS share card"
             className="w-full rounded-[10px] border border-[color:var(--terminal-border)]"
           />
-          <OwnerrOsShareSocialButtons />
           <Button
             asChild
             className="w-full bg-[color:var(--terminal-ochre)] font-bold text-[color:var(--brand-accent-ink)]"

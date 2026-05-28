@@ -1,6 +1,10 @@
-import { Spinner } from '@/components/ui/spinner';
+import { Spinner } from "@/components/ui/spinner";
 
-export function RouteLoadingFallback({ label = 'Loading…' }: { label?: string }) {
+export function RouteLoadingFallback({
+  label = "Loading…",
+}: {
+  label?: string;
+}) {
   return (
     <div
       className="flex min-h-[min(60vh,480px)] w-full flex-col items-center justify-center gap-3 text-muted-foreground"

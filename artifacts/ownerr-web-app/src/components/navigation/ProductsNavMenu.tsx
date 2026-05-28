@@ -1,13 +1,13 @@
-import { Link } from 'wouter';
-import { ArrowRight, ChevronDown, LayoutGrid } from 'lucide-react';
+import { Link } from "wouter";
+import { ArrowRight, ChevronDown, LayoutGrid } from "lucide-react";
 import {
   DropdownMenu,
   DropdownMenuContent,
   DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import { cn } from '@/lib/utils';
-import { getProductsDropdownSections } from '@/routes/publicNavConfig';
-import { isProductsDropdownActive } from '@/routes/navConfig';
+} from "@/components/ui/dropdown-menu";
+import { cn } from "@/lib/utils";
+import { getProductsDropdownSections } from "@/routes/publicNavConfig";
+import { isProductsDropdownActive } from "@/routes/navConfig";
 
 type Props = {
   active: boolean;
@@ -19,20 +19,24 @@ export function ProductsNavMenu({ active, terminal, onNavigate }: Props) {
   const sections = getProductsDropdownSections();
 
   const triggerClass = cn(
-    'group/trigger inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold tracking-wide transition-colors outline-none',
-    'focus-visible:ring-2 focus-visible:ring-[color:var(--brand-orange)]/40 focus-visible:ring-offset-2',
+    "group/trigger inline-flex items-center gap-1.5 rounded-md px-3 py-2 text-xs font-bold tracking-wide transition-colors outline-none",
+    "focus-visible:ring-2 focus-visible:ring-[color:var(--brand-orange)]/40 focus-visible:ring-offset-2",
     active
       ? terminal
-        ? 'text-[color:var(--terminal-ochre)]'
-        : 'text-foreground'
+        ? "text-[color:var(--terminal-ochre)]"
+        : "text-foreground"
       : terminal
-        ? 'text-[color:var(--terminal-muted)] hover:bg-[color:var(--terminal-surface-2)] hover:text-[color:var(--terminal-fg)]'
-        : 'text-muted-foreground hover:text-foreground',
+        ? "text-[color:var(--terminal-muted)] hover:bg-[color:var(--terminal-surface-2)] hover:text-[color:var(--terminal-fg)]"
+        : "text-muted-foreground hover:text-foreground",
   );
 
   return (
     <DropdownMenu>
-      <DropdownMenuTrigger className={triggerClass} aria-label="Products menu" aria-haspopup="menu">
+      <DropdownMenuTrigger
+        className={triggerClass}
+        aria-label="Products menu"
+        aria-haspopup="menu"
+      >
         <span className="relative">
           Products
           <span
@@ -49,8 +53,8 @@ export function ProductsNavMenu({ active, terminal, onNavigate }: Props) {
         align="start"
         sideOffset={14}
         className={cn(
-          'saas-glass-card luxury-nav-dropdown z-[100] w-[min(100vw-2rem,24rem)] border border-[color:var(--terminal-border)]/80 p-0 font-mono shadow-xl backdrop-blur-xl',
-          'data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98]',
+          "saas-glass-card luxury-nav-dropdown z-[100] w-[min(100vw-2rem,24rem)] border border-[color:var(--terminal-border)]/80 p-0 font-mono shadow-xl backdrop-blur-xl",
+          "data-[state=open]:animate-in data-[state=closed]:animate-out data-[state=closed]:fade-out-0 data-[state=open]:fade-in-0 data-[state=closed]:zoom-out-[0.98] data-[state=open]:zoom-in-[0.98]",
         )}
       >
         <div className="luxury-nav-dropdown-header border-b border-[color:var(--terminal-border)]/60 px-4 py-3">
@@ -61,23 +65,35 @@ export function ProductsNavMenu({ active, terminal, onNavigate }: Props) {
         </div>
         <div className="luxury-nav-dropdown-body max-h-[min(70vh,28rem)] overflow-y-auto p-1">
           {sections.map((section) => (
-            <div key={section.id} className={cn(section.id !== 'hub' && 'mt-1 border-t border-[color:var(--terminal-border)]/50 pt-1')}>
+            <div
+              key={section.id}
+              className={cn(
+                section.id !== "hub" &&
+                  "mt-1 border-t border-[color:var(--terminal-border)]/50 pt-1",
+              )}
+            >
               {section.title ? (
                 <p className="px-3 pb-1 pt-2 text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--terminal-muted)]">
                   {section.title}
                 </p>
               ) : null}
-              <ul role="list" className={cn(!section.title && 'divide-y divide-[color:var(--terminal-border)]/50')}>
+              <ul
+                role="list"
+                className={cn(
+                  !section.title &&
+                    "divide-y divide-[color:var(--terminal-border)]/50",
+                )}
+              >
                 {section.items.map((item, itemIndex) => {
-                  const isHub = section.id === 'hub';
+                  const isHub = section.id === "hub";
                   return (
                     <li key={item.id}>
                       <Link
                         href={item.href}
                         onClick={onNavigate}
                         className={cn(
-                          'luxury-nav-dropdown-item group/item flex gap-3 rounded-[8px] px-3 py-3 transition-colors hover:bg-[color:var(--terminal-surface)]/60',
-                          isHub && 'bg-[color:var(--terminal-surface)]/30',
+                          "luxury-nav-dropdown-item group/item flex gap-3 rounded-[8px] px-3 py-3 transition-colors hover:bg-[color:var(--terminal-surface)]/60",
+                          isHub && "bg-[color:var(--terminal-surface)]/30",
                         )}
                       >
                         {isHub ? (
@@ -87,11 +103,13 @@ export function ProductsNavMenu({ active, terminal, onNavigate }: Props) {
                           />
                         ) : (
                           <span className="mt-0.5 w-6 shrink-0 font-mono text-[10px] font-bold tabular-nums text-[color:var(--terminal-muted)]">
-                            {String(itemIndex + 1).padStart(2, '0')}
+                            {String(itemIndex + 1).padStart(2, "0")}
                           </span>
                         )}
                         <span className="min-w-0 flex-1">
-                          <span className="block text-[13px] font-bold text-[color:var(--terminal-display)]">{item.label}</span>
+                          <span className="block text-[13px] font-bold text-[color:var(--terminal-display)]">
+                            {item.label}
+                          </span>
                           <span className="mt-1 block text-[11px] font-normal leading-snug text-[color:var(--terminal-muted)]">
                             {item.description}
                           </span>

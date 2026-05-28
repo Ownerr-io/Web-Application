@@ -17,7 +17,9 @@ export function OwnerrNetworkProtectedRoute({
 }: Props) {
   const [location] = useLocation();
   const { configured, loading, session, profile } = useOwnerrNetworkAuth();
-  const [onboardingResolved, setOnboardingResolved] = useState(!requireOnboardingComplete);
+  const [onboardingResolved, setOnboardingResolved] = useState(
+    !requireOnboardingComplete,
+  );
   const [onboardingComplete, setOnboardingComplete] = useState<boolean | null>(
     requireOnboardingComplete ? null : true,
   );
@@ -48,12 +50,16 @@ export function OwnerrNetworkProtectedRoute({
   if (!configured) {
     return (
       <div className="mx-auto max-w-lg px-4 py-20 text-center text-sm text-[color:var(--terminal-muted)]">
-        Supabase is not configured. Set VITE_SUPABASE_URL and VITE_SUPABASE_ANON_KEY in .env.local
+        Supabase is not configured. Set VITE_SUPABASE_URL and
+        VITE_SUPABASE_ANON_KEY in .env.local
       </div>
     );
   }
 
-  if (loading || (requireOnboardingComplete && profile && !onboardingResolved)) {
+  if (
+    loading ||
+    (requireOnboardingComplete && profile && !onboardingResolved)
+  ) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm font-bold text-[color:var(--terminal-muted)]">
         Loading…
@@ -66,9 +72,15 @@ export function OwnerrNetworkProtectedRoute({
   }
 
   const onOnboardingRoute =
-    normalizePathname(location) === normalizePathname(PRODUCT_ROUTES.ownerrNetworkOnboarding);
+    normalizePathname(location) ===
+    normalizePathname(PRODUCT_ROUTES.ownerrNetworkOnboarding);
 
-  if (requireOnboardingComplete && !onOnboardingRoute && profile && onboardingComplete === false) {
+  if (
+    requireOnboardingComplete &&
+    !onOnboardingRoute &&
+    profile &&
+    onboardingComplete === false
+  ) {
     return <Redirect to={PRODUCT_ROUTES.ownerrNetworkOnboarding} />;
   }
 

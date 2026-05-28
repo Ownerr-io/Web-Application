@@ -1,5 +1,5 @@
-import { isDemoAccountEmail } from '@/lib/marketplace/demoUsers';
-import { useAuth } from '@/context/AuthContext';
+import { isDemoAccountEmail } from "@/lib/marketplace/demoUsers";
+import { useAuth } from "@/context/AuthContext";
 
 export function DemoAccountBanner() {
   const { session } = useAuth();
@@ -11,7 +11,8 @@ export function DemoAccountBanner() {
       className="border-b border-amber-500/30 bg-amber-500/10 px-4 py-2 text-center text-xs font-semibold text-amber-950 dark:text-amber-100"
       role="status"
     >
-      Demo Account — data is for testing only. Use reset script before QA demos if needed.
+      Demo Account — data is for testing only. Use reset script before QA demos
+      if needed.
     </div>
   );
 }

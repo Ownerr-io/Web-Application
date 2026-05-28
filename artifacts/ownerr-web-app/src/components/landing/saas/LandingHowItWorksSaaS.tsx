@@ -1,40 +1,44 @@
-import { Link } from 'wouter';
-import { Reveal, RevealItem, RevealStagger } from '@/components/landing/saas/Reveal';
-import { SectionHeader } from '@/components/landing/saas/SectionHeader';
-import { marketingRoutes } from '@/routes/marketingRoutes';
-import { cn } from '@/lib/utils';
+import { Link } from "wouter";
+import {
+  Reveal,
+  RevealItem,
+  RevealStagger,
+} from "@/components/landing/saas/Reveal";
+import { SectionHeader } from "@/components/landing/saas/SectionHeader";
+import { marketingRoutes } from "@/routes/marketingRoutes";
+import { cn } from "@/lib/utils";
 
 const STEPS = [
   {
-    step: '01',
-    title: 'Model the business',
-    body: 'Stress growth, retention, and efficiency in the valuation terminal. Outputs update as you iterate.',
-    accent: 'lime' as const,
+    step: "01",
+    title: "Model the business",
+    body: "Stress growth, retention, and efficiency in the valuation terminal. Outputs update as you iterate.",
+    accent: "lime" as const,
   },
   {
-    step: '02',
-    title: 'Read the market',
-    body: 'Anchor price against multiples, bid depth, and sector drift from the intelligence layer.',
-    accent: 'orange' as const,
+    step: "02",
+    title: "Read the market",
+    body: "Anchor price against multiples, bid depth, and sector drift from the intelligence layer.",
+    accent: "orange" as const,
   },
   {
-    step: '03',
-    title: 'List or acquire',
-    body: 'Verified marketplace supply with structured workflows and audit-friendly deal history.',
-    accent: 'red' as const,
+    step: "03",
+    title: "List or acquire",
+    body: "Verified marketplace supply with structured workflows and audit-friendly deal history.",
+    accent: "red" as const,
   },
   {
-    step: '04',
-    title: 'Scale distribution',
-    body: 'Founder OS and Unemployed Network extend reach without leaving the platform.',
-    accent: 'lime' as const,
+    step: "04",
+    title: "Scale distribution",
+    body: "Founder OS and Unemployed Network extend reach without leaving the platform.",
+    accent: "lime" as const,
   },
 ] as const;
 
 const accentText = {
-  lime: 'text-brand-lime',
-  orange: 'text-brand-orange',
-  red: 'text-brand-red',
+  lime: "text-brand-lime",
+  orange: "text-brand-orange",
+  red: "text-brand-red",
 };
 
 export function LandingHowItWorksSaaS() {
@@ -64,15 +68,24 @@ export function LandingHowItWorksSaaS() {
           <RevealItem key={s.step}>
             <div
               className={cn(
-                'grid gap-6 border-t border-[color:var(--terminal-border)]/70 py-8 md:grid-cols-[6rem_1fr] md:gap-10 md:py-10',
-                i === 0 && 'border-t-0 pt-0',
+                "grid gap-6 border-t border-[color:var(--terminal-border)]/70 py-8 md:grid-cols-[6rem_1fr] md:gap-10 md:py-10",
+                i === 0 && "border-t-0 pt-0",
               )}
             >
               <div>
-                <p className={cn('font-mono text-2xl font-light tabular-nums', accentText[s.accent])}>{s.step}</p>
+                <p
+                  className={cn(
+                    "font-mono text-2xl font-light tabular-nums",
+                    accentText[s.accent],
+                  )}
+                >
+                  {s.step}
+                </p>
               </div>
               <div className="max-w-2xl">
-                <h3 className="text-xl font-bold text-[color:var(--terminal-display)]">{s.title}</h3>
+                <h3 className="text-xl font-bold text-[color:var(--terminal-display)]">
+                  {s.title}
+                </h3>
                 <p className="mt-3 text-sm leading-relaxed text-[color:var(--terminal-muted)] sm:text-[15px]">
                   {s.body}
                 </p>

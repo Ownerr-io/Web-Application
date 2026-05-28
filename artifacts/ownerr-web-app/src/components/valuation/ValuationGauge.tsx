@@ -1,6 +1,6 @@
-import { useEffect, useState, useId } from 'react';
-import { useReducedMotion } from 'framer-motion';
-import { cn } from '@/lib/utils';
+import { useEffect, useState, useId } from "react";
+import { useReducedMotion } from "framer-motion";
+import { cn } from "@/lib/utils";
 
 type Props = {
   value: number; // 0 to 100
@@ -10,9 +10,15 @@ type Props = {
   className?: string;
 };
 
-export function ValuationGauge({ value, label, subtitle, size = 180, className }: Props) {
+export function ValuationGauge({
+  value,
+  label,
+  subtitle,
+  size = 180,
+  className,
+}: Props) {
   const reduce = useReducedMotion();
-  const gradId = useId().replace(/:/g, '');
+  const gradId = useId().replace(/:/g, "");
   const [animatedValue, setAnimatedValue] = useState(reduce ? value : 0);
 
   useEffect(() => {
@@ -23,7 +29,7 @@ export function ValuationGauge({ value, label, subtitle, size = 180, className }
     const start = performance.now();
     const dur = 1200;
     let frame = 0;
-    
+
     const tick = (now: number) => {
       const t = Math.min(1, (now - start) / dur);
       const eased = 1 - Math.pow(1 - t, 3); // Cubic ease out
@@ -38,10 +44,11 @@ export function ValuationGauge({ value, label, subtitle, size = 180, className }
   const r = 72;
   const cx = 100;
   const cy = 100;
-  
+
   // Circumference of a half circle is PI * r
   const halfCircumference = Math.PI * r; // ~226.2
-  const strokeDashoffset = halfCircumference - (animatedValue / 100) * halfCircumference;
+  const strokeDashoffset =
+    halfCircumference - (animatedValue / 100) * halfCircumference;
 
   // The angle for the needle: sweeps through top-half clockwise from 180deg (left) to 360deg (right)
   const needleRotation = 180 + (animatedValue / 100) * 180;
@@ -49,17 +56,21 @@ export function ValuationGauge({ value, label, subtitle, size = 180, className }
   return (
     <div
       className={cn(
-        'relative flex flex-col items-center justify-center text-center bg-transparent border-0 p-0 shadow-none',
-        className
+        "relative flex flex-col items-center justify-center text-center bg-transparent border-0 p-0 shadow-none",
+        className,
       )}
       style={{ width: size }}
     >
-      <div className="relative w-full overflow-hidden" style={{ height: size * 0.62 }}>
+      <div
+        className="relative w-full overflow-hidden"
+        style={{ height: size * 0.62 }}
+      >
         {/* Glow behind the gauge */}
-        <div 
+        <div
           className="absolute left-1/2 bottom-2 -translate-x-1/2 w-[80%] h-[50%] rounded-full opacity-20 blur-xl pointer-events-none transition-all duration-500"
           style={{
-            background: 'radial-gradient(circle, var(--terminal-glow), transparent 75%)'
+            background:
+              "radial-gradient(circle, var(--terminal-glow), transparent 75%)",
           }}
         />
 
@@ -75,12 +86,12 @@ export function ValuationGauge({ value, label, subtitle, size = 180, className }
               <stop offset="60%" stopColor="var(--terminal-lime)" />
               <stop offset="100%" stopColor="var(--terminal-lime)" />
             </linearGradient>
-            
+
             <filter id={`glow-${gradId}`}>
-              <feGaussianBlur stdDeviation="3.5" result="coloredBlur"/>
+              <feGaussianBlur stdDeviation="3.5" result="coloredBlur" />
               <feMerge>
-                <feMergeNode in="coloredBlur"/>
-                <feMergeNode in="SourceGraphic"/>
+                <feMergeNode in="coloredBlur" />
+                <feMergeNode in="SourceGraphic" />
               </feMerge>
             </filter>
           </defs>
@@ -107,7 +118,14 @@ export function ValuationGauge({ value, label, subtitle, size = 180, className }
           />
 
           {/* Center Hub */}
-          <circle cx={cx} cy={cy} r="7" fill="var(--terminal-bg)" stroke="color-mix(in srgb, var(--terminal-border) 45%, transparent)" strokeWidth="1.5" />
+          <circle
+            cx={cx}
+            cy={cy}
+            r="7"
+            fill="var(--terminal-bg)"
+            stroke="color-mix(in srgb, var(--terminal-border) 45%, transparent)"
+            strokeWidth="1.5"
+          />
           <circle cx={cx} cy={cy} r="3" fill="var(--terminal-lime)" />
 
           {/* Animated Needle - Rotates natively in perfect sync with the active color path */}

@@ -37,7 +37,15 @@ export const OWNERR_NETWORK_ONBOARDING_STEPS: McqQuestion[] = [
     id: "skills",
     field: "skills",
     prompt: "Primary skills / sector",
-    options: ["Tech", "Design", "Marketing", "Sales", "Operations", "Finance", "Other"],
+    options: [
+      "Tech",
+      "Design",
+      "Marketing",
+      "Sales",
+      "Operations",
+      "Finance",
+      "Other",
+    ],
   },
   {
     id: "remote",
@@ -49,7 +57,14 @@ export const OWNERR_NETWORK_ONBOARDING_STEPS: McqQuestion[] = [
     id: "looking_for",
     field: "looking_for",
     prompt: "What are you looking for?",
-    options: ["Gigs", "Full-time", "Collaborators", "Clients", "Community", "Opportunities"],
+    options: [
+      "Gigs",
+      "Full-time",
+      "Collaborators",
+      "Clients",
+      "Community",
+      "Opportunities",
+    ],
   },
   {
     id: "experience",
@@ -67,6 +82,11 @@ export const OWNERR_NETWORK_ONBOARDING_STEPS: McqQuestion[] = [
     id: "seriousness",
     field: "seriousness",
     prompt: "How serious are you?",
-    options: ["Exploring", "Ready this month", "All-in now", "Building long-term"],
+    options: [
+      "Exploring",
+      "Ready this month",
+      "All-in now",
+      "Building long-term",
+    ],
   },
 ];

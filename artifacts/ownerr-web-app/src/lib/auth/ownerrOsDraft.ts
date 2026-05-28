@@ -1,4 +1,4 @@
-const STORAGE_KEY = 'ownerr_os_draft';
+const STORAGE_KEY = "ownerr_os_draft";
 
 export type OwnerrOsDraft = {
   fullName: string;
@@ -9,8 +9,10 @@ export type OwnerrOsDraft = {
   updatedAt: number;
 };
 
-export function persistOwnerrOsDraft(draft: Omit<OwnerrOsDraft, 'updatedAt'>): void {
-  if (typeof window === 'undefined') return;
+export function persistOwnerrOsDraft(
+  draft: Omit<OwnerrOsDraft, "updatedAt">,
+): void {
+  if (typeof window === "undefined") return;
   try {
     const payload: OwnerrOsDraft = { ...draft, updatedAt: Date.now() };
     sessionStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
@@ -20,16 +22,21 @@ export function persistOwnerrOsDraft(draft: Omit<OwnerrOsDraft, 'updatedAt'>): v
 }
 
 export function peekOwnerrOsDraft(): OwnerrOsDraft | null {
-  if (typeof window === 'undefined') return null;
+  if (typeof window === "undefined") return null;
   try {
     const raw = sessionStorage.getItem(STORAGE_KEY);
     if (!raw) return null;
     const o = JSON.parse(raw) as OwnerrOsDraft;
-    if (!o.fullName?.trim() || !o.startupName?.trim() || !o.ideaDescription?.trim()) return null;
+    if (
+      !o.fullName?.trim() ||
+      !o.startupName?.trim() ||
+      !o.ideaDescription?.trim()
+    )
+      return null;
     return {
       fullName: o.fullName.trim(),
       startupName: o.startupName.trim(),
-      industry: (o.industry ?? '').trim() || 'Other',
+      industry: (o.industry ?? "").trim() || "Other",
       ideaDescription: o.ideaDescription.trim(),
       referralCode: o.referralCode?.trim() || undefined,
       updatedAt: o.updatedAt ?? Date.now(),
@@ -41,7 +48,7 @@ export function peekOwnerrOsDraft(): OwnerrOsDraft | null {
 
 export function consumeOwnerrOsDraft(): OwnerrOsDraft | null {
   const draft = peekOwnerrOsDraft();
-  if (typeof window !== 'undefined') {
+  if (typeof window !== "undefined") {
     try {
       sessionStorage.removeItem(STORAGE_KEY);
     } catch {
@@ -52,7 +59,7 @@ export function consumeOwnerrOsDraft(): OwnerrOsDraft | null {
 }
 
 export function clearOwnerrOsDraft(): void {
-  if (typeof window === 'undefined') return;
+  if (typeof window === "undefined") return;
   try {
     sessionStorage.removeItem(STORAGE_KEY);
   } catch {

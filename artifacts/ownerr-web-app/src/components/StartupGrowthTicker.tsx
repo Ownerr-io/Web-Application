@@ -1,6 +1,6 @@
-import { useMemo } from 'react';
-import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
-import { cn } from '@/lib/utils';
+import { useMemo } from "react";
+import { usePublicStartups } from "@/hooks/marketplace/usePublicStartups";
+import { cn } from "@/lib/utils";
 
 interface TickerItem {
   slug: string;
@@ -10,7 +10,7 @@ interface TickerItem {
 }
 
 function formatGrowthPct(g: number): string {
-  const sign = g >= 0 ? '+' : '';
+  const sign = g >= 0 ? "+" : "";
   return `${sign}${g.toFixed(1)}%`;
 }
 
@@ -19,20 +19,26 @@ function useTickerItems(): TickerItem[] {
   return useMemo(() => {
     return publicStartups.map((s) => {
       const growth =
-        typeof s.revenueGrowth30dPct === 'number'
+        typeof s.revenueGrowth30dPct === "number"
           ? s.revenueGrowth30dPct
-          : s.momGrowth ?? 0;
+          : (s.momGrowth ?? 0);
       return {
         slug: s.slug,
         name: s.name,
         growth,
-        logoColor: s.logoColor ?? '#E6EAFF',
+        logoColor: s.logoColor ?? "#E6EAFF",
       };
     });
   }, [publicStartups]);
 }
 
-function TickerStrip({ items, ariaHidden }: { items: TickerItem[]; ariaHidden?: boolean }) {
+function TickerStrip({
+  items,
+  ariaHidden,
+}: {
+  items: TickerItem[];
+  ariaHidden?: boolean;
+}) {
   return (
     <div className="flex shrink-0 items-center gap-1" aria-hidden={ariaHidden}>
       {items.map((item, i) => (
@@ -57,8 +63,10 @@ function TickerStrip({ items, ariaHidden }: { items: TickerItem[]; ariaHidden?: 
           </span>
           <span
             className={cn(
-              'shrink-0 text-[11px] font-bold tabular-nums sm:text-xs',
-              item.growth >= 0 ? 'text-[color:var(--terminal-lime)]' : 'text-red-400',
+              "shrink-0 text-[11px] font-bold tabular-nums sm:text-xs",
+              item.growth >= 0
+                ? "text-[color:var(--terminal-lime)]"
+                : "text-red-400",
             )}
           >
             {formatGrowthPct(item.growth)}
@@ -77,7 +85,7 @@ export function StartupGrowthTicker() {
   return (
     <div
       className="pointer-events-none fixed inset-x-0 z-[35] hidden overflow-hidden border-b border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/92 backdrop-blur-md supports-[backdrop-filter]:bg-[color:var(--terminal-surface)]/88 lg:block"
-      style={{ top: 'calc(env(safe-area-inset-top, 0px) + 3.5rem)' }}
+      style={{ top: "calc(env(safe-area-inset-top, 0px) + 3.5rem)" }}
       role="region"
       aria-label="Top startup growth"
     >
@@ -90,4 +98,3 @@ export function StartupGrowthTicker() {
     </div>
   );
 }
-

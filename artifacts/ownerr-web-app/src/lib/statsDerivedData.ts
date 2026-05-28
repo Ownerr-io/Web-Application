@@ -1,42 +1,77 @@
-import type { Startup } from '@/lib/mockData';
-import type { Founder } from '@/lib/marketplace/types';
+import type { Startup } from "@/lib/mockData";
+import type { Founder } from "@/lib/marketplace/types";
 
 export type CountryIso2 =
-  | 'US' | 'GB' | 'DE' | 'FR' | 'CA' | 'AU' | 'IN' | 'NL' | 'SE' | 'BR' | 'JP' | 'ES' | 'IT' | 'PL' | 'IE';
+  | "US"
+  | "GB"
+  | "DE"
+  | "FR"
+  | "CA"
+  | "AU"
+  | "IN"
+  | "NL"
+  | "SE"
+  | "BR"
+  | "JP"
+  | "ES"
+  | "IT"
+  | "PL"
+  | "IE";
 
 const COUNTRY_LIST: { iso2: CountryIso2; name: string }[] = [
-  { iso2: 'US', name: 'United States' },
-  { iso2: 'GB', name: 'United Kingdom' },
-  { iso2: 'DE', name: 'Germany' },
-  { iso2: 'FR', name: 'France' },
-  { iso2: 'CA', name: 'Canada' },
-  { iso2: 'AU', name: 'Australia' },
-  { iso2: 'IN', name: 'India' },
-  { iso2: 'NL', name: 'Netherlands' },
-  { iso2: 'SE', name: 'Sweden' },
-  { iso2: 'BR', name: 'Brazil' },
-  { iso2: 'JP', name: 'Japan' },
-  { iso2: 'ES', name: 'Spain' },
-  { iso2: 'IT', name: 'Italy' },
-  { iso2: 'PL', name: 'Poland' },
-  { iso2: 'IE', name: 'Ireland' },
+  { iso2: "US", name: "United States" },
+  { iso2: "GB", name: "United Kingdom" },
+  { iso2: "DE", name: "Germany" },
+  { iso2: "FR", name: "France" },
+  { iso2: "CA", name: "Canada" },
+  { iso2: "AU", name: "Australia" },
+  { iso2: "IN", name: "India" },
+  { iso2: "NL", name: "Netherlands" },
+  { iso2: "SE", name: "Sweden" },
+  { iso2: "BR", name: "Brazil" },
+  { iso2: "JP", name: "Japan" },
+  { iso2: "ES", name: "Spain" },
+  { iso2: "IT", name: "Italy" },
+  { iso2: "PL", name: "Poland" },
+  { iso2: "IE", name: "Ireland" },
 ];
 
 const TECH_BY_CAT: Record<string, string[]> = {
-  'Artificial Intelligence': ['Python', 'Next.js', 'OpenAI', 'Vercel'],
-  SaaS: ['Next.js', 'Postgres', 'Ruby on Rails', 'React'],
-  'Mobile Apps': ['Swift', 'Kotlin', 'React Native', 'Flutter'],
-  'Developer Tools': ['Go', 'Rust', 'TypeScript', 'Node.js'],
-  Marketing: ['Node.js', 'Next.js', 'Postgres', 'Supabase'],
-  'Content Creation': ['Next.js', 'Remix', 'Postgres', 'Svelte'],
-  'Crypto & Web3': ['Solidity', 'TypeScript', 'Next.js', 'Node.js'],
-  Education: ['Next.js', 'Python', 'Django', 'Postgres'],
-  Health: ['Node.js', 'Postgres', 'React', 'Python'],
-  'Customer Support': ['Next.js', 'Ruby', 'Postgres', 'Node.js'],
-  'Social Media': ['Node.js', 'Next.js', 'Postgres', 'Go'],
+  "Artificial Intelligence": ["Python", "Next.js", "OpenAI", "Vercel"],
+  SaaS: ["Next.js", "Postgres", "Ruby on Rails", "React"],
+  "Mobile Apps": ["Swift", "Kotlin", "React Native", "Flutter"],
+  "Developer Tools": ["Go", "Rust", "TypeScript", "Node.js"],
+  Marketing: ["Node.js", "Next.js", "Postgres", "Supabase"],
+  "Content Creation": ["Next.js", "Remix", "Postgres", "Svelte"],
+  "Crypto & Web3": ["Solidity", "TypeScript", "Next.js", "Node.js"],
+  Education: ["Next.js", "Python", "Django", "Postgres"],
+  Health: ["Node.js", "Postgres", "React", "Python"],
+  "Customer Support": ["Next.js", "Ruby", "Postgres", "Node.js"],
+  "Social Media": ["Node.js", "Next.js", "Postgres", "Go"],
 };
 
-const ALL_TECH = ['Next.js', 'Node.js', 'Python', 'React', 'Postgres', 'Go', 'Ruby on Rails', 'TypeScript', 'Swift', 'Svelte', 'Django', 'OpenAI', 'Vercel', 'Remix', 'Supabase', 'Flutter', 'Kotlin', 'Solidity', 'Rust', 'Vue'];
+const ALL_TECH = [
+  "Next.js",
+  "Node.js",
+  "Python",
+  "React",
+  "Postgres",
+  "Go",
+  "Ruby on Rails",
+  "TypeScript",
+  "Swift",
+  "Svelte",
+  "Django",
+  "OpenAI",
+  "Vercel",
+  "Remix",
+  "Supabase",
+  "Flutter",
+  "Kotlin",
+  "Solidity",
+  "Rust",
+  "Vue",
+];
 
 function hashStr(s: string): number {
   let h = 2166136261;
@@ -55,8 +90,8 @@ function u01(s: string, salt: string): number {
  * X followers: log-like distribution 1..200k
  */
 function xFollowersFor(slug: string, founderHandle: string): number {
-  const u = u01(slug, 'xf');
-  const f = u01(founderHandle, 'xf2');
+  const u = u01(slug, "xf");
+  const f = u01(founderHandle, "xf2");
   const t = (u * 0.6 + f * 0.4) ** 1.6;
   return Math.max(1, Math.min(200_000, Math.round(1 + t * 199_999)));
 }
@@ -69,7 +104,10 @@ function growthPct(s: string, salt: string): number {
   return Math.max(0.1, Math.min(200, 0.1 + t * 199.9));
 }
 
-function countryFor(slug: string, founderHandle: string): { iso2: CountryIso2; name: string } {
+function countryFor(
+  slug: string,
+  founderHandle: string,
+): { iso2: CountryIso2; name: string } {
   const idx = hashStr(slug + founderHandle) % COUNTRY_LIST.length;
   return COUNTRY_LIST[idx]!;
 }
@@ -77,7 +115,7 @@ function countryFor(slug: string, founderHandle: string): { iso2: CountryIso2; n
 function techFor(s: Startup): string {
   const pool = TECH_BY_CAT[s.category] ?? ALL_TECH;
   const i = hashStr(s.slug) % pool.length;
-  return pool[i] ?? 'Next.js';
+  return pool[i] ?? "Next.js";
 }
 
 /** Days in business (approx) from founded year, fixed ref year 2026 */
@@ -90,10 +128,23 @@ export function daysInBusiness(s: Startup): number {
 /**
  * Synthetic “months to reach MRR milestone” (model curve from current revenue and age)
  */
-function monthsToMilestones(s: Startup): { m1k: number; m10k: number; m100k: number } {
+function monthsToMilestones(s: Startup): {
+  m1k: number;
+  m10k: number;
+  m100k: number;
+} {
   const monthsOld = Math.max(1, daysInBusiness(s) / 30);
   const r = s.revenue;
-  const t = (x: number) => Math.max(1, Math.min(120, Math.round((monthsOld * (x / Math.max(r, 1))) * (0.4 + u01(s.slug, 'm' + x) * 0.6))));
+  const t = (x: number) =>
+    Math.max(
+      1,
+      Math.min(
+        120,
+        Math.round(
+          monthsOld * (x / Math.max(r, 1)) * (0.4 + u01(s.slug, "m" + x) * 0.6),
+        ),
+      ),
+    );
   return {
     m1k: t(1000),
     m10k: t(10_000),
@@ -123,8 +174,8 @@ export function enrichStartup(s: Startup): EnrichedStatsStartup {
   return {
     ...s,
     xFollowers: xFollowersFor(s.slug, s.founderHandle),
-    xFollowerGrowthPct: growthPct(s.slug, 'xfg'),
-    revGrowthComparePct: growthPct(s.slug, 'rvg'),
+    xFollowerGrowthPct: growthPct(s.slug, "xfg"),
+    revGrowthComparePct: growthPct(s.slug, "rvg"),
     countryIso2: iso2,
     countryName,
     techStack: techFor(s),
@@ -160,8 +211,13 @@ export interface CategoryAggregateRow {
   n: number;
 }
 
-export function aggregateByCategory(rows: EnrichedStatsStartup[]): CategoryAggregateRow[] {
-  const map = new Map<string, { total: number; sumGrowth: number; n: number }>();
+export function aggregateByCategory(
+  rows: EnrichedStatsStartup[],
+): CategoryAggregateRow[] {
+  const map = new Map<
+    string,
+    { total: number; sumGrowth: number; n: number }
+  >();
   for (const r of rows) {
     const prev = map.get(r.category) ?? { total: 0, sumGrowth: 0, n: 0 };
     prev.total += r.revenue;
@@ -182,15 +238,28 @@ export function aggregateByCategory(rows: EnrichedStatsStartup[]): CategoryAggre
 }
 
 export function olympicsByCountry(rows: EnrichedStatsStartup[]) {
-  const map = new Map<CountryIso2, { mrr: number; count: number; name: string }>();
+  const map = new Map<
+    CountryIso2,
+    { mrr: number; count: number; name: string }
+  >();
   for (const r of rows) {
-    const prev = map.get(r.countryIso2) ?? { mrr: 0, count: 0, name: r.countryName };
+    const prev = map.get(r.countryIso2) ?? {
+      mrr: 0,
+      count: 0,
+      name: r.countryName,
+    };
     prev.mrr += r.revenue;
     prev.count += 1;
     map.set(r.countryIso2, prev);
   }
   return [...map.entries()]
-    .map(([iso, v]) => ({ iso, name: v.name, totalMrr: v.mrr, count: v.count, arr: v.mrr * 12 }))
+    .map(([iso, v]) => ({
+      iso,
+      name: v.name,
+      totalMrr: v.mrr,
+      count: v.count,
+      arr: v.mrr * 12,
+    }))
     .sort((a, b) => b.totalMrr - a.totalMrr);
 }
 
@@ -206,17 +275,24 @@ export function countAboveGrowthDiagonal(rows: EnrichedStatsStartup[]) {
   for (const r of rows) {
     if (r.revGrowthComparePct > r.xFollowerGrowthPct) above++;
   }
-  return { above, n: rows.length, pct: rows.length ? Math.round((100 * above) / rows.length) : 0 };
+  return {
+    above,
+    n: rows.length,
+    pct: rows.length ? Math.round((100 * above) / rows.length) : 0,
+  };
 }
 
-export function distributionBuckets(rows: EnrichedStatsStartup[], key: 'revenue' | 'xFollowers') {
-  if (key === 'revenue') {
+export function distributionBuckets(
+  rows: EnrichedStatsStartup[],
+  key: "revenue" | "xFollowers",
+) {
+  if (key === "revenue") {
     const brackets = [
-      { name: '< $5k', test: (r: number) => r < 5000 },
-      { name: '$5k–$10k', test: (r: number) => r >= 5000 && r < 10_000 },
-      { name: '$10k–$50k', test: (r: number) => r >= 10_000 && r < 50_000 },
-      { name: '$50k–$100k', test: (r: number) => r >= 50_000 && r < 100_000 },
-      { name: '≥ $100k', test: (r: number) => r >= 100_000 },
+      { name: "< $5k", test: (r: number) => r < 5000 },
+      { name: "$5k–$10k", test: (r: number) => r >= 5000 && r < 10_000 },
+      { name: "$10k–$50k", test: (r: number) => r >= 10_000 && r < 50_000 },
+      { name: "$50k–$100k", test: (r: number) => r >= 50_000 && r < 100_000 },
+      { name: "≥ $100k", test: (r: number) => r >= 100_000 },
     ];
     return brackets.map((b) => ({
       name: b.name,
@@ -224,11 +300,11 @@ export function distributionBuckets(rows: EnrichedStatsStartup[], key: 'revenue'
     }));
   }
   const brackets = [
-    { name: '< 1k', test: (f: number) => f < 1000 },
-    { name: '1k – 5k', test: (f: number) => f >= 1000 && f < 5000 },
-    { name: '5k – 10k', test: (f: number) => f >= 5000 && f < 10_000 },
-    { name: '10k – 50k', test: (f: number) => f >= 10_000 && f < 50_000 },
-    { name: '≥ 50k', test: (f: number) => f >= 50_000 },
+    { name: "< 1k", test: (f: number) => f < 1000 },
+    { name: "1k – 5k", test: (f: number) => f >= 1000 && f < 5000 },
+    { name: "5k – 10k", test: (f: number) => f >= 5000 && f < 10_000 },
+    { name: "10k – 50k", test: (f: number) => f >= 10_000 && f < 50_000 },
+    { name: "≥ 50k", test: (f: number) => f >= 50_000 },
   ];
   return brackets.map((b) => ({
     name: b.name,
@@ -238,9 +314,12 @@ export function distributionBuckets(rows: EnrichedStatsStartup[], key: 'revenue'
 
 export function timeToMilestoneAverages(rows: EnrichedStatsStartup[]) {
   return [
-    { milestone: 'To $1k MRR', months: mean(rows.map((r) => r.monthsTo1k)) },
-    { milestone: 'To $10k MRR', months: mean(rows.map((r) => r.monthsTo10k)) },
-    { milestone: 'To $100k MRR', months: mean(rows.map((r) => r.monthsTo100k)) },
+    { milestone: "To $1k MRR", months: mean(rows.map((r) => r.monthsTo1k)) },
+    { milestone: "To $10k MRR", months: mean(rows.map((r) => r.monthsTo10k)) },
+    {
+      milestone: "To $100k MRR",
+      months: mean(rows.map((r) => r.monthsTo100k)),
+    },
   ];
 }
 

@@ -1,6 +1,6 @@
-import { motion, useReducedMotion } from 'framer-motion';
-import { Button } from '@/components/ui/button';
-import { ValuationAuroraOrb } from './ValuationAuroraOrb';
+import { motion, useReducedMotion } from "framer-motion";
+import { Button } from "@/components/ui/button";
+import { ValuationAuroraOrb } from "./ValuationAuroraOrb";
 
 type Props = {
   onStart: () => void;
@@ -8,11 +8,11 @@ type Props = {
 
 const easePremium = [0.22, 1, 0.36, 1] as const;
 
-const HEADLINE = 'Discover what your startup is really worth';
+const HEADLINE = "Discover what your startup is really worth";
 
 export function ValuationHero({ onStart }: Props) {
   const reduce = useReducedMotion();
-  const words = HEADLINE.split(' ');
+  const words = HEADLINE.split(" ");
 
   return (
     <section className="relative min-h-[calc(100svh-3.25rem)] overflow-hidden border-b border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] sm:min-h-[calc(100svh-4rem)]">
@@ -20,14 +20,18 @@ export function ValuationHero({ onStart }: Props) {
         className="pointer-events-none absolute inset-0"
         style={{
           background:
-            'radial-gradient(ellipse 90% 70% at 50% 0%, color-mix(in srgb, var(--terminal-glow) 90%, transparent), transparent 62%), radial-gradient(ellipse 60% 50% at 80% 100%, color-mix(in srgb, var(--terminal-ochre) 10%, transparent), transparent 55%)',
+            "radial-gradient(ellipse 90% 70% at 50% 0%, color-mix(in srgb, var(--terminal-glow) 90%, transparent), transparent 62%), radial-gradient(ellipse 60% 50% at 80% 100%, color-mix(in srgb, var(--terminal-ochre) 10%, transparent), transparent 55%)",
         }}
       />
       <motion.div
         className="pointer-events-none absolute left-1/2 top-[12%] h-[min(520px,55vw)] w-[min(520px,90vw)] -translate-x-1/2 rounded-full opacity-40 blur-[80px]"
-        style={{ background: 'var(--terminal-glow)' }}
-        animate={reduce ? undefined : { scale: [1, 1.08, 1], opacity: [0.35, 0.5, 0.35] }}
-        transition={{ duration: 5.5, repeat: Infinity, ease: 'easeInOut' }}
+        style={{ background: "var(--terminal-glow)" }}
+        animate={
+          reduce
+            ? undefined
+            : { scale: [1, 1.08, 1], opacity: [0.35, 0.5, 0.35] }
+        }
+        transition={{ duration: 5.5, repeat: Infinity, ease: "easeInOut" }}
       />
 
       <motion.div
@@ -61,7 +65,7 @@ export function ValuationHero({ onStart }: Props) {
               }}
             >
               {word}
-              {i < words.length - 1 ? '\u00a0' : ''}
+              {i < words.length - 1 ? "\u00a0" : ""}
             </motion.span>
           ))}
         </h1>
@@ -72,8 +76,8 @@ export function ValuationHero({ onStart }: Props) {
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.55, duration: 0.45, ease: easePremium }}
         >
-          AI-powered valuation intelligence for fundraising, acquisitions, and strategic growth — inspired by a living
-          score, built for founders.
+          AI-powered valuation intelligence for fundraising, acquisitions, and
+          strategic growth — inspired by a living score, built for founders.
         </motion.p>
 
         <motion.div
@@ -89,7 +93,9 @@ export function ValuationHero({ onStart }: Props) {
           >
             Start valuation
           </Button>
-          <p className="text-xs text-[color:var(--terminal-muted)]">~3 min · private · no credit card</p>
+          <p className="text-xs text-[color:var(--terminal-muted)]">
+            ~3 min · private · no credit card
+          </p>
         </motion.div>
 
         <motion.ul
@@ -99,21 +105,27 @@ export function ValuationHero({ onStart }: Props) {
           transition={{ delay: 0.75, duration: 0.5 }}
         >
           {[
-            { k: 'Past', v: 'Benchmark your category and stage' },
-            { k: 'Present', v: 'Live signals as you enter metrics' },
-            { k: 'Progress', v: 'Unlock full intelligence after analysis' },
+            { k: "Past", v: "Benchmark your category and stage" },
+            { k: "Present", v: "Live signals as you enter metrics" },
+            { k: "Progress", v: "Unlock full intelligence after analysis" },
           ].map((item, idx) => (
             <motion.li
               key={item.k}
               initial={reduce ? false : { opacity: 0, y: 8 }}
               animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: 0.8 + idx * 0.07, duration: 0.4, ease: easePremium }}
+              transition={{
+                delay: 0.8 + idx * 0.07,
+                duration: 0.4,
+                ease: easePremium,
+              }}
               className="rounded-[10px] border border-[color:var(--terminal-border)]/80 bg-[color:var(--terminal-surface)]/60 px-4 py-3 backdrop-blur-sm"
             >
               <p className="text-[10px] font-bold uppercase tracking-[0.18em] text-[color:var(--terminal-ochre)]">
                 {item.k}
               </p>
-              <p className="mt-1 text-xs leading-snug text-[color:var(--terminal-muted)]">{item.v}</p>
+              <p className="mt-1 text-xs leading-snug text-[color:var(--terminal-muted)]">
+                {item.v}
+              </p>
             </motion.li>
           ))}
         </motion.ul>

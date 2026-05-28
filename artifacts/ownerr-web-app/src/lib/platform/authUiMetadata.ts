@@ -1,7 +1,13 @@
 import type { AuthProduct } from "@/lib/auth/routes";
 import type { AuthCredentialProfile } from "@/lib/platform/types";
-import { matchRouteRule, normalizePathname } from "@/lib/platform/routeRegistry";
-import { parseAuthProductQuery, sanitizeRedirectParam } from "@/lib/platform/authRedirectMachine";
+import {
+  matchRouteRule,
+  normalizePathname,
+} from "@/lib/platform/routeRegistry";
+import {
+  parseAuthProductQuery,
+  sanitizeRedirectParam,
+} from "@/lib/platform/authRedirectMachine";
 import { appSlugToAuthProduct } from "@/lib/auth/productLock";
 import { parseAppSlugParam } from "@/lib/auth/productLock";
 

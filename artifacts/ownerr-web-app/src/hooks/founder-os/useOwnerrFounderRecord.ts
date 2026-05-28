@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { useFounderOs } from '@/context/FounderOsContext';
-import { useOwnerr } from '@/context/ownerr/OwnerrProvider';
-import type { FounderSubmissionRecord } from '@/lib/founderTypes';
+import { useEffect } from "react";
+import { useFounderOs } from "@/context/FounderOsContext";
+import { useOwnerr } from "@/context/ownerr/OwnerrProvider";
+import type { FounderSubmissionRecord } from "@/lib/founderTypes";
 
 /** Founder listing for OWNERR OS app — prefers OwnerrProvider, syncs into FounderOsContext. */
 export function useOwnerrFounderRecord(): {
@@ -10,7 +10,8 @@ export function useOwnerrFounderRecord(): {
   reload: () => Promise<void>;
 } {
   const { founderRecord, loading: ownerrLoading, reload } = useOwnerr();
-  const { completedRecord, completedRecordLoading, setCompletedRecord } = useFounderOs();
+  const { completedRecord, completedRecordLoading, setCompletedRecord } =
+    useFounderOs();
 
   useEffect(() => {
     if (founderRecord) {

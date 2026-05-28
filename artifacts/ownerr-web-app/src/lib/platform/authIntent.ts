@@ -16,7 +16,9 @@ export function actionRequiresDesk(action: AuthActionIntent): boolean {
   return ACTION_REQUIRES_DESK.has(action);
 }
 
-export function persistAuthIntent(intent: Omit<StoredAuthIntent, "createdAt">): void {
+export function persistAuthIntent(
+  intent: Omit<StoredAuthIntent, "createdAt">,
+): void {
   if (typeof window === "undefined") return;
   const payload: StoredAuthIntent = { ...intent, createdAt: Date.now() };
   try {

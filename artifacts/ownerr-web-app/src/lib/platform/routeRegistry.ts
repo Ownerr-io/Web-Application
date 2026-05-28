@@ -12,7 +12,7 @@ export {
   type RouteProduct,
   type RouteRole,
   type LayoutShell,
-} from '@/routing/routeRegistry';
+} from "@/routing/routeRegistry";
 
 export {
   normalizePathname,
@@ -20,7 +20,7 @@ export {
   isAuthRoute,
   isPublicRoute,
   isProtectedRoute,
-} from '@/routing/routeResolver';
+} from "@/routing/routeResolver";
 
 export {
   resolveProduct,
@@ -28,24 +28,35 @@ export {
   resolveProductContext,
   resolveAuthenticatedWorkspace,
   resolveSidebarNavGroup,
-} from '@/routing/productResolver';
-export type { SidebarNavGroup } from '@/routing/productResolver';
+} from "@/routing/productResolver";
+export type { SidebarNavGroup } from "@/routing/productResolver";
 
-import type { PlatformLayer, ProductApp, RouteAccessRule } from '@/lib/platform/types';
-import { ROUTE_REGISTRY as CANONICAL_ROUTES, type RouteDefinition } from '@/routing/routeRegistry';
-import { resolveRoute } from '@/routing/routeResolver';
+import type {
+  PlatformLayer,
+  ProductApp,
+  RouteAccessRule,
+} from "@/lib/platform/types";
+import {
+  ROUTE_REGISTRY as CANONICAL_ROUTES,
+  type RouteDefinition,
+} from "@/routing/routeRegistry";
+import { resolveRoute } from "@/routing/routeResolver";
 
 function toAccessRule(route: RouteDefinition): RouteAccessRule {
   const layer: PlatformLayer =
-    route.layer === 'auth' ? 'auth' : route.authRequired ? 'protected' : 'public';
+    route.layer === "auth"
+      ? "auth"
+      : route.authRequired
+        ? "protected"
+        : "public";
   const productApp: ProductApp =
-    route.layer === 'marketplace'
-      ? 'marketplace'
-      : route.product === 'ownerr-os'
-        ? 'ownerr-os'
-        : route.product === 'ownerr-network'
-          ? 'ownerr-network'
-          : 'platform';
+    route.layer === "marketplace"
+      ? "marketplace"
+      : route.product === "ownerr-os"
+        ? "ownerr-os"
+        : route.product === "ownerr-network"
+          ? "ownerr-network"
+          : "platform";
 
   return {
     prefix: route.pathname,
@@ -55,16 +66,16 @@ function toAccessRule(route: RouteDefinition): RouteAccessRule {
     authRequired: route.authRequired,
     authProduct: route.authProduct,
     credentialProfile:
-      route.product === 'ownerr-network'
-        ? 'ownerr-network'
-        : route.layer === 'marketplace' || route.product === 'ownerr-os'
-          ? 'desk'
+      route.product === "ownerr-network"
+        ? "ownerr-network"
+        : route.layer === "marketplace" || route.product === "ownerr-os"
+          ? "desk"
           : null,
     postLoginDefault: route.postLoginDefault,
-    signupDefaultRole: route.requiredRoles?.includes('founder')
-      ? 'founder'
-      : route.requiredRoles?.includes('buyer')
-        ? 'buyer'
+    signupDefaultRole: route.requiredRoles?.includes("founder")
+      ? "founder"
+      : route.requiredRoles?.includes("buyer")
+        ? "buyer"
         : null,
   };
 }
@@ -75,15 +86,16 @@ export function matchRouteRule(pathname: string): RouteAccessRule {
   return toAccessRule(resolveRoute(pathname));
 }
 
-export const PRODUCT_CONTEXT_PREFIX_MAP: Readonly<Record<string, ProductApp>> = {
-  '/products/ownerr-os': 'ownerr-os',
-  '/ownerr-os': 'ownerr-os',
-  '/products/ownerr-network': 'ownerr-network',
-  '/ownerr-network': 'ownerr-network',
-  '/share/network': 'ownerr-network',
-  '/share/founder': 'ownerr-os',
-  '/marketplace': 'marketplace',
-};
+export const PRODUCT_CONTEXT_PREFIX_MAP: Readonly<Record<string, ProductApp>> =
+  {
+    "/products/ownerr-os": "ownerr-os",
+    "/ownerr-os": "ownerr-os",
+    "/products/ownerr-network": "ownerr-network",
+    "/ownerr-network": "ownerr-network",
+    "/share/network": "ownerr-network",
+    "/share/founder": "ownerr-os",
+    "/marketplace": "marketplace",
+  };
 
 export function resolveProductApp(pathname: string): ProductApp {
   return matchRouteRule(pathname).productApp;

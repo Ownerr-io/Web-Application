@@ -1,5 +1,5 @@
-import { Link } from 'wouter';
-import type { LucideIcon } from 'lucide-react';
+import { Link } from "wouter";
+import type { LucideIcon } from "lucide-react";
 import {
   Banknote,
   BarChart3,
@@ -24,13 +24,13 @@ import {
   Terminal,
   TrendingUp,
   Users,
-} from 'lucide-react';
-import { BROWSE_LABEL_TO_ACQUIRE_CATEGORY } from '@/lib/acquireBrowseCategoryMap';
-import { browseCategories } from '@/lib/mockData';
-import { useAuth } from '@/context/AuthContext';
-import { useRequireAuth } from '@/lib/platform/requireAuth';
-import { useAddStartup } from '@/context/AddStartupContext';
-import { marketplacePath } from '@/lib/appPaths';
+} from "lucide-react";
+import { BROWSE_LABEL_TO_ACQUIRE_CATEGORY } from "@/lib/acquireBrowseCategoryMap";
+import { browseCategories } from "@/lib/mockData";
+import { useAuth } from "@/context/AuthContext";
+import { useRequireAuth } from "@/lib/platform/requireAuth";
+import { useAddStartup } from "@/context/AddStartupContext";
+import { marketplacePath } from "@/lib/appPaths";
 
 const ICON_MAP: Record<string, LucideIcon> = {
   Brain,
@@ -83,7 +83,12 @@ export function BottomSection() {
           <button
             type="button"
             onClick={() =>
-              isAuthenticated ? openAddStartup() : requireAuth({ action: 'add_startup', onAllowed: openAddStartup })
+              isAuthenticated
+                ? openAddStartup()
+                : requireAuth({
+                    action: "add_startup",
+                    onAllowed: openAddStartup,
+                  })
             }
             className="inline-flex h-11 w-full shrink-0 items-center justify-center gap-1 rounded-[10px] border border-border bg-card px-5 font-bold text-foreground transition-transform hover:-translate-y-0.5 sm:w-auto"
           >
@@ -94,14 +99,16 @@ export function BottomSection() {
 
       {/* Browse by category */}
       <div className="my-12 sm:my-16">
-        <h3 className="mb-4 text-center text-sm font-bold sm:mb-6 sm:text-base">Browse by category</h3>
+        <h3 className="mb-4 text-center text-sm font-bold sm:mb-6 sm:text-base">
+          Browse by category
+        </h3>
         <div className="mx-auto flex max-w-3xl flex-wrap justify-center gap-1.5 sm:gap-2">
           {browseCategories.map((c) => {
             const Icon = getIcon(c.icon);
             const acq = BROWSE_LABEL_TO_ACQUIRE_CATEGORY[c.label];
             const href = acq
-              ? `${marketplacePath('/acquire')}?category=${encodeURIComponent(acq)}`
-              : marketplacePath('/acquire');
+              ? `${marketplacePath("/acquire")}?category=${encodeURIComponent(acq)}`
+              : marketplacePath("/acquire");
             return (
               <Link
                 key={c.label}

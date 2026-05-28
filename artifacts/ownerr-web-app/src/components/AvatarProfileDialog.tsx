@@ -1,7 +1,13 @@
-import { X, Globe, Monitor, Smartphone, Chrome } from 'lucide-react';
-import type { Visitor } from '@/lib/mockData';
+import { X, Globe, Monitor, Smartphone, Chrome } from "lucide-react";
+import type { Visitor } from "@/lib/mockData";
 
-export function AvatarProfileDialog({ visitor, onClose }: { visitor: Visitor | null; onClose: () => void }) {
+export function AvatarProfileDialog({
+  visitor,
+  onClose,
+}: {
+  visitor: Visitor | null;
+  onClose: () => void;
+}) {
   if (!visitor) return null;
 
   const conversion = Math.max(0, Math.min(100, visitor.conversionLikelihood));
@@ -33,7 +39,9 @@ export function AvatarProfileDialog({ visitor, onClose }: { visitor: Visitor | n
             <h3 className="text-lg font-bold truncate">{visitor.name}</h3>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-2 text-white/80">
               <span className="inline-flex items-center gap-1.5">
-                <span className="text-base leading-none">{visitor.countryFlag}</span>
+                <span className="text-base leading-none">
+                  {visitor.countryFlag}
+                </span>
                 <span>{visitor.city}</span>
               </span>
               <span className="inline-flex items-center gap-1.5">
@@ -43,7 +51,11 @@ export function AvatarProfileDialog({ visitor, onClose }: { visitor: Visitor | n
             </div>
             <div className="flex flex-wrap gap-x-4 gap-y-1 text-xs mt-1 text-white/80">
               <span className="inline-flex items-center gap-1.5">
-                {visitor.device === 'Desktop' ? <Monitor className="w-3 h-3" /> : <Smartphone className="w-3 h-3" />}
+                {visitor.device === "Desktop" ? (
+                  <Monitor className="w-3 h-3" />
+                ) : (
+                  <Smartphone className="w-3 h-3" />
+                )}
                 <span>{visitor.device}</span>
               </span>
               <span className="inline-flex items-center gap-1.5">
@@ -55,12 +67,21 @@ export function AvatarProfileDialog({ visitor, onClose }: { visitor: Visitor | n
         </div>
 
         <div className="border-t border-white/10 pt-4 space-y-2.5 text-sm">
-          <Row label="Referrer" value={
-            <span className="inline-flex items-center gap-1.5">
-              <Globe className="w-3.5 h-3.5 text-white/70" /> {visitor.referrer}
-            </span>
-          } />
-          <Row label="Current URL" value={<span className="font-mono text-xs">{visitor.currentUrl}</span>} />
+          <Row
+            label="Referrer"
+            value={
+              <span className="inline-flex items-center gap-1.5">
+                <Globe className="w-3.5 h-3.5 text-white/70" />{" "}
+                {visitor.referrer}
+              </span>
+            }
+          />
+          <Row
+            label="Current URL"
+            value={
+              <span className="font-mono text-xs">{visitor.currentUrl}</span>
+            }
+          />
           <Row label="Session time" value={visitor.sessionTime} />
           <Row label="Total visits" value={String(visitor.totalVisits)} />
         </div>
@@ -68,18 +89,30 @@ export function AvatarProfileDialog({ visitor, onClose }: { visitor: Visitor | n
         <div className="mt-5">
           <div className="flex items-center justify-between mb-2 text-sm">
             <span className="text-white/80">Conversion likelihood:</span>
-            <span className="font-bold text-white">+{conversion}% <span className="text-white/60 font-normal">vs. avg</span></span>
+            <span className="font-bold text-white">
+              +{conversion}%{" "}
+              <span className="text-white/60 font-normal">vs. avg</span>
+            </span>
           </div>
           <div className="relative h-2 rounded-full overflow-hidden bg-white/10">
-            <div className="absolute inset-0" style={{ background: 'linear-gradient(to right,#3b82f6,#a855f7,#ef4444)' }} />
-            <div className="absolute -top-1.5 w-4 h-4 rounded-full bg-white border-2 border-orange-400 shadow"
-              style={{ left: `calc(${conversion}% - 8px)` }} />
+            <div
+              className="absolute inset-0"
+              style={{
+                background: "linear-gradient(to right,#3b82f6,#a855f7,#ef4444)",
+              }}
+            />
+            <div
+              className="absolute -top-1.5 w-4 h-4 rounded-full bg-white border-2 border-orange-400 shadow"
+              style={{ left: `calc(${conversion}% - 8px)` }}
+            />
           </div>
         </div>
 
         <div className="mt-4 flex items-center justify-between text-sm">
           <span className="text-white/80">Estimated value:</span>
-          <span className="font-bold text-emerald-400">${visitor.estimatedValue.toFixed(2)}</span>
+          <span className="font-bold text-emerald-400">
+            ${visitor.estimatedValue.toFixed(2)}
+          </span>
         </div>
       </div>
     </div>

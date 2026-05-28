@@ -1,4 +1,10 @@
-import React, { createContext, useCallback, useContext, useMemo, useState } from 'react';
+import React, {
+  createContext,
+  useCallback,
+  useContext,
+  useMemo,
+  useState,
+} from "react";
 
 type Ctx = {
   addOpen: boolean;
@@ -8,7 +14,11 @@ type Ctx = {
 
 const AddStartupContext = createContext<Ctx | null>(null);
 
-export function AddStartupProvider({ children }: { children: React.ReactNode }) {
+export function AddStartupProvider({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
   const [addOpen, setAddOpen] = useState(false);
   const openAddStartup = useCallback(() => setAddOpen(true), []);
 
@@ -17,13 +27,17 @@ export function AddStartupProvider({ children }: { children: React.ReactNode }) 
     [addOpen, openAddStartup],
   );
 
-  return <AddStartupContext.Provider value={value}>{children}</AddStartupContext.Provider>;
+  return (
+    <AddStartupContext.Provider value={value}>
+      {children}
+    </AddStartupContext.Provider>
+  );
 }
 
 export function useAddStartup() {
   const ctx = useContext(AddStartupContext);
   if (!ctx) {
-    throw new Error('useAddStartup must be used within AddStartupProvider');
+    throw new Error("useAddStartup must be used within AddStartupProvider");
   }
   return ctx;
 }

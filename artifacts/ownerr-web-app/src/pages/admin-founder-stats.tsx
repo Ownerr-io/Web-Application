@@ -31,10 +31,14 @@ export default function AdminFounderStatsPage() {
 
   return (
     <div className="mx-auto max-w-[1000px] px-4 py-10">
-      <h1 className="text-2xl font-bold text-[color:var(--terminal-fg)]">Founder viral analytics</h1>
+      <h1 className="text-2xl font-bold text-[color:var(--terminal-fg)]">
+        Founder viral analytics
+      </h1>
       <p className="mt-2 text-sm text-[color:var(--terminal-muted)]">
         Internal view. Set the admin key in Supabase (
-        <code className="text-[color:var(--terminal-ochre)]">founder_admin_secrets</code>
+        <code className="text-[color:var(--terminal-ochre)]">
+          founder_admin_secrets
+        </code>
         ) and enter the same value below.
       </p>
       <div className="mt-6 flex max-w-md gap-2">
@@ -75,7 +79,8 @@ export default function AdminFounderStatsPage() {
                   {f.founderName} · {f.startupName}
                 </span>
                 <span className="font-mono text-[color:var(--terminal-muted)]">
-                  visits {f.visitCount} · signups {f.referralSignupCount} · score {f.viralScore}
+                  visits {f.visitCount} · signups {f.referralSignupCount} ·
+                  score {f.viralScore}
                 </span>
               </li>
             ))}
@@ -123,8 +128,12 @@ export default function AdminFounderStatsPage() {
 function StatCard({ label, value }: { label: string; value: number }) {
   return (
     <div className="rounded-[10px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4">
-      <p className="text-xs uppercase tracking-widest text-[color:var(--terminal-muted)]">{label}</p>
-      <p className="mt-2 text-3xl font-bold text-[color:var(--terminal-ochre)]">{value}</p>
+      <p className="text-xs uppercase tracking-widest text-[color:var(--terminal-muted)]">
+        {label}
+      </p>
+      <p className="mt-2 text-3xl font-bold text-[color:var(--terminal-ochre)]">
+        {value}
+      </p>
     </div>
   );
 }

@@ -1,8 +1,11 @@
-import type { ValuationInputs } from '@/lib/valuationIntel';
-import { DEFAULT_VALUATION_INPUTS } from '@/lib/valuationIntel';
-import type { OnboardingMeta, ValuationPhase } from '@/components/valuation/types';
-import { DEFAULT_OWNERR_ONBOARDING_META } from '@/components/valuation/types';
-import type { ValuationSessionSnapshot } from '@/lib/valuationSession';
+import type { ValuationInputs } from "@/lib/valuationIntel";
+import { DEFAULT_VALUATION_INPUTS } from "@/lib/valuationIntel";
+import type {
+  OnboardingMeta,
+  ValuationPhase,
+} from "@/components/valuation/types";
+import { DEFAULT_OWNERR_ONBOARDING_META } from "@/components/valuation/types";
+import type { ValuationSessionSnapshot } from "@/lib/valuationSession";
 
 function mergeMetaWithDefaults(meta: OnboardingMeta): OnboardingMeta {
   const out = { ...DEFAULT_OWNERR_ONBOARDING_META };
@@ -20,9 +23,11 @@ function mergeInputsWithDefaults(inputs: ValuationInputs): ValuationInputs {
   return merged;
 }
 
-export function hasValuationSessionProgress(snap: ValuationSessionSnapshot): boolean {
-  if (snap.phase === 'analyzing' || snap.phase === 'results') return true;
-  if (snap.phase === 'questions' || snap.questionIndex > 0) return true;
+export function hasValuationSessionProgress(
+  snap: ValuationSessionSnapshot,
+): boolean {
+  if (snap.phase === "analyzing" || snap.phase === "results") return true;
+  if (snap.phase === "questions" || snap.questionIndex > 0) return true;
   if (snap.meta.startupName?.trim()) return true;
   return false;
 }
@@ -48,5 +53,5 @@ export function resolveValuationSessionFromSnapshot(
 }
 
 export function shouldAutoResumeValuationPhase(phase: ValuationPhase): boolean {
-  return phase === 'analyzing' || phase === 'results';
+  return phase === "analyzing" || phase === "results";
 }

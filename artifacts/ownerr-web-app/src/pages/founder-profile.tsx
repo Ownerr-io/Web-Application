@@ -1,23 +1,37 @@
-import { useEffect, useMemo, useState, useCallback } from 'react';
-import { useParams, Link } from 'wouter';
-import { ChevronRight, Share2, ExternalLink } from 'lucide-react';
-import { motion } from 'framer-motion';
-import { leaderboardMetricValue, type Startup } from '@/lib/mockData';
-import { buildFoundersFromStartups } from '@/lib/marketplace/founders';
-import { usePublicStartups } from '@/hooks/marketplace/usePublicStartups';
-import { CLAIM_SPOTS_TOTAL, findClaimByHandle } from '@/lib/marketplace/claimService';
-import type { ClaimSpotEntry } from '@/lib/marketplace/types';
-import { usePublicClaims } from '@/hooks/marketplace/useClaims';
-import { StartupCard } from '@/components/StartupCard';
-import { cn, formatCurrency, formatShortCurrency, founderAvatarUrl } from '@/lib/utils';
-import { FounderLink } from '@/components/EntityLink';
-import { marketplacePath } from '@/lib/appPaths';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
+import { useEffect, useMemo, useState, useCallback } from "react";
+import { useParams, useLocation, Link } from "wouter";
+import { ChevronRight, Share2, ExternalLink } from "lucide-react";
+import { motion } from "framer-motion";
+import { leaderboardMetricValue, type Startup } from "@/lib/mockData";
+import { buildFoundersFromStartups } from "@/lib/marketplace/founders";
+import { usePublicStartups } from "@/hooks/marketplace/usePublicStartups";
+import {
+  CLAIM_SPOTS_TOTAL,
+  findClaimByHandle,
+} from "@/lib/marketplace/claimService";
+import type { ClaimSpotEntry } from "@/lib/marketplace/types";
+import { usePublicClaims } from "@/hooks/marketplace/useClaims";
+import { StartupCard } from "@/components/StartupCard";
+import {
+  cn,
+  formatCurrency,
+  formatShortCurrency,
+  founderAvatarUrl,
+} from "@/lib/utils";
+import { FounderLink } from "@/components/EntityLink";
+import {
+  isMarketplaceBuyerAppPath,
+  marketplaceBrowsePath,
+  marketplacePath,
+} from "@/lib/appPaths";
+import { MarketplaceAppPageShell } from "@/components/marketplace/MarketplaceAppPageShell";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 
 function xFollowersForHandle(handle: string): number {
   let h = 0;
-  for (let i = 0; i < handle.length; i++) h = (h + handle.charCodeAt(i) * (i + 1)) % 1_000_000;
+  for (let i = 0; i < handle.length; i++)
+    h = (h + handle.charCodeAt(i) * (i + 1)) % 1_000_000;
   return 5 + (h % 50_000);
 }
 
@@ -28,15 +42,15 @@ function estimatedAllTimeRevenue(s: Startup): number {
 }
 
 function formatClaimSpotDate(iso: string) {
-  return new Date(iso).toLocaleDateString('en-US', {
-    month: 'long',
-    day: 'numeric',
-    year: 'numeric',
+  return new Date(iso).toLocaleDateString("en-US", {
+    month: "long",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
-function claimRoleLabel(role: ClaimSpotEntry['role']) {
-  return role === 'founder' ? 'Founder' : 'Investor';
+function claimRoleLabel(role: ClaimSpotEntry["role"]) {
+  return role === "founder" ? "Founder" : "Investor";
 }
 
 function StatCard({
@@ -58,10 +72,16 @@ function StatCard({
 }
 
 export default function FounderProfile() {
-  const { handle = '' } = useParams();
+  const { handle = "" } = useParams();
+  const [location] = useLocation();
+  const inBuyerApp = isMarketplaceBuyerAppPath(location);
+  const browseHref = marketplaceBrowsePath(location);
   const { data: publicStartups = [] } = usePublicStartups();
   const { data: publicClaims = [] } = usePublicClaims();
-  const mockFounders = useMemo(() => buildFoundersFromStartups(publicStartups), [publicStartups]);
+  const mockFounders = useMemo(
+    () => buildFoundersFromStartups(publicStartups),
+    [publicStartups],
+  );
   const [isMounted, setIsMounted] = useState(false);
   const { toast } = useToast();
   const founder = mockFounders.find((f) => f.handle === handle);
@@ -111,7 +131,7 @@ export default function FounderProfile() {
       };
     }
     const mrr = startups.reduce(
-      (a, s) => a + leaderboardMetricValue(s, 'mrr', 'current'),
+      (a, s) => a + leaderboardMetricValue(s, "mrr", "current"),
       0,
     );
     const last30 = Math.round(
@@ -120,7 +140,10 @@ export default function FounderProfile() {
         0,
       ) * 0.95,
     );
-    const allTime = startups.reduce((a, s) => a + estimatedAllTimeRevenue(s), 0);
+    const allTime = startups.reduce(
+      (a, s) => a + estimatedAllTimeRevenue(s),
+      0,
+    );
     return {
       allTime,
       last30,
@@ -131,18 +154,17 @@ export default function FounderProfile() {
   }, [startups]);
 
   const onShare = useCallback(async () => {
-    const shareUrl = typeof window !== 'undefined' ? window.location.href : '';
-    const title =
-      founder?.name ?? claimSpot?.name ?? 'Profile';
+    const shareUrl = typeof window !== "undefined" ? window.location.href : "";
+    const title = founder?.name ?? claimSpot?.name ?? "Profile";
     try {
       if (navigator.share) {
         await navigator.share({ title: `${title} · Ownerr`, url: shareUrl });
       } else {
         await navigator.clipboard.writeText(shareUrl);
-        toast({ title: 'Link copied' });
+        toast({ title: "Link copied" });
       }
     } catch {
-      toast({ title: 'Could not share', variant: 'destructive' });
+      toast({ title: "Could not share", variant: "destructive" });
     }
   }, [founder?.name, claimSpot?.name, toast]);
 
@@ -166,26 +188,41 @@ export default function FounderProfile() {
               aria-label="Breadcrumb"
             >
               <Link
-                href={marketplacePath('/')}
+                href={marketplacePath("/")}
                 className="font-medium text-foreground/80 transition-colors hover:text-foreground"
               >
                 Ownerr
               </Link>
-              <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
-              <Link href={marketplacePath('/claim')} className="transition-colors hover:text-foreground">
+              <ChevronRight
+                className="h-4 w-4 shrink-0 opacity-50"
+                aria-hidden
+              />
+              <Link
+                href={marketplacePath("/claim")}
+                className="transition-colors hover:text-foreground"
+              >
                 First {CLAIM_SPOTS_TOTAL} spots
               </Link>
-              <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
-              <span className="font-bold text-foreground">{claimSpot.name}</span>
+              <ChevronRight
+                className="h-4 w-4 shrink-0 opacity-50"
+                aria-hidden
+              />
+              <span className="font-bold text-foreground">
+                {claimSpot.name}
+              </span>
             </nav>
             <div className="flex shrink-0 flex-wrap items-center gap-2">
-              <Button type="button" variant="outline" className="font-bold" onClick={() => void onShare()}>
+              <Button
+                type="button"
+                className="btn-marketplace-primary font-bold"
+                onClick={() => void onShare()}
+              >
                 <Share2 className="h-4 w-4" />
                 Share
               </Button>
               <Button
                 type="button"
-                className="font-bold text-primary-foreground hover:text-primary-foreground"
+                className="btn-marketplace-primary font-bold"
                 asChild
               >
                 <a href={xUrl} target="_blank" rel="noreferrer">
@@ -209,10 +246,10 @@ export default function FounderProfile() {
                 <div className="flex flex-wrap items-center justify-center gap-2 md:justify-start">
                   <span
                     className={cn(
-                      'rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide',
-                      claimSpot.role === 'founder'
-                        ? 'mp-badge-lime'
-                        : 'mp-chip-info',
+                      "rounded-full px-2.5 py-1 text-[10px] font-bold uppercase tracking-wide",
+                      claimSpot.role === "founder"
+                        ? "mp-badge-lime"
+                        : "mp-chip-info",
                     )}
                   >
                     {claimRoleLabel(claimSpot.role)}
@@ -233,10 +270,13 @@ export default function FounderProfile() {
                   @{claimSpot.handle}
                 </a>
                 <p className="mt-2 text-sm text-muted-foreground">
-                  Claimed a free listing spot on {formatClaimSpotDate(claimSpot.claimedAt)}.
+                  Claimed a free listing spot on{" "}
+                  {formatClaimSpotDate(claimSpot.claimedAt)}.
                 </p>
                 {claimSpot.tagline ? (
-                  <p className="mt-4 max-w-2xl text-base leading-relaxed text-foreground/90">{claimSpot.tagline}</p>
+                  <p className="mt-4 max-w-2xl text-base leading-relaxed text-foreground/90">
+                    {claimSpot.tagline}
+                  </p>
                 ) : null}
               </div>
             </div>
@@ -248,21 +288,37 @@ export default function FounderProfile() {
               value={`First ${CLAIM_SPOTS_TOTAL}`}
               hint="Founders & investors roster"
             />
-            <StatCard label="Role" value={claimRoleLabel(claimSpot.role)} hint="On the claim list" />
-            <StatCard label="Claimed" value={formatClaimSpotDate(claimSpot.claimedAt)} hint="Spot reserved" />
-            <StatCard label="Startups" value="—" hint="Listing data is separate from this roster" />
+            <StatCard
+              label="Role"
+              value={claimRoleLabel(claimSpot.role)}
+              hint="On the claim list"
+            />
+            <StatCard
+              label="Claimed"
+              value={formatClaimSpotDate(claimSpot.claimedAt)}
+              hint="Spot reserved"
+            />
+            <StatCard
+              label="Startups"
+              value="—"
+              hint="Listing data is separate from this roster"
+            />
           </div>
 
           <div className="rounded-xl border border-dashed border-border bg-muted/20 p-6 text-center dark:border-zinc-600 dark:bg-zinc-900/40">
             <p className="text-sm text-muted-foreground">
-              This person appears on the{' '}
-              <Link href={marketplacePath('/claim')} className="font-bold text-foreground underline-offset-2 hover:underline">
+              This person appears on the{" "}
+              <Link
+                href={marketplacePath("/claim")}
+                className="font-bold text-foreground underline-offset-2 hover:underline"
+              >
                 Who claimed a spot
-              </Link>{' '}
-              table. Full founder profiles with verified startups stay on the main leaderboard.
+              </Link>{" "}
+              table. Full founder profiles with verified startups stay on the
+              main leaderboard.
             </p>
             <Button className="mt-4 font-bold" variant="secondary" asChild>
-              <Link href={marketplacePath('/claim')}>Back to claim roster</Link>
+              <Link href={marketplacePath("/claim")}>Back to claim roster</Link>
             </Button>
           </div>
         </div>
@@ -270,66 +326,76 @@ export default function FounderProfile() {
     }
     return (
       <div className="rounded-xl border border-border bg-muted/30 p-12 text-center ring-1 ring-inset ring-black/5 dark:border-zinc-700/80 dark:bg-zinc-900/40 dark:ring-white/5">
-        <h2 className="text-2xl font-bold text-foreground">Profile not found</h2>
-        <p className="mt-2 text-sm text-muted-foreground">No founder or claim roster match for this link.</p>
+        <h2 className="text-2xl font-bold text-foreground">
+          Profile not found
+        </h2>
+        <p className="mt-2 text-sm text-muted-foreground">
+          No founder or claim roster match for this link.
+        </p>
         <div className="mt-6 flex flex-wrap justify-center gap-2">
           <Button asChild variant="outline">
-            <Link href={marketplacePath('/claim')}>Claim roster</Link>
+            <Link href={marketplacePath("/claim")}>Claim roster</Link>
           </Button>
           <Button asChild>
-            <Link href={marketplacePath('/cofounders')}>Browse founders</Link>
+            <Link href={marketplacePath("/cofounders")}>Browse founders</Link>
           </Button>
         </div>
       </div>
     );
   }
 
-  const xUrl = `https://twitter.com/${founder.twitter.replace('@', '')}`;
+  const xUrl = `https://twitter.com/${founder.twitter.replace("@", "")}`;
   const xFollowers = xFollowersForHandle(founder.handle);
-  const first = founder.name.split(' ')[0] ?? founder.name;
+  const first = founder.name.split(" ")[0] ?? founder.name;
 
-  return (
+  const profileBody = (
     <div className="flex flex-col gap-8 pb-10">
-      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-        <nav
-          className="flex flex-wrap items-center gap-1 text-sm text-muted-foreground"
-          aria-label="Breadcrumb"
-        >
-          <Link
-            href={marketplacePath('/')}
-            className="font-medium text-foreground/80 transition-colors hover:text-foreground"
+      {!inBuyerApp ? (
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+          <nav
+            className="flex flex-1 flex-wrap items-center gap-1 text-sm text-muted-foreground sm:mr-auto"
+            aria-label="Breadcrumb"
           >
-            Ownerr
-          </Link>
-          <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
-          <Link
-            href={marketplacePath('/cofounders')}
-            className="transition-colors hover:text-foreground"
-          >
-            Founder
-          </Link>
-          <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
-          <FounderLink handle={handle} className="font-bold text-foreground">
-            {founder.name}
-          </FounderLink>
-        </nav>
-        <div className="flex shrink-0 flex-wrap items-center gap-2">
-          <Button type="button" variant="outline" className="font-bold" onClick={() => void onShare()}>
-            <Share2 className="h-4 w-4" />
-            Share
-          </Button>
-          <Button
-            type="button"
-            className="font-bold text-primary-foreground hover:text-primary-foreground"
-            asChild
-          >
-            <a href={xUrl} target="_blank" rel="noreferrer">
-              <ExternalLink className="h-4 w-4" />
-              Visit X profile
-            </a>
-          </Button>
+            <Link
+              href={marketplacePath("/")}
+              className="font-medium text-foreground/80 transition-colors hover:text-foreground"
+            >
+              Ownerr
+            </Link>
+            <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
+            <Link
+              href={browseHref}
+              className="transition-colors hover:text-foreground"
+            >
+              Founder
+            </Link>
+            <ChevronRight className="h-4 w-4 shrink-0 opacity-50" aria-hidden />
+            <FounderLink handle={handle} className="font-bold text-foreground">
+              {founder.name}
+            </FounderLink>
+          </nav>
+          <div className="flex shrink-0 flex-wrap items-center gap-2">
+            <Button
+              type="button"
+              className="btn-marketplace-primary font-bold"
+              onClick={() => void onShare()}
+            >
+              <Share2 className="h-4 w-4" />
+              Share
+            </Button>
+            <Button
+              type="button"
+              className="btn-marketplace-primary font-bold"
+              asChild
+            >
+              <a href={xUrl} target="_blank" rel="noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                Visit X profile
+              </a>
+            </Button>
+          </div>
         </div>
-      </div>
+      ) : null}
 
       <div className="overflow-hidden rounded-2xl border border-border bg-gradient-to-br from-card to-muted/40 p-6 shadow-sm ring-1 ring-inset ring-black/5 sm:p-8 md:p-10 dark:border-zinc-700/80 dark:from-zinc-900/80 dark:to-zinc-950/90 dark:ring-white/5">
         <div className="flex flex-col items-center gap-8 text-center md:flex-row md:items-start md:text-left">
@@ -347,11 +413,13 @@ export default function FounderProfile() {
           </div>
 
           <div className="min-w-0 flex-1">
-            <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              <FounderLink handle={handle} className="text-foreground">
-                {founder.name}
-              </FounderLink>
-            </h1>
+            {!inBuyerApp ? (
+              <h1 className="text-3xl font-bold tracking-tight sm:text-4xl">
+                <FounderLink handle={handle} className="text-foreground">
+                  {founder.name}
+                </FounderLink>
+              </h1>
+            ) : null}
             <a
               href={xUrl}
               target="_blank"
@@ -361,10 +429,13 @@ export default function FounderProfile() {
               {founder.twitter}
             </a>
             <p className="mt-2 text-sm text-muted-foreground">
-              {startups.length} startup{startups.length === 1 ? '' : 's'} with verified revenue ·{' '}
-              {xFollowers.toLocaleString('en-US')} X followers
+              {startups.length} startup{startups.length === 1 ? "" : "s"} with
+              verified revenue · {xFollowers.toLocaleString("en-US")} X
+              followers
             </p>
-            <p className="mt-4 max-w-2xl text-base leading-relaxed text-foreground/90">{founder.bio}</p>
+            <p className="mt-4 max-w-2xl text-base leading-relaxed text-foreground/90">
+              {founder.bio}
+            </p>
             <div className="mt-5 flex flex-wrap justify-center gap-2 md:justify-start">
               {founder.skills.map((skill) => (
                 <span
@@ -382,17 +453,21 @@ export default function FounderProfile() {
       <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           label="Total revenue"
-          value={stats.hasData ? formatCurrency(stats.allTime) : '—'}
+          value={stats.hasData ? formatCurrency(stats.allTime) : "—"}
           hint="Across all startups"
         />
         <StatCard
           label="Last 30 days"
-          value={stats.hasData ? formatCurrency(stats.last30) : '—'}
+          value={stats.hasData ? formatCurrency(stats.last30) : "—"}
           hint="Recent revenue"
         />
         <StatCard
           label="Total MRR (estimated)"
-          value={stats.hasData && stats.mrr > 0 ? formatShortCurrency(stats.mrr) : '—'}
+          value={
+            stats.hasData && stats.mrr > 0
+              ? formatShortCurrency(stats.mrr)
+              : "—"
+          }
           hint="Across all startups"
         />
         <StatCard
@@ -404,7 +479,9 @@ export default function FounderProfile() {
 
       <div>
         <div className="mb-6 flex flex-col gap-1 sm:flex-row sm:items-end sm:justify-between">
-          <h2 className="text-2xl font-bold text-foreground">Startups by {first}</h2>
+          <h2 className="text-2xl font-bold text-foreground">
+            Startups by {first}
+          </h2>
           {stats.mrr > 0 ? (
             <div className="text-sm text-muted-foreground">
               <span className="font-bold text-foreground">Total MRR: </span>
@@ -436,4 +513,43 @@ export default function FounderProfile() {
       </div>
     </div>
   );
+
+  if (inBuyerApp) {
+    return (
+      <MarketplaceAppPageShell
+        layout="compact"
+        kicker="Marketplace · Buyer"
+        title={founder.name}
+        description={`@${founder.handle} · ${startups.length} startup${startups.length === 1 ? "" : "s"}`}
+        headerActions={
+          <>
+            <Button
+              type="button"
+              size="sm"
+              className="btn-marketplace-primary h-9 font-bold"
+              onClick={() => void onShare()}
+            >
+              <Share2 className="h-4 w-4" />
+              <span className="hidden sm:inline">Share</span>
+            </Button>
+            <Button
+              type="button"
+              size="sm"
+              className="btn-marketplace-primary h-9 font-bold"
+              asChild
+            >
+              <a href={xUrl} target="_blank" rel="noreferrer">
+                <ExternalLink className="h-4 w-4" />
+                <span className="hidden sm:inline">X</span>
+              </a>
+            </Button>
+          </>
+        }
+      >
+        {profileBody}
+      </MarketplaceAppPageShell>
+    );
+  }
+
+  return profileBody;
 }

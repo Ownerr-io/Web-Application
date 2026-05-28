@@ -1,84 +1,98 @@
-import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
-import { useLocation, useSearch } from 'wouter';
-import { ChevronDown, Info, SlidersHorizontal } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
-import type { Category } from '@/lib/marketplace/types';
-import { ACQUIRE_GRID_ROWS } from '@/lib/acquireMarketplaceData';
-import { AcquireListingCard } from '@/components/AcquireListingCard';
-import { AcquireBidPanel } from '@/components/marketplace/AcquireBidPanel';
-import { bestDealScore, fetchMarketplaceListings } from '@/lib/marketplace/service';
+import { useEffect, useLayoutEffect, useMemo, useState } from "react";
+import { useLocation, useSearch } from "wouter";
+import { ChevronDown, Info, SlidersHorizontal } from "lucide-react";
+import { useQuery } from "@tanstack/react-query";
+import type { Category } from "@/lib/marketplace/types";
+import { ACQUIRE_GRID_ROWS } from "@/lib/acquireMarketplaceData";
+import { AcquireListingCard } from "@/components/AcquireListingCard";
+import { AcquireBidPanel } from "@/components/marketplace/AcquireBidPanel";
+import {
+  bestDealScore,
+  fetchMarketplaceListings,
+} from "@/lib/marketplace/service";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
-import { Button } from '@/components/ui/button';
-import { Checkbox } from '@/components/ui/checkbox';
-import { cn } from '@/lib/utils';
-import { MARKETPLACE_ROUTES } from '@/routing/routeRegistry';
-import { Skeleton } from '@/components/ui/skeleton';
-import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover';
+} from "@/components/ui/select";
+import { Button } from "@/components/ui/button";
+import { Checkbox } from "@/components/ui/checkbox";
+import { cn } from "@/lib/utils";
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
+import { Skeleton } from "@/components/ui/skeleton";
+import {
+  Popover,
+  PopoverContent,
+  PopoverTrigger,
+} from "@/components/ui/popover";
 
 const acquireOrder = new Map(ACQUIRE_GRID_ROWS.map((r, i) => [r.slug, i]));
 
 /** Terminal palette + sticky filter column (desktop). */
 const FILTER_PANEL =
-  'max-h-[min(78dvh,calc(100dvh-8rem))] overflow-y-auto overscroll-contain rounded-[14px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4 font-mono text-[color:var(--terminal-fg)]';
-const FILTER_LABEL = 'text-[10px] font-bold uppercase tracking-wide text-[color:var(--terminal-muted)]';
+  "max-h-[min(78dvh,calc(100dvh-8rem))] overflow-y-auto overscroll-contain rounded-[14px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4 font-mono text-[color:var(--terminal-fg)]";
+const FILTER_LABEL =
+  "text-[10px] font-bold uppercase tracking-wide text-[color:var(--terminal-muted)]";
 const FILTER_SELECT_TRIGGER =
-  'h-10 border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] font-mono text-sm text-[color:var(--terminal-fg)]';
+  "h-10 border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] font-mono text-sm text-[color:var(--terminal-fg)]";
 const FILTER_SELECT_TRIGGER_SPACED = `mb-4 ${FILTER_SELECT_TRIGGER}`;
 const FILTER_SELECT_CONTENT =
-  'border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] font-mono text-[color:var(--terminal-fg)]';
+  "border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] font-mono text-[color:var(--terminal-fg)]";
 const FILTER_INPUT =
-  'h-9 w-full min-w-0 rounded-md border border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] px-2 text-xs text-[color:var(--terminal-fg)] outline-none placeholder:text-[color:var(--terminal-muted)] focus:ring-1 focus:ring-[color:var(--terminal-ochre)]';
-const FILTER_MUTED = 'text-[color:var(--terminal-muted)]';
+  "h-9 w-full min-w-0 rounded-md border border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] px-2 text-xs text-[color:var(--terminal-fg)] outline-none placeholder:text-[color:var(--terminal-muted)] focus:ring-1 focus:ring-[color:var(--terminal-ochre)]";
+const FILTER_MUTED = "text-[color:var(--terminal-muted)]";
 const FILTER_DISABLED =
-  'h-9 w-full cursor-not-allowed rounded-md border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface-2)] px-2 text-xs text-[color:var(--terminal-muted)] opacity-70';
+  "h-9 w-full cursor-not-allowed rounded-md border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface-2)] px-2 text-xs text-[color:var(--terminal-muted)] opacity-70";
 const SELECT_ITEM =
-  'cursor-pointer focus:bg-[color:var(--terminal-surface-2)] focus:text-[color:var(--terminal-fg)]';
-const ACQUIRE_FILTERS_STORAGE_KEY = 'ownerr-acquire-filters-v1';
+  "cursor-pointer focus:bg-[color:var(--terminal-surface-2)] focus:text-[color:var(--terminal-fg)]";
+const ACQUIRE_FILTERS_STORAGE_KEY = "ownerr-acquire-filters-v1";
 const BUYER_FILTER_SELECT_TRIGGER =
-  'h-9 w-full min-w-0 border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] font-mono text-xs text-[color:var(--terminal-fg)]';
+  "h-9 w-full min-w-0 border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)] font-mono text-xs text-[color:var(--terminal-fg)]";
 
 const PAYMENT_PROVIDERS = [
-  'Stripe',
-  'LemonSqueezy',
-  'Polar',
-  'DodoPayment',
-  'Paddle',
-  'RevenueCat',
-  'Superwall',
-  'Creem',
+  "Stripe",
+  "LemonSqueezy",
+  "Polar",
+  "DodoPayment",
+  "Paddle",
+  "RevenueCat",
+  "Superwall",
+  "Creem",
 ] as const;
 
-const FILTER_CATEGORIES: (Category | 'All')[] = [
-  'All',
-  'SaaS',
-  'Marketing',
-  'Artificial Intelligence',
-  'Content Creation',
-  'Developer Tools',
-  'Customer Support',
-  'Social Media',
-  'Mobile Apps',
-  'Health',
-  'Education',
-  'Crypto & Web3',
+const FILTER_CATEGORIES: (Category | "All")[] = [
+  "All",
+  "SaaS",
+  "Marketing",
+  "Artificial Intelligence",
+  "Content Creation",
+  "Developer Tools",
+  "Customer Support",
+  "Social Media",
+  "Mobile Apps",
+  "Health",
+  "Education",
+  "Crypto & Web3",
 ];
 
-type SortMode = 'best_deals' | 'mrr_desc' | 'growth_desc' | 'traffic_desc' | 'newest' | 'price_asc';
+type SortMode =
+  | "best_deals"
+  | "mrr_desc"
+  | "growth_desc"
+  | "traffic_desc"
+  | "newest"
+  | "price_asc";
 
-const FILTER_SET = new Set(FILTER_CATEGORIES as readonly (Category | 'All')[]);
+const FILTER_SET = new Set(FILTER_CATEGORIES as readonly (Category | "All")[]);
 
-function categoryFromQueryString(wouterSearch: string): Category | 'All' {
-  const q = wouterSearch.startsWith('?') ? wouterSearch.slice(1) : wouterSearch;
-  const raw = new URLSearchParams(q).get('category');
-  if (raw == null || raw === '' || raw === 'All') return 'All';
-  if (FILTER_SET.has(raw as Category | 'All')) return raw as Category;
-  return 'All';
+function categoryFromQueryString(wouterSearch: string): Category | "All" {
+  const q = wouterSearch.startsWith("?") ? wouterSearch.slice(1) : wouterSearch;
+  const raw = new URLSearchParams(q).get("category");
+  if (raw == null || raw === "" || raw === "All") return "All";
+  if (FILTER_SET.has(raw as Category | "All")) return raw as Category;
+  return "All";
 }
 
 function FilterMinMax({
@@ -104,30 +118,54 @@ function FilterMinMax({
       <div className="grid min-w-0 grid-cols-1 gap-2 sm:grid-cols-2">
         <div className="relative min-w-0">
           {prefix ? (
-            <span className={`pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 ${FILTER_MUTED}`}>$</span>
+            <span
+              className={`pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 ${FILTER_MUTED}`}
+            >
+              $
+            </span>
           ) : null}
           <input
             value={min}
             onChange={(e) => onMin(e.target.value)}
             placeholder="Min"
-            className={cn(FILTER_INPUT, prefix ? 'pl-5' : '', suffix ? 'pr-6' : '')}
+            className={cn(
+              FILTER_INPUT,
+              prefix ? "pl-5" : "",
+              suffix ? "pr-6" : "",
+            )}
           />
           {suffix ? (
-            <span className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 ${FILTER_MUTED}`}>{suffix}</span>
+            <span
+              className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 ${FILTER_MUTED}`}
+            >
+              {suffix}
+            </span>
           ) : null}
         </div>
         <div className="relative min-w-0">
           {prefix ? (
-            <span className={`pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 ${FILTER_MUTED}`}>$</span>
+            <span
+              className={`pointer-events-none absolute left-2 top-1/2 -translate-y-1/2 ${FILTER_MUTED}`}
+            >
+              $
+            </span>
           ) : null}
           <input
             value={max}
             onChange={(e) => onMax(e.target.value)}
             placeholder="Max"
-            className={cn(FILTER_INPUT, prefix ? 'pl-5' : '', suffix ? 'pr-6' : '')}
+            className={cn(
+              FILTER_INPUT,
+              prefix ? "pl-5" : "",
+              suffix ? "pr-6" : "",
+            )}
           />
           {suffix ? (
-            <span className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 ${FILTER_MUTED}`}>{suffix}</span>
+            <span
+              className={`pointer-events-none absolute right-2 top-1/2 -translate-y-1/2 ${FILTER_MUTED}`}
+            >
+              {suffix}
+            </span>
           ) : null}
         </div>
       </div>
@@ -137,9 +175,13 @@ function FilterMinMax({
 
 type RangeOption = { value: string; label: string; min: string; max: string };
 
-function rangeValueFromMinMax(min: string, max: string, options: RangeOption[]): string {
+function rangeValueFromMinMax(
+  min: string,
+  max: string,
+  options: RangeOption[],
+): string {
   const hit = options.find((opt) => opt.min === min && opt.max === max);
-  return hit?.value ?? 'custom';
+  return hit?.value ?? "custom";
 }
 
 function RangeDropdown({
@@ -175,11 +217,15 @@ function RangeDropdown({
         </SelectTrigger>
         <SelectContent className={FILTER_SELECT_CONTENT}>
           {options.map((opt) => (
-            <SelectItem key={opt.value} value={opt.value} className={SELECT_ITEM}>
+            <SelectItem
+              key={opt.value}
+              value={opt.value}
+              className={SELECT_ITEM}
+            >
               {opt.label}
             </SelectItem>
           ))}
-          {selected === 'custom' ? (
+          {selected === "custom" ? (
             <SelectItem value="custom" className={SELECT_ITEM}>
               Custom range
             </SelectItem>
@@ -195,8 +241,8 @@ type AcquireFiltersBodyProps = {
   includeSort?: boolean;
   sort: SortMode;
   setSort: (v: SortMode) => void;
-  category: Category | 'All';
-  setCategoryWithUrl: (v: Category | 'All') => void;
+  category: Category | "All";
+  setCategoryWithUrl: (v: Category | "All") => void;
   revMin: string;
   revMax: string;
   setRevMin: (v: string) => void;
@@ -227,7 +273,10 @@ type AcquireFiltersBodyProps = {
   setRevenueProvider: (v: string) => void;
 };
 
-type AcquireBuyerFiltersFormProps = Omit<AcquireFiltersBodyProps, 'includeSort'> & {
+type AcquireBuyerFiltersFormProps = Omit<
+  AcquireFiltersBodyProps,
+  "includeSort"
+> & {
   revenue30dOptions: RangeOption[];
   mrrOptions: RangeOption[];
   growthOptions: RangeOption[];
@@ -310,7 +359,10 @@ function AcquireBuyerFiltersForm(props: AcquireBuyerFiltersFormProps) {
 
       <div>
         <label className={`mb-1 block ${FILTER_LABEL}`}>Categories</label>
-        <Select value={category} onValueChange={(v) => setCategoryWithUrl(v as Category | 'All')}>
+        <Select
+          value={category}
+          onValueChange={(v) => setCategoryWithUrl(v as Category | "All")}
+        >
           <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
             <SelectValue />
           </SelectTrigger>
@@ -335,7 +387,11 @@ function AcquireBuyerFiltersForm(props: AcquireBuyerFiltersFormProps) {
               All providers
             </SelectItem>
             {PAYMENT_PROVIDERS.map((provider) => (
-              <SelectItem key={provider} value={provider} className={SELECT_ITEM}>
+              <SelectItem
+                key={provider}
+                value={provider}
+                className={SELECT_ITEM}
+              >
                 {provider}
               </SelectItem>
             ))}
@@ -351,7 +407,14 @@ function AcquireBuyerFiltersForm(props: AcquireBuyerFiltersFormProps) {
         onMin={setRevMin}
         onMax={setRevMax}
       />
-      <RangeDropdown label="MRR" min={mrrMin} max={mrrMax} options={mrrOptions} onMin={setMrrMin} onMax={setMrrMax} />
+      <RangeDropdown
+        label="MRR"
+        min={mrrMin}
+        max={mrrMax}
+        options={mrrOptions}
+        onMin={setMrrMin}
+        onMax={setMrrMax}
+      />
       <RangeDropdown
         label="Growth (last 30 days)"
         min={growthMin}
@@ -381,22 +444,28 @@ function AcquireBuyerFiltersForm(props: AcquireBuyerFiltersFormProps) {
         <label className={`mb-1 block ${FILTER_LABEL}`}>Verification</label>
         <Select
           value={
-            verifiedOnly ? 'fully' : verifiedRevenueOnly ? 'revenue' : verifiedDomainOnly ? 'domain' : 'all'
+            verifiedOnly
+              ? "fully"
+              : verifiedRevenueOnly
+                ? "revenue"
+                : verifiedDomainOnly
+                  ? "domain"
+                  : "all"
           }
           onValueChange={(value) => {
-            if (value === 'fully') {
+            if (value === "fully") {
               setVerifiedOnly(true);
               setVerifiedRevenueOnly(false);
               setVerifiedDomainOnly(false);
               return;
             }
-            if (value === 'revenue') {
+            if (value === "revenue") {
               setVerifiedOnly(false);
               setVerifiedRevenueOnly(true);
               setVerifiedDomainOnly(false);
               return;
             }
-            if (value === 'domain') {
+            if (value === "domain") {
               setVerifiedOnly(false);
               setVerifiedRevenueOnly(false);
               setVerifiedDomainOnly(true);
@@ -499,7 +568,10 @@ function AcquireMarketplaceFiltersBody({
       ) : null}
 
       <label className={`mb-1 block ${FILTER_LABEL}`}>Categories</label>
-      <Select value={category} onValueChange={(v) => setCategoryWithUrl(v as Category | 'All')}>
+      <Select
+        value={category}
+        onValueChange={(v) => setCategoryWithUrl(v as Category | "All")}
+      >
         <SelectTrigger className={FILTER_SELECT_TRIGGER_SPACED}>
           <SelectValue placeholder="Select categories..." />
         </SelectTrigger>
@@ -518,7 +590,9 @@ function AcquireMarketplaceFiltersBody({
           <SelectValue />
         </SelectTrigger>
         <SelectContent className={FILTER_SELECT_CONTENT}>
-          <SelectItem value="all" className={SELECT_ITEM}>All providers</SelectItem>
+          <SelectItem value="all" className={SELECT_ITEM}>
+            All providers
+          </SelectItem>
           {PAYMENT_PROVIDERS.map((provider) => (
             <SelectItem key={provider} value={provider} className={SELECT_ITEM}>
               {provider}
@@ -536,7 +610,14 @@ function AcquireMarketplaceFiltersBody({
           onMax={setRevMax}
           prefix
         />
-        <FilterMinMax label="MRR" min={mrrMin} max={mrrMax} onMin={setMrrMin} onMax={setMrrMax} prefix />
+        <FilterMinMax
+          label="MRR"
+          min={mrrMin}
+          max={mrrMax}
+          onMin={setMrrMin}
+          onMax={setMrrMax}
+          prefix
+        />
         <FilterMinMax
           label="Growth (last 30 days)"
           min={growthMin}
@@ -621,7 +702,10 @@ function AcquireMarketplaceFiltersBody({
             checked={verifiedOnly}
             onCheckedChange={(v) => setVerifiedOnly(v === true)}
           />
-          <label htmlFor="filter-verified-only" className="cursor-pointer text-xs font-medium text-[color:var(--terminal-fg)]">
+          <label
+            htmlFor="filter-verified-only"
+            className="cursor-pointer text-xs font-medium text-[color:var(--terminal-fg)]"
+          >
             Fully verified only
           </label>
         </div>
@@ -631,7 +715,10 @@ function AcquireMarketplaceFiltersBody({
             checked={verifiedRevenueOnly}
             onCheckedChange={(v) => setVerifiedRevenueOnly(v === true)}
           />
-          <label htmlFor="filter-rev-verified" className="cursor-pointer text-xs font-medium text-[color:var(--terminal-fg)]">
+          <label
+            htmlFor="filter-rev-verified"
+            className="cursor-pointer text-xs font-medium text-[color:var(--terminal-fg)]"
+          >
             Verified revenue only
           </label>
         </div>
@@ -641,7 +728,10 @@ function AcquireMarketplaceFiltersBody({
             checked={verifiedDomainOnly}
             onCheckedChange={(v) => setVerifiedDomainOnly(v === true)}
           />
-          <label htmlFor="filter-domain-verified" className="cursor-pointer text-xs font-medium text-[color:var(--terminal-fg)]">
+          <label
+            htmlFor="filter-domain-verified"
+            className="cursor-pointer text-xs font-medium text-[color:var(--terminal-fg)]"
+          >
             Verified domain only
           </label>
         </div>
@@ -654,28 +744,30 @@ export default function Acquire() {
   const wouterSearch = useSearch();
   const [location, setLocation] = useLocation();
   const isBuyerPage = location.startsWith(MARKETPLACE_ROUTES.buyerAcquire);
-  const acquireBase = isBuyerPage ? MARKETPLACE_ROUTES.buyerAcquire : MARKETPLACE_ROUTES.acquire;
+  const acquireBase = isBuyerPage
+    ? MARKETPLACE_ROUTES.buyerAcquire
+    : MARKETPLACE_ROUTES.acquire;
   const [isMounted, setIsMounted] = useState(false);
 
-  const [search, setSearch] = useState('');
-  const [category, setCategory] = useState<Category | 'All'>('All');
-  const [sort, setSort] = useState<SortMode>('best_deals');
-  const [revMin, setRevMin] = useState('');
-  const [revMax, setRevMax] = useState('');
-  const [mrrMin, setMrrMin] = useState('');
-  const [mrrMax, setMrrMax] = useState('');
-  const [growthMin, setGrowthMin] = useState('');
-  const [growthMax, setGrowthMax] = useState('');
-  const [askMin, setAskMin] = useState('');
-  const [askMax, setAskMax] = useState('');
-  const [trafficMin, setTrafficMin] = useState('');
-  const [trafficMax, setTrafficMax] = useState('');
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState<Category | "All">("All");
+  const [sort, setSort] = useState<SortMode>("best_deals");
+  const [revMin, setRevMin] = useState("");
+  const [revMax, setRevMax] = useState("");
+  const [mrrMin, setMrrMin] = useState("");
+  const [mrrMax, setMrrMax] = useState("");
+  const [growthMin, setGrowthMin] = useState("");
+  const [growthMax, setGrowthMax] = useState("");
+  const [askMin, setAskMin] = useState("");
+  const [askMax, setAskMax] = useState("");
+  const [trafficMin, setTrafficMin] = useState("");
+  const [trafficMax, setTrafficMax] = useState("");
   const [verifiedRevenueOnly, setVerifiedRevenueOnly] = useState(false);
   const [verifiedDomainOnly, setVerifiedDomainOnly] = useState(false);
   const [verifiedOnly, setVerifiedOnly] = useState(false);
-  const [revenueProvider, setRevenueProvider] = useState('all');
+  const [revenueProvider, setRevenueProvider] = useState("all");
   const listingsQuery = useQuery({
-    queryKey: ['marketplace-listings'],
+    queryKey: ["marketplace-listings"],
     queryFn: () => fetchMarketplaceListings(),
   });
 
@@ -689,22 +781,22 @@ export default function Acquire() {
       const raw = window.localStorage.getItem(ACQUIRE_FILTERS_STORAGE_KEY);
       if (!raw) return;
       const parsed = JSON.parse(raw) as Record<string, string | boolean>;
-      setSearch(String(parsed.search ?? ''));
-      setSort((parsed.sort as SortMode) ?? 'best_deals');
-      setRevMin(String(parsed.revMin ?? ''));
-      setRevMax(String(parsed.revMax ?? ''));
-      setMrrMin(String(parsed.mrrMin ?? ''));
-      setMrrMax(String(parsed.mrrMax ?? ''));
-      setGrowthMin(String(parsed.growthMin ?? ''));
-      setGrowthMax(String(parsed.growthMax ?? ''));
-      setAskMin(String(parsed.askMin ?? ''));
-      setAskMax(String(parsed.askMax ?? ''));
-      setTrafficMin(String(parsed.trafficMin ?? ''));
-      setTrafficMax(String(parsed.trafficMax ?? ''));
+      setSearch(String(parsed.search ?? ""));
+      setSort((parsed.sort as SortMode) ?? "best_deals");
+      setRevMin(String(parsed.revMin ?? ""));
+      setRevMax(String(parsed.revMax ?? ""));
+      setMrrMin(String(parsed.mrrMin ?? ""));
+      setMrrMax(String(parsed.mrrMax ?? ""));
+      setGrowthMin(String(parsed.growthMin ?? ""));
+      setGrowthMax(String(parsed.growthMax ?? ""));
+      setAskMin(String(parsed.askMin ?? ""));
+      setAskMax(String(parsed.askMax ?? ""));
+      setTrafficMin(String(parsed.trafficMin ?? ""));
+      setTrafficMax(String(parsed.trafficMax ?? ""));
       setVerifiedRevenueOnly(Boolean(parsed.verifiedRevenueOnly));
       setVerifiedDomainOnly(Boolean(parsed.verifiedDomainOnly));
       setVerifiedOnly(Boolean(parsed.verifiedOnly));
-      setRevenueProvider(String(parsed.revenueProvider ?? 'all'));
+      setRevenueProvider(String(parsed.revenueProvider ?? "all"));
     } catch {
       // ignore bad persisted filter state
     }
@@ -733,10 +825,29 @@ export default function Acquire() {
         revenueProvider,
       }),
     );
-  }, [isMounted, search, sort, revMin, revMax, mrrMin, mrrMax, growthMin, growthMax, askMin, askMax, trafficMin, trafficMax, verifiedRevenueOnly, verifiedDomainOnly, verifiedOnly, revenueProvider]);
+  }, [
+    isMounted,
+    search,
+    sort,
+    revMin,
+    revMax,
+    mrrMin,
+    mrrMax,
+    growthMin,
+    growthMax,
+    askMin,
+    askMax,
+    trafficMin,
+    trafficMax,
+    verifiedRevenueOnly,
+    verifiedDomainOnly,
+    verifiedOnly,
+    revenueProvider,
+  ]);
 
   const filtered = useMemo(() => {
-    const n = (s: string) => (s === '' ? null : Number(s.replace(/[^0-9.]/g, '')));
+    const n = (s: string) =>
+      s === "" ? null : Number(s.replace(/[^0-9.]/g, ""));
     const rMin = n(revMin);
     const rMax = n(revMax);
     const mMin = n(mrrMin);
@@ -750,7 +861,7 @@ export default function Acquire() {
     const q = search.trim().toLowerCase();
 
     let rows = (listingsQuery.data ?? []).filter((s) => s.forSale);
-    if (category !== 'All') rows = rows.filter((s) => s.category === category);
+    if (category !== "All") rows = rows.filter((s) => s.category === category);
     if (q)
       rows = rows.filter(
         (s) =>
@@ -765,32 +876,53 @@ export default function Acquire() {
     if (mMin != null) rows = rows.filter((s) => s.revenue >= mMin);
     if (mMax != null) rows = rows.filter((s) => s.revenue <= mMax);
     if (gMin != null)
-      rows = rows.filter((s) => (s.growthPct ?? s.revenueGrowth30dPct ?? s.momGrowth) >= gMin);
+      rows = rows.filter(
+        (s) => (s.growthPct ?? s.revenueGrowth30dPct ?? s.momGrowth) >= gMin,
+      );
     if (gMax != null)
-      rows = rows.filter((s) => (s.growthPct ?? s.revenueGrowth30dPct ?? s.momGrowth) <= gMax);
+      rows = rows.filter(
+        (s) => (s.growthPct ?? s.revenueGrowth30dPct ?? s.momGrowth) <= gMax,
+      );
     if (aMin != null) rows = rows.filter((s) => (s.price ?? 0) >= aMin);
     if (aMax != null) rows = rows.filter((s) => (s.price ?? 0) <= aMax);
-    if (tMin != null) rows = rows.filter((s) => (s.trafficMonthlyVisitors ?? 0) >= tMin);
-    if (tMax != null) rows = rows.filter((s) => (s.trafficMonthlyVisitors ?? 0) <= tMax);
-    if (revenueProvider !== 'all') rows = rows.filter((s) => s.revenueProvider === revenueProvider);
-    if (verifiedOnly) rows = rows.filter((s) => s.revenueVerified && s.domainVerified && s.trafficVerified);
+    if (tMin != null)
+      rows = rows.filter((s) => (s.trafficMonthlyVisitors ?? 0) >= tMin);
+    if (tMax != null)
+      rows = rows.filter((s) => (s.trafficMonthlyVisitors ?? 0) <= tMax);
+    if (revenueProvider !== "all")
+      rows = rows.filter((s) => s.revenueProvider === revenueProvider);
+    if (verifiedOnly)
+      rows = rows.filter(
+        (s) => s.revenueVerified && s.domainVerified && s.trafficVerified,
+      );
     if (verifiedRevenueOnly) rows = rows.filter((s) => s.revenueVerified);
     if (verifiedDomainOnly) rows = rows.filter((s) => s.domainVerified);
 
-    const scored = rows.map((r) => ({ r, ord: acquireOrder.get(r.slug) ?? 9999 }));
+    const scored = rows.map((r) => ({
+      r,
+      ord: acquireOrder.get(r.slug) ?? 9999,
+    }));
     scored.sort((a, b) => {
       const af = a.ord < 9999;
       const bf = b.ord < 9999;
-      if (sort === 'best_deals') {
+      if (sort === "best_deals") {
         if (af && bf) return a.ord - b.ord;
         if (af !== bf) return af ? -1 : 1;
         return bestDealScore(b.r as never) - bestDealScore(a.r as never);
       }
-      if (sort === 'mrr_desc') return b.r.revenue - a.r.revenue;
-      if (sort === 'growth_desc') return (b.r.growthPct ?? 0) - (a.r.growthPct ?? 0);
-      if (sort === 'traffic_desc') return (b.r.trafficMonthlyVisitors ?? 0) - (a.r.trafficMonthlyVisitors ?? 0);
-      if (sort === 'newest') return new Date(b.r.createdAt).getTime() - new Date(a.r.createdAt).getTime();
-      if (sort === 'price_asc') return (a.r.price ?? 1e15) - (b.r.price ?? 1e15);
+      if (sort === "mrr_desc") return b.r.revenue - a.r.revenue;
+      if (sort === "growth_desc")
+        return (b.r.growthPct ?? 0) - (a.r.growthPct ?? 0);
+      if (sort === "traffic_desc")
+        return (
+          (b.r.trafficMonthlyVisitors ?? 0) - (a.r.trafficMonthlyVisitors ?? 0)
+        );
+      if (sort === "newest")
+        return (
+          new Date(b.r.createdAt).getTime() - new Date(a.r.createdAt).getTime()
+        );
+      if (sort === "price_asc")
+        return (a.r.price ?? 1e15) - (b.r.price ?? 1e15);
       return (a.r.multiple ?? 99) - (b.r.multiple ?? 99);
     });
     return scored.map((x) => x.r);
@@ -815,50 +947,55 @@ export default function Acquire() {
     revenueProvider,
   ]);
 
-  const setCategoryWithUrl = (val: Category | 'All') => {
+  const setCategoryWithUrl = (val: Category | "All") => {
     setCategory(val);
-    if (val === 'All') setLocation(acquireBase);
+    if (val === "All") setLocation(acquireBase);
     else setLocation(`${acquireBase}?category=${encodeURIComponent(val)}`);
   };
 
   const clearFilters = () => {
     setLocation(acquireBase);
-    setCategory('All');
-    setSearch('');
-    setRevMin('');
-    setRevMax('');
-    setMrrMin('');
-    setMrrMax('');
-    setGrowthMin('');
-    setGrowthMax('');
-    setAskMin('');
-    setAskMax('');
-    setTrafficMin('');
-    setTrafficMax('');
+    setCategory("All");
+    setSearch("");
+    setRevMin("");
+    setRevMax("");
+    setMrrMin("");
+    setMrrMax("");
+    setGrowthMin("");
+    setGrowthMax("");
+    setAskMin("");
+    setAskMax("");
+    setTrafficMin("");
+    setTrafficMax("");
     setVerifiedRevenueOnly(false);
     setVerifiedDomainOnly(false);
     setVerifiedOnly(false);
-    setRevenueProvider('all');
+    setRevenueProvider("all");
   };
 
   const listingFocusSlug = useMemo(() => {
-    const q = wouterSearch.startsWith('?') ? wouterSearch.slice(1) : wouterSearch;
-    return new URLSearchParams(q).get('listing');
+    const q = wouterSearch.startsWith("?")
+      ? wouterSearch.slice(1)
+      : wouterSearch;
+    return new URLSearchParams(q).get("listing");
   }, [wouterSearch]);
 
   const listingPresentInGrid = useMemo(
-    () => !!(listingFocusSlug && filtered.some((x) => x.slug === listingFocusSlug)),
+    () =>
+      !!(listingFocusSlug && filtered.some((x) => x.slug === listingFocusSlug)),
     [listingFocusSlug, filtered],
   );
 
-  const [listingSpotlightSlug, setListingSpotlightSlug] = useState<string | null>(null);
+  const [listingSpotlightSlug, setListingSpotlightSlug] = useState<
+    string | null
+  >(null);
 
   useLayoutEffect(() => {
     if (!isMounted || !listingFocusSlug) return;
     const el = document.getElementById(`acquire-listing-${listingFocusSlug}`);
     if (!el) return;
     requestAnimationFrame(() => {
-      el.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      el.scrollIntoView({ behavior: "smooth", block: "center" });
     });
   }, [isMounted, listingFocusSlug, filtered]);
 
@@ -871,36 +1008,62 @@ export default function Acquire() {
     setListingSpotlightSlug(listingFocusSlug);
     const tid = window.setTimeout(() => {
       setListingSpotlightSlug(null);
-      const raw = window.location.search.startsWith('?')
+      const raw = window.location.search.startsWith("?")
         ? window.location.search.slice(1)
         : window.location.search;
       const p = new URLSearchParams(raw);
-      if (!p.has('listing')) return;
-      p.delete('listing');
-      const next = p.toString() ? `${acquireBase}?${p.toString()}` : acquireBase;
+      if (!p.has("listing")) return;
+      p.delete("listing");
+      const next = p.toString()
+        ? `${acquireBase}?${p.toString()}`
+        : acquireBase;
       setLocation(next);
     }, 3800);
     return () => window.clearTimeout(tid);
-  }, [acquireBase, isMounted, listingFocusSlug, listingPresentInGrid, setLocation]);
+  }, [
+    acquireBase,
+    isMounted,
+    listingFocusSlug,
+    listingPresentInGrid,
+    setLocation,
+  ]);
 
   const activeFilterCount = useMemo(() => {
     let n = 0;
-    if (category !== 'All') n++;
+    if (category !== "All") n++;
     if (search.trim()) n++;
     if (revMin || revMax) n++;
     if (mrrMin || mrrMax) n++;
     if (growthMin || growthMax) n++;
     if (askMin || askMax) n++;
     if (trafficMin || trafficMax) n++;
-    if (sort !== 'best_deals') n++;
+    if (sort !== "best_deals") n++;
     if (verifiedRevenueOnly) n++;
     if (verifiedDomainOnly) n++;
     if (verifiedOnly) n++;
-    if (revenueProvider !== 'all') n++;
+    if (revenueProvider !== "all") n++;
     return n;
-  }, [category, search, revMin, revMax, mrrMin, mrrMax, growthMin, growthMax, askMin, askMax, trafficMin, trafficMax, sort, verifiedRevenueOnly, verifiedDomainOnly, verifiedOnly, revenueProvider]);
+  }, [
+    category,
+    search,
+    revMin,
+    revMax,
+    mrrMin,
+    mrrMax,
+    growthMin,
+    growthMax,
+    askMin,
+    askMax,
+    trafficMin,
+    trafficMax,
+    sort,
+    verifiedRevenueOnly,
+    verifiedDomainOnly,
+    verifiedOnly,
+    revenueProvider,
+  ]);
 
-  const filterBodyProps: Omit<AcquireFiltersBodyProps, 'includeSort'> = {
+  const filterBodyProps: Omit<AcquireFiltersBodyProps, "includeSort"> = {
     sort,
     setSort,
     category,
@@ -938,39 +1101,44 @@ export default function Acquire() {
   if (!isMounted) return <div className="min-h-[500px]" />;
 
   const revenue30dOptions: RangeOption[] = [
-    { value: 'any', label: 'Any revenue', min: '', max: '' },
-    { value: '0-5k', label: '$0 - $5k', min: '0', max: '5000' },
-    { value: '5k-10k', label: '$5k - $10k', min: '5000', max: '10000' },
-    { value: '10k-25k', label: '$10k - $25k', min: '10000', max: '25000' },
-    { value: '25k+', label: '$25k+', min: '25000', max: '' },
+    { value: "any", label: "Any revenue", min: "", max: "" },
+    { value: "0-5k", label: "$0 - $5k", min: "0", max: "5000" },
+    { value: "5k-10k", label: "$5k - $10k", min: "5000", max: "10000" },
+    { value: "10k-25k", label: "$10k - $25k", min: "10000", max: "25000" },
+    { value: "25k+", label: "$25k+", min: "25000", max: "" },
   ];
   const mrrOptions: RangeOption[] = [
-    { value: 'any', label: 'Any MRR', min: '', max: '' },
-    { value: '0-5k', label: '$0 - $5k', min: '0', max: '5000' },
-    { value: '5k-10k', label: '$5k - $10k', min: '5000', max: '10000' },
-    { value: '10k-25k', label: '$10k - $25k', min: '10000', max: '25000' },
-    { value: '25k+', label: '$25k+', min: '25000', max: '' },
+    { value: "any", label: "Any MRR", min: "", max: "" },
+    { value: "0-5k", label: "$0 - $5k", min: "0", max: "5000" },
+    { value: "5k-10k", label: "$5k - $10k", min: "5000", max: "10000" },
+    { value: "10k-25k", label: "$10k - $25k", min: "10000", max: "25000" },
+    { value: "25k+", label: "$25k+", min: "25000", max: "" },
   ];
   const growthOptions: RangeOption[] = [
-    { value: 'any', label: 'Any growth', min: '', max: '' },
-    { value: '0-10', label: '0% - 10%', min: '0', max: '10' },
-    { value: '10-25', label: '10% - 25%', min: '10', max: '25' },
-    { value: '25-50', label: '25% - 50%', min: '25', max: '50' },
-    { value: '50+', label: '50%+', min: '50', max: '' },
+    { value: "any", label: "Any growth", min: "", max: "" },
+    { value: "0-10", label: "0% - 10%", min: "0", max: "10" },
+    { value: "10-25", label: "10% - 25%", min: "10", max: "25" },
+    { value: "25-50", label: "25% - 50%", min: "25", max: "50" },
+    { value: "50+", label: "50%+", min: "50", max: "" },
   ];
   const askingPriceOptions: RangeOption[] = [
-    { value: 'any', label: 'Any price', min: '', max: '' },
-    { value: '0-50k', label: '$0 - $50k', min: '0', max: '50000' },
-    { value: '50k-150k', label: '$50k - $150k', min: '50000', max: '150000' },
-    { value: '150k-500k', label: '$150k - $500k', min: '150000', max: '500000' },
-    { value: '500k+', label: '$500k+', min: '500000', max: '' },
+    { value: "any", label: "Any price", min: "", max: "" },
+    { value: "0-50k", label: "$0 - $50k", min: "0", max: "50000" },
+    { value: "50k-150k", label: "$50k - $150k", min: "50000", max: "150000" },
+    {
+      value: "150k-500k",
+      label: "$150k - $500k",
+      min: "150000",
+      max: "500000",
+    },
+    { value: "500k+", label: "$500k+", min: "500000", max: "" },
   ];
   const trafficOptions: RangeOption[] = [
-    { value: 'any', label: 'Any traffic', min: '', max: '' },
-    { value: '0-5k', label: '0 - 5k/mo', min: '0', max: '5000' },
-    { value: '5k-20k', label: '5k - 20k/mo', min: '5000', max: '20000' },
-    { value: '20k-100k', label: '20k - 100k/mo', min: '20000', max: '100000' },
-    { value: '100k+', label: '100k+/mo', min: '100000', max: '' },
+    { value: "any", label: "Any traffic", min: "", max: "" },
+    { value: "0-5k", label: "0 - 5k/mo", min: "0", max: "5000" },
+    { value: "5k-20k", label: "5k - 20k/mo", min: "5000", max: "20000" },
+    { value: "20k-100k", label: "20k - 100k/mo", min: "20000", max: "100000" },
+    { value: "100k+", label: "100k+/mo", min: "100000", max: "" },
   ];
 
   const listingsContent = (
@@ -978,56 +1146,65 @@ export default function Acquire() {
       <div className="mb-4 flex flex-col gap-3 lg:flex-row lg:items-center lg:justify-between">
         <p className="font-mono text-sm font-bold text-[color:var(--terminal-muted)]">
           <span className="platform-gradient-text tabular-nums">
-            {(listingsQuery.data?.filter((item) => item.forSale).length ?? 0).toLocaleString()}
-          </span>{' '}
+            {(
+              listingsQuery.data?.filter((item) => item.forSale).length ?? 0
+            ).toLocaleString()}
+          </span>{" "}
           startups found
         </p>
         {activeFilterCount > 0 ? (
-          <p className="font-mono text-xs text-[color:var(--terminal-muted)]">{activeFilterCount} active filters</p>
+          <p className="font-mono text-xs text-[color:var(--terminal-muted)]">
+            {activeFilterCount} active filters
+          </p>
         ) : null}
       </div>
 
       <div className="grid grid-cols-1 gap-3 md:grid-cols-2 md:gap-4">
         {listingsQuery.isLoading
           ? Array.from({ length: 6 }).map((_, index) => (
-            <div
-              key={index}
-              className="rounded-[14px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4"
-            >
-              <Skeleton className="h-6 w-1/3" />
-              <Skeleton className="mt-3 h-24 w-full" />
-              <Skeleton className="mt-3 h-16 w-full" />
-            </div>
-          ))
-          : filtered.map((s) => {
-            const isSpotlight = listingSpotlightSlug === s.slug;
-            return (
               <div
-                key={s.slug}
-                id={`acquire-listing-${s.slug}`}
-                className={cn(
-                  'scroll-mt-28 overflow-visible rounded-2xl',
-                  isSpotlight && 'acquire-listing-spotlight',
-                )}
+                key={index}
+                className="rounded-[14px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-4"
               >
-                {isSpotlight ? (
-                  <p
-                    className="btn-platform-gradient pointer-events-none absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wide shadow-md"
-                    aria-live="polite"
-                  >
-                    Your listing
-                  </p>
-                ) : null}
-                <AcquireListingCard startup={s} footer={<AcquireBidPanel startup={s} compact />} />
+                <Skeleton className="h-6 w-1/3" />
+                <Skeleton className="mt-3 h-24 w-full" />
+                <Skeleton className="mt-3 h-16 w-full" />
               </div>
-            );
-          })}
+            ))
+          : filtered.map((s) => {
+              const isSpotlight = listingSpotlightSlug === s.slug;
+              return (
+                <div
+                  key={s.slug}
+                  id={`acquire-listing-${s.slug}`}
+                  className={cn(
+                    "scroll-mt-28 overflow-visible rounded-2xl",
+                    isSpotlight && "acquire-listing-spotlight",
+                  )}
+                >
+                  {isSpotlight ? (
+                    <p
+                      className="btn-platform-gradient pointer-events-none absolute -top-2 left-1/2 z-10 -translate-x-1/2 whitespace-nowrap rounded-full px-2.5 py-0.5 font-mono text-[9px] font-black uppercase tracking-wide shadow-md"
+                      aria-live="polite"
+                    >
+                      Your listing
+                    </p>
+                  ) : null}
+                  <AcquireListingCard
+                    startup={s}
+                    footer={<AcquireBidPanel startup={s} compact />}
+                  />
+                </div>
+              );
+            })}
       </div>
 
       {!listingsQuery.isLoading && filtered.length === 0 ? (
         <div className="mt-8 rounded-[14px] border border-dashed border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)] p-12 text-center font-mono">
           <p className="text-[color:var(--terminal-muted)]">
-            {search.trim() ? `No startups match “${search.trim()}”.` : 'No startups match these filters.'}
+            {search.trim()
+              ? `No startups match “${search.trim()}”.`
+              : "No startups match these filters."}
           </p>
           <Button
             variant="outline"
@@ -1103,28 +1280,55 @@ export default function Acquire() {
             </Popover>
           </div>
 
-          <section className={cn(FILTER_PANEL, 'hidden max-h-none overflow-visible p-3 lg:block')}>
+          <section
+            className={cn(
+              FILTER_PANEL,
+              "hidden max-h-none overflow-visible p-3 lg:block",
+            )}
+          >
             <div className="flex min-w-0 items-end gap-2 overflow-x-auto pb-1 lg:overflow-x-visible">
               <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <label className={`mb-1 block ${FILTER_LABEL}`}>Sort</label>
-                <Select value={sort} onValueChange={(v) => setSort(v as SortMode)}>
+                <Select
+                  value={sort}
+                  onValueChange={(v) => setSort(v as SortMode)}
+                >
                   <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className={FILTER_SELECT_CONTENT}>
-                    <SelectItem value="best_deals" className={SELECT_ITEM}>Best deals (default)</SelectItem>
-                    <SelectItem value="mrr_desc" className={SELECT_ITEM}>MRR (high to low)</SelectItem>
-                    <SelectItem value="growth_desc" className={SELECT_ITEM}>Growth (high to low)</SelectItem>
-                    <SelectItem value="traffic_desc" className={SELECT_ITEM}>Traffic (high to low)</SelectItem>
-                    <SelectItem value="newest" className={SELECT_ITEM}>Newest listings</SelectItem>
-                    <SelectItem value="price_asc" className={SELECT_ITEM}>Asking price (low to high)</SelectItem>
+                    <SelectItem value="best_deals" className={SELECT_ITEM}>
+                      Best deals (default)
+                    </SelectItem>
+                    <SelectItem value="mrr_desc" className={SELECT_ITEM}>
+                      MRR (high to low)
+                    </SelectItem>
+                    <SelectItem value="growth_desc" className={SELECT_ITEM}>
+                      Growth (high to low)
+                    </SelectItem>
+                    <SelectItem value="traffic_desc" className={SELECT_ITEM}>
+                      Traffic (high to low)
+                    </SelectItem>
+                    <SelectItem value="newest" className={SELECT_ITEM}>
+                      Newest listings
+                    </SelectItem>
+                    <SelectItem value="price_asc" className={SELECT_ITEM}>
+                      Asking price (low to high)
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
 
               <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
-                <label className={`mb-1 block ${FILTER_LABEL}`}>Categories</label>
-                <Select value={category} onValueChange={(v) => setCategoryWithUrl(v as Category | 'All')}>
+                <label className={`mb-1 block ${FILTER_LABEL}`}>
+                  Categories
+                </label>
+                <Select
+                  value={category}
+                  onValueChange={(v) =>
+                    setCategoryWithUrl(v as Category | "All")
+                  }
+                >
                   <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
                     <SelectValue />
                   </SelectTrigger>
@@ -1139,15 +1343,26 @@ export default function Acquire() {
               </div>
 
               <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
-                <label className={`mb-1 block ${FILTER_LABEL}`}>Revenue provider</label>
-                <Select value={revenueProvider} onValueChange={setRevenueProvider}>
+                <label className={`mb-1 block ${FILTER_LABEL}`}>
+                  Revenue provider
+                </label>
+                <Select
+                  value={revenueProvider}
+                  onValueChange={setRevenueProvider}
+                >
                   <SelectTrigger className={BUYER_FILTER_SELECT_TRIGGER}>
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className={FILTER_SELECT_CONTENT}>
-                    <SelectItem value="all" className={SELECT_ITEM}>All providers</SelectItem>
+                    <SelectItem value="all" className={SELECT_ITEM}>
+                      All providers
+                    </SelectItem>
                     {PAYMENT_PROVIDERS.map((provider) => (
-                      <SelectItem key={provider} value={provider} className={SELECT_ITEM}>
+                      <SelectItem
+                        key={provider}
+                        value={provider}
+                        className={SELECT_ITEM}
+                      >
                         {provider}
                       </SelectItem>
                     ))}
@@ -1166,7 +1381,14 @@ export default function Acquire() {
                 />
               </div>
               <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
-                <RangeDropdown label="MRR" min={mrrMin} max={mrrMax} options={mrrOptions} onMin={setMrrMin} onMax={setMrrMax} />
+                <RangeDropdown
+                  label="MRR"
+                  min={mrrMin}
+                  max={mrrMax}
+                  options={mrrOptions}
+                  onMin={setMrrMin}
+                  onMax={setMrrMax}
+                />
               </div>
               <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
                 <RangeDropdown
@@ -1200,31 +1422,33 @@ export default function Acquire() {
               </div>
 
               <div className="min-w-[140px] shrink-0 lg:min-w-0 lg:flex-1">
-                <label className={`mb-1 block ${FILTER_LABEL}`}>Verification</label>
+                <label className={`mb-1 block ${FILTER_LABEL}`}>
+                  Verification
+                </label>
                 <Select
                   value={
                     verifiedOnly
-                      ? 'fully'
+                      ? "fully"
                       : verifiedRevenueOnly
-                        ? 'revenue'
+                        ? "revenue"
                         : verifiedDomainOnly
-                          ? 'domain'
-                          : 'all'
+                          ? "domain"
+                          : "all"
                   }
                   onValueChange={(value) => {
-                    if (value === 'fully') {
+                    if (value === "fully") {
                       setVerifiedOnly(true);
                       setVerifiedRevenueOnly(false);
                       setVerifiedDomainOnly(false);
                       return;
                     }
-                    if (value === 'revenue') {
+                    if (value === "revenue") {
                       setVerifiedOnly(false);
                       setVerifiedRevenueOnly(true);
                       setVerifiedDomainOnly(false);
                       return;
                     }
-                    if (value === 'domain') {
+                    if (value === "domain") {
                       setVerifiedOnly(false);
                       setVerifiedRevenueOnly(false);
                       setVerifiedDomainOnly(true);
@@ -1239,10 +1463,18 @@ export default function Acquire() {
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent className={FILTER_SELECT_CONTENT}>
-                    <SelectItem value="all" className={SELECT_ITEM}>All listings</SelectItem>
-                    <SelectItem value="fully" className={SELECT_ITEM}>Fully verified only</SelectItem>
-                    <SelectItem value="revenue" className={SELECT_ITEM}>Verified revenue only</SelectItem>
-                    <SelectItem value="domain" className={SELECT_ITEM}>Verified domain only</SelectItem>
+                    <SelectItem value="all" className={SELECT_ITEM}>
+                      All listings
+                    </SelectItem>
+                    <SelectItem value="fully" className={SELECT_ITEM}>
+                      Fully verified only
+                    </SelectItem>
+                    <SelectItem value="revenue" className={SELECT_ITEM}>
+                      Verified revenue only
+                    </SelectItem>
+                    <SelectItem value="domain" className={SELECT_ITEM}>
+                      Verified domain only
+                    </SelectItem>
                   </SelectContent>
                 </Select>
               </div>
@@ -1255,7 +1487,7 @@ export default function Acquire() {
           <aside
             className={cn(
               FILTER_PANEL,
-              'lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+5.85rem)] lg:z-10 lg:self-start',
+              "lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+5.85rem)] lg:z-10 lg:self-start",
             )}
           >
             <AcquireMarketplaceFiltersBody includeSort {...filterBodyProps} />

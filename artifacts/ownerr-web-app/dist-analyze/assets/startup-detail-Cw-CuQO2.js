@@ -1,1 +1,2945 @@
-import{R as N,H as $e,r as D,j as e,c as He,W as We,X as V,v as ae,b2 as ze,ad as Te,b3 as Ge,ae as Ie,af as Ye,aV as oe,U as Xe,aS as Je,L as U,d as Q,av as W,a2 as F,B as O,b4 as he,al as J,b5 as pe,a$ as be,$ as B,a0 as Z,b6 as ge,b7 as ve,b8 as ye,b9 as je,ba as Ne,bb as Ze,bc as et,bd as tt,be as we,bf as rt,S as st,bg as at,ao as nt,ap as it,aq as ot,ar as lt,as as dt,bh as ct,a3 as ut,a4 as mt,C as xt,l as ft,n as ht,o as pt,p as bt,q as ee,bi as gt,at as te,I as le,am as vt,b1 as yt,a1 as ke,bj as jt,bk as Nt}from"./index-B-37iCee.js";import{f as _,L as z,r as re,s as K,C as de,A as wt,i as q,j as Se,t as kt,c as Ae,v as St,k as At,u as Mt,h as me,G as Pt,g as Me,m as Pe,D as Ct,n as Dt,X as Ve,Y as Ee,o as Lt,R as Ot,p as Rt,T as $t}from"./generateCategoricalChart-Hp5p9eTs.js";var Tt=["layout","type","stroke","connectNulls","isRange","ref"],It=["key"],Fe;function H(t){"@babel/helpers - typeof";return H=typeof Symbol=="function"&&typeof Symbol.iterator=="symbol"?function(r){return typeof r}:function(r){return r&&typeof Symbol=="function"&&r.constructor===Symbol&&r!==Symbol.prototype?"symbol":typeof r},H(t)}function Be(t,r){if(t==null)return{};var a=Vt(t,r),s,i;if(Object.getOwnPropertySymbols){var l=Object.getOwnPropertySymbols(t);for(i=0;i<l.length;i++)s=l[i],!(r.indexOf(s)>=0)&&Object.prototype.propertyIsEnumerable.call(t,s)&&(a[s]=t[s])}return a}function Vt(t,r){if(t==null)return{};var a={};for(var s in t)if(Object.prototype.hasOwnProperty.call(t,s)){if(r.indexOf(s)>=0)continue;a[s]=t[s]}return a}function E(){return E=Object.assign?Object.assign.bind():function(t){for(var r=1;r<arguments.length;r++){var a=arguments[r];for(var s in a)Object.prototype.hasOwnProperty.call(a,s)&&(t[s]=a[s])}return t},E.apply(this,arguments)}function Ce(t,r){var a=Object.keys(t);if(Object.getOwnPropertySymbols){var s=Object.getOwnPropertySymbols(t);r&&(s=s.filter(function(i){return Object.getOwnPropertyDescriptor(t,i).enumerable})),a.push.apply(a,s)}return a}function T(t){for(var r=1;r<arguments.length;r++){var a=arguments[r]!=null?arguments[r]:{};r%2?Ce(Object(a),!0).forEach(function(s){$(t,s,a[s])}):Object.getOwnPropertyDescriptors?Object.defineProperties(t,Object.getOwnPropertyDescriptors(a)):Ce(Object(a)).forEach(function(s){Object.defineProperty(t,s,Object.getOwnPropertyDescriptor(a,s))})}return t}function Et(t,r){if(!(t instanceof r))throw new TypeError("Cannot call a class as a function")}function De(t,r){for(var a=0;a<r.length;a++){var s=r[a];s.enumerable=s.enumerable||!1,s.configurable=!0,"value"in s&&(s.writable=!0),Object.defineProperty(t,qe(s.key),s)}}function Ft(t,r,a){return r&&De(t.prototype,r),a&&De(t,a),Object.defineProperty(t,"prototype",{writable:!1}),t}function Bt(t,r,a){return r=ne(r),_t(t,_e()?Reflect.construct(r,a||[],ne(t).constructor):r.apply(t,a))}function _t(t,r){if(r&&(H(r)==="object"||typeof r=="function"))return r;if(r!==void 0)throw new TypeError("Derived constructors may only return object or undefined");return qt(t)}function qt(t){if(t===void 0)throw new ReferenceError("this hasn't been initialised - super() hasn't been called");return t}function _e(){try{var t=!Boolean.prototype.valueOf.call(Reflect.construct(Boolean,[],function(){}))}catch{}return(_e=function(){return!!t})()}function ne(t){return ne=Object.setPrototypeOf?Object.getPrototypeOf.bind():function(a){return a.__proto__||Object.getPrototypeOf(a)},ne(t)}function Ut(t,r){if(typeof r!="function"&&r!==null)throw new TypeError("Super expression must either be null or a function");t.prototype=Object.create(r&&r.prototype,{constructor:{value:t,writable:!0,configurable:!0}}),Object.defineProperty(t,"prototype",{writable:!1}),r&&xe(t,r)}function xe(t,r){return xe=Object.setPrototypeOf?Object.setPrototypeOf.bind():function(s,i){return s.__proto__=i,s},xe(t,r)}function $(t,r,a){return r=qe(r),r in t?Object.defineProperty(t,r,{value:a,enumerable:!0,configurable:!0,writable:!0}):t[r]=a,t}function qe(t){var r=Qt(t,"string");return H(r)=="symbol"?r:r+""}function Qt(t,r){if(H(t)!="object"||!t)return t;var a=t[Symbol.toPrimitive];if(a!==void 0){var s=a.call(t,r);if(H(s)!="object")return s;throw new TypeError("@@toPrimitive must return a primitive value.")}return String(t)}var I=(function(t){function r(){var a;Et(this,r);for(var s=arguments.length,i=new Array(s),l=0;l<s;l++)i[l]=arguments[l];return a=Bt(this,r,[].concat(i)),$(a,"state",{isAnimationFinished:!0}),$(a,"id",Mt("recharts-area-")),$(a,"handleAnimationEnd",function(){var d=a.props.onAnimationEnd;a.setState({isAnimationFinished:!0}),me(d)&&d()}),$(a,"handleAnimationStart",function(){var d=a.props.onAnimationStart;a.setState({isAnimationFinished:!1}),me(d)&&d()}),a}return Ut(r,t),Ft(r,[{key:"renderDots",value:function(s,i,l){var d=this.props.isAnimationActive,u=this.state.isAnimationFinished;if(d&&!u)return null;var x=this.props,o=x.dot,c=x.points,m=x.dataKey,p=_(this.props,!1),n=_(o,!0),h=c.map(function(v,S){var b=T(T(T({key:"dot-".concat(S),r:3},p),n),{},{index:S,cx:v.x,cy:v.y,dataKey:m,value:v.value,payload:v.payload,points:c});return r.renderDotItem(o,b)}),g={clipPath:s?"url(#clipPath-".concat(i?"":"dots-").concat(l,")"):null};return N.createElement(z,E({className:"recharts-area-dots"},g),h)}},{key:"renderHorizontalRect",value:function(s){var i=this.props,l=i.baseLine,d=i.points,u=i.strokeWidth,x=d[0].x,o=d[d.length-1].x,c=s*Math.abs(x-o),m=re(d.map(function(p){return p.y||0}));return K(l)&&typeof l=="number"?m=Math.max(l,m):l&&Array.isArray(l)&&l.length&&(m=Math.max(re(l.map(function(p){return p.y||0})),m)),K(m)?N.createElement("rect",{x:x<o?x:x-c,y:0,width:c,height:Math.floor(m+(u?parseInt("".concat(u),10):1))}):null}},{key:"renderVerticalRect",value:function(s){var i=this.props,l=i.baseLine,d=i.points,u=i.strokeWidth,x=d[0].y,o=d[d.length-1].y,c=s*Math.abs(x-o),m=re(d.map(function(p){return p.x||0}));return K(l)&&typeof l=="number"?m=Math.max(l,m):l&&Array.isArray(l)&&l.length&&(m=Math.max(re(l.map(function(p){return p.x||0})),m)),K(m)?N.createElement("rect",{x:0,y:x<o?x:x-c,width:m+(u?parseInt("".concat(u),10):1),height:Math.floor(c)}):null}},{key:"renderClipRect",value:function(s){var i=this.props.layout;return i==="vertical"?this.renderVerticalRect(s):this.renderHorizontalRect(s)}},{key:"renderAreaStatically",value:function(s,i,l,d){var u=this.props,x=u.layout,o=u.type,c=u.stroke,m=u.connectNulls,p=u.isRange;u.ref;var n=Be(u,Tt);return N.createElement(z,{clipPath:l?"url(#clipPath-".concat(d,")"):null},N.createElement(de,E({},_(n,!0),{points:s,connectNulls:m,type:o,baseLine:i,layout:x,stroke:"none",className:"recharts-area-area"})),c!=="none"&&N.createElement(de,E({},_(this.props,!1),{className:"recharts-area-curve",layout:x,type:o,connectNulls:m,fill:"none",points:s})),c!=="none"&&p&&N.createElement(de,E({},_(this.props,!1),{className:"recharts-area-curve",layout:x,type:o,connectNulls:m,fill:"none",points:i})))}},{key:"renderAreaWithAnimation",value:function(s,i){var l=this,d=this.props,u=d.points,x=d.baseLine,o=d.isAnimationActive,c=d.animationBegin,m=d.animationDuration,p=d.animationEasing,n=d.animationId,h=this.state,g=h.prevPoints,v=h.prevBaseLine;return N.createElement(wt,{begin:c,duration:m,isActive:o,easing:p,from:{t:0},to:{t:1},key:"area-".concat(n),onAnimationEnd:this.handleAnimationEnd,onAnimationStart:this.handleAnimationStart},function(S){var b=S.t;if(g){var M=g.length/u.length,y=u.map(function(A,R){var L=Math.floor(R*M);if(g[L]){var f=g[L],k=q(f.x,A.x),C=q(f.y,A.y);return T(T({},A),{},{x:k(b),y:C(b)})}return A}),j;if(K(x)&&typeof x=="number"){var w=q(v,x);j=w(b)}else if(Se(x)||kt(x)){var P=q(v,0);j=P(b)}else j=x.map(function(A,R){var L=Math.floor(R*M);if(v[L]){var f=v[L],k=q(f.x,A.x),C=q(f.y,A.y);return T(T({},A),{},{x:k(b),y:C(b)})}return A});return l.renderAreaStatically(y,j,s,i)}return N.createElement(z,null,N.createElement("defs",null,N.createElement("clipPath",{id:"animationClipPath-".concat(i)},l.renderClipRect(b))),N.createElement(z,{clipPath:"url(#animationClipPath-".concat(i,")")},l.renderAreaStatically(u,x,s,i)))})}},{key:"renderArea",value:function(s,i){var l=this.props,d=l.points,u=l.baseLine,x=l.isAnimationActive,o=this.state,c=o.prevPoints,m=o.prevBaseLine,p=o.totalLength;return x&&d&&d.length&&(!c&&p>0||!Ae(c,d)||!Ae(m,u))?this.renderAreaWithAnimation(s,i):this.renderAreaStatically(d,u,s,i)}},{key:"render",value:function(){var s,i=this.props,l=i.hide,d=i.dot,u=i.points,x=i.className,o=i.top,c=i.left,m=i.xAxis,p=i.yAxis,n=i.width,h=i.height,g=i.isAnimationActive,v=i.id;if(l||!u||!u.length)return null;var S=this.state.isAnimationFinished,b=u.length===1,M=$e("recharts-area",x),y=m&&m.allowDataOverflow,j=p&&p.allowDataOverflow,w=y||j,P=Se(v)?this.id:v,A=(s=_(d,!1))!==null&&s!==void 0?s:{r:3,strokeWidth:2},R=A.r,L=R===void 0?3:R,f=A.strokeWidth,k=f===void 0?2:f,C=St(d)?d:{},Y=C.clipDot,fe=Y===void 0?!0:Y,X=L*2+k;return N.createElement(z,{className:M},y||j?N.createElement("defs",null,N.createElement("clipPath",{id:"clipPath-".concat(P)},N.createElement("rect",{x:y?c:c-n/2,y:j?o:o-h/2,width:y?n:n*2,height:j?h:h*2})),!fe&&N.createElement("clipPath",{id:"clipPath-dots-".concat(P)},N.createElement("rect",{x:c-X/2,y:o-X/2,width:n+X,height:h+X}))):null,b?null:this.renderArea(w,P),(d||b)&&this.renderDots(w,fe,P),(!g||S)&&At.renderCallByParent(this.props,u))}}],[{key:"getDerivedStateFromProps",value:function(s,i){return s.animationId!==i.prevAnimationId?{prevAnimationId:s.animationId,curPoints:s.points,curBaseLine:s.baseLine,prevPoints:i.curPoints,prevBaseLine:i.curBaseLine}:s.points!==i.curPoints||s.baseLine!==i.curBaseLine?{curPoints:s.points,curBaseLine:s.baseLine}:null}}])})(D.PureComponent);Fe=I;$(I,"displayName","Area");$(I,"defaultProps",{stroke:"#3182bd",fill:"#3182bd",fillOpacity:.6,xAxisId:0,yAxisId:0,legendType:"line",connectNulls:!1,points:[],dot:!1,activeDot:!0,hide:!1,isAnimationActive:!Pt.isSsr,animationBegin:0,animationDuration:1500,animationEasing:"ease"});$(I,"getBaseValue",function(t,r,a,s){var i=t.layout,l=t.baseValue,d=r.props.baseValue,u=d??l;if(K(u)&&typeof u=="number")return u;var x=i==="horizontal"?s:a,o=x.scale.domain();if(x.type==="number"){var c=Math.max(o[0],o[1]),m=Math.min(o[0],o[1]);return u==="dataMin"?m:u==="dataMax"||c<0?c:Math.max(Math.min(o[0],o[1]),0)}return u==="dataMin"?o[0]:u==="dataMax"?o[1]:o[0]});$(I,"getComposedData",function(t){var r=t.props,a=t.item,s=t.xAxis,i=t.yAxis,l=t.xAxisTicks,d=t.yAxisTicks,u=t.bandSize,x=t.dataKey,o=t.stackedData,c=t.dataStartIndex,m=t.displayedData,p=t.offset,n=r.layout,h=o&&o.length,g=Fe.getBaseValue(r,a,s,i),v=n==="horizontal",S=!1,b=m.map(function(y,j){var w;h?w=o[c+j]:(w=Me(y,x),Array.isArray(w)?S=!0:w=[g,w]);var P=w[1]==null||h&&Me(y,x)==null;return v?{x:Pe({axis:s,ticks:l,bandSize:u,entry:y,index:j}),y:P?null:i.scale(w[1]),value:w,payload:y}:{x:P?null:s.scale(w[1]),y:Pe({axis:i,ticks:d,bandSize:u,entry:y,index:j}),value:w,payload:y}}),M;return h||S?M=b.map(function(y){var j=Array.isArray(y.value)?y.value[0]:null;return v?{x:y.x,y:j!=null&&y.y!=null?i.scale(j):null}:{x:j!=null?s.scale(j):null,y:y.y}}):M=v?i.scale(g):s.scale(g),T({points:b,baseLine:M,layout:n,isRange:S},p)});$(I,"renderDotItem",function(t,r){var a;if(N.isValidElement(t))a=N.cloneElement(t,r);else if(me(t))a=t(r);else{var s=$e("recharts-area-dot",typeof t!="boolean"?t.className:""),i=r.key,l=Be(r,It);a=N.createElement(Ct,E({},l,{key:i,className:s}))}return a});var Kt=Dt({chartName:"AreaChart",GraphicalChild:I,axisComponents:[{axisType:"xAxis",AxisComp:Ve},{axisType:"yAxis",AxisComp:Ee}],formatAxisMap:Lt});const Ue=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];function Qe(t){let r=0;for(let a=0;a<t.length;a++)r=r*31+t.charCodeAt(a)>>>0;return r}function ie(t){return`${Ue[t.getMonth()]} ${t.getDate()}`}function Ht(t,r){let s=Qe(t)||1;const i=()=>(s=s*1103515245+12345>>>0,s/4294967296),l=[];for(let m=0;m<28;m++){const p=70+Math.sin(m/3.5)*45+i()*95;l.push(Math.max(35,Math.round(p)))}const d=l.reduce((m,p)=>m+p,0),u=l.map(m=>Math.round(m/d*Math.max(1,r))),x=Math.max(1,r)-u.reduce((m,p)=>m+p,0);u[27]=Math.max(0,u[27]+x);const o=new Date,c=[];for(let m=0;m<28;m++){const p=new Date(o);p.setDate(o.getDate()-(27-m));const n=new Date(p);n.setMonth(p.getMonth()-1);const h=1+Math.floor(i()*4),g=u[m],v=Math.max(15,Math.round(g*(.36+i()*.26)));c.push({label:ie(p),prevLabel:ie(n),current:g,prev:v,charges:h})}return c}function Wt(t){return t>=1e6?`~${(t/1e6).toFixed(1)}M users`:t>=1e4?`~${Math.round(t/1e3)}k users`:t>=1e3?`~${(t/1e3).toFixed(1)}k users`:`~${t} users`}function zt(t){const r=t.toLowerCase(),a=["React","TypeScript","Tailwind CSS"];return r.includes("mobile")?{frontend:["React Native","TypeScript"],backend:["Node.js","PostgreSQL","AWS","Redis","Stripe"]}:r.includes("artificial")||r.includes("ai")?{frontend:[...a],backend:["OpenAI","Node.js","PostgreSQL","Redis","Vercel","Stripe"]}:r.includes("crypto")||r.includes("web3")?{frontend:[...a],backend:["Node.js","PostgreSQL","Redis","Alchemy","Solidity tooling"]}:{frontend:[...a],backend:["Node.js","PostgreSQL","Redis","AWS","Stripe","Docker"]}}function Gt(t,r){const a=r.insights?{...t.insights,...r.insights}:t.insights,s=r.techStack?{...t.techStack,...r.techStack}:t.techStack;return{...t,...r,insights:a,techStack:s}}function Yt(t,r,a){const s=Qe(t.slug),i=t.peakMrr??t.revenue,l=Math.max(Math.round(i*12*(1.15+s%20/100)),Math.round(t.revenue*18)),d=t.revenue,u=Math.max(8,Math.round(t.customers*(.06+s%8/200))),x=t.listingViews??Math.max(100,Math.round(t.customers*(6+s%5)+s%400)),o=t.listingFavorites??Math.max(1,s%9+2),m=`${Ue[s%12]} ${t.foundedYear}`,p=Math.max(1,Math.round(t.revenue*(.55+(s>>3)%15/100))),n=Ht(t.slug,p),h=n.reduce((R,L)=>R+L.current,0);let g=t.revenueGrowth30dPct??null;g==null&&(g=Math.round(t.momGrowth*.85+(s%11-5)),g=Math.max(-18,Math.min(28,g)));const v=`https://${t.slug.replace(/[^a-z0-9-]/gi,"")}.example`,S=t.category.toLowerCase(),b=t.category,M=Array.from(new Set([b,"SaaS",S.includes("mobile")?"Mobile":"Product",t.slug.length>3?t.slug.slice(0,1).toUpperCase()+t.slug.slice(1,8):"Startup"])).filter(Boolean),j=!S.includes("consumer")&&!S.includes("b2c")?["B2B","SaaS"]:["B2C","Product"],w=zt(t.category),P=new Date().toLocaleString("en-US",{month:"short",day:"numeric",year:"numeric",hour:"numeric",minute:"2-digit"}),A=s%2===0?"stripe":"paddle";return{foundedLabel:m,allTimeRevenue:l,leaderboardRank:a,mrrDisplay:d,activeSubscriptions:u,buyersViewed:x,offersReceived:o,chartPeriodTotal:h,chartVsPrevPct:g,chartMetricLabel:"Revenue",verifiedProvider:A,lastUpdated:P,visitUrl:v,dailyChart:n,trafficMonthlyVisitors:t.trafficMonthlyVisitors??Math.max(200,Math.round(t.customers*2.5)),trafficTrend:t.trafficTrend??(t.momGrowth>=0?"up":"flat"),trafficVerified:t.trafficVerified??!1,domainVerified:t.domainVerified??!1,revenueVerified:t.revenueVerified??!1,revenueProvider:t.revenueProvider,insights:{valueProposition:t.description,problemSolved:`${t.name} addresses operational gaps for teams in ${t.category.toLowerCase()}: faster workflows, clearer metrics, and less manual overhead.`,pricing:"Pricing is shared with serious buyers after introduction. Many listings use tiered plans from starter to scale—ask the seller for the latest structure.",targetAudience:`Operators and teams buying in ${t.category.toLowerCase()}.`,businessPills:j,userCountLabel:Wt(t.customers),additionalInfo:r?`Verified founder listing on Ownerr. ${r.lookingForCofounder?"Open to strategic partners.":""}`:"Community-verified metrics on Ownerr.",tags:M},techStack:w,founderQuote:r?.bio??`Looking for the right buyer to take ${t.name} further—the product is solid; it needs focused distribution and sales.`}}const Xt={chatwith:{foundedLabel:"September 2023",allTimeRevenue:110967,leaderboardRank:314,mrrDisplay:5984,activeSubscriptions:65,buyersViewed:3751,offersReceived:10,chartPeriodTotal:4807,chartVsPrevPct:-5,verifiedProvider:"paddle",lastUpdated:"Apr 22, 2026, 12:36 PM",visitUrl:"https://chatwith.example",dailyChart:(()=>{let a=42;const s=()=>(a=a*1103515245+12345>>>0,a/4294967296),i=[];for(let o=0;o<28;o++){const c=85+Math.sin(o/4)*55+s()*100;i.push(Math.max(45,Math.round(c)))}const l=i.reduce((o,c)=>o+c,0),d=i.map(o=>Math.round(o/l*4807));d[27]+=4807-d.reduce((o,c)=>o+c,0);const u=new Date(2026,2,26),x=[];for(let o=0;o<28;o++){const c=new Date(u);c.setDate(u.getDate()+o);const m=new Date(c);m.setMonth(c.getMonth()-1);const p=1+Math.floor(s()*4),n=d[o],h=Math.max(20,Math.round(n*(.38+s()*.22)));x.push({label:ie(c),prevLabel:ie(m),current:n,prev:h,charges:p})}return x})(),insights:{valueProposition:"White-label AI chatbots your clients will love. Build, brand, and resell—no code required.",problemSolved:"Solve the problem of not being able to provide 24/7 customer assistance and multilingual support, as well as the need for easy integration and customization of AI chatbots.",pricing:"Hobby: $19/month, Standard: $99/month, Business: $399/month",targetAudience:"AI agencies",businessPills:["B2B"],userCountLabel:"~9,107 users",additionalInfo:"Made in the EU",tags:["Customer Support","AI","Saas","No Code","Ecommerce"]},techStack:{frontend:["Next.js","Tailwind CSS","TypeScript"],backend:["Anthropic","Cloudflare","Node.js","OpenAI","Pinecone","Prisma","PostgreSQL","Supabase","Vercel","Redis"]},founderQuote:"No time to grow it. It receives inbound B2B leads but I have no capacity to handle the sales process."}};function Jt(t,r,a){const s=Yt(t,r,a),i=Xt[t.slug];return i?Gt(s,i):s}const Ke=D.forwardRef(({className:t,...r},a)=>e.jsx("textarea",{className:He("flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",t),ref:a,...r}));Ke.displayName="Textarea";function se({title:t,subtitle:r,points:a,mode:s="currency"}){const i=We(),l=i?"#2a2a2a":"#d4d4d8",d=i?"#737373":"#52525b",u=a.at(-1)?.value??0;return e.jsxs("section",{className:"rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6",children:[e.jsxs("div",{className:"flex flex-col gap-1",children:[e.jsx("div",{className:"mp-label text-[10px]",children:t}),e.jsx("div",{className:"text-2xl font-bold tabular-nums",children:s==="currency"?V(u):u.toLocaleString("en-US")}),e.jsx("p",{className:"mp-body text-sm",children:r})]}),e.jsx("div",{className:"mt-4 h-[260px] w-full",children:e.jsx(Ot,{width:"100%",height:"100%",children:e.jsxs(Kt,{data:a,margin:{top:8,right:8,left:0,bottom:0},children:[e.jsx("defs",{children:e.jsxs("linearGradient",{id:`${t}-fill`,x1:"0",y1:"0",x2:"0",y2:"1",children:[e.jsx("stop",{offset:"0%",stopColor:"#3b82f6",stopOpacity:.35}),e.jsx("stop",{offset:"100%",stopColor:"#3b82f6",stopOpacity:0})]})}),e.jsx(Rt,{stroke:l,strokeDasharray:"4 4",vertical:!1}),e.jsx(Ve,{dataKey:"label",tick:{fill:d,fontSize:11},axisLine:!1,tickLine:!1}),e.jsx(Ee,{tick:{fill:d,fontSize:11},axisLine:!1,tickLine:!1,tickFormatter:x=>s==="currency"?ae(Number(x)):Number(x).toLocaleString("en-US")}),e.jsx($t,{content:({active:x,payload:o})=>{const c=o?.[0]?.payload;return!x||!c?null:e.jsxs("div",{className:"rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-xl",children:[e.jsx("div",{className:"mp-value font-bold",children:c.label}),e.jsx("div",{className:"mt-1",children:s==="currency"?V(c.value):c.value.toLocaleString("en-US")})]})}}),e.jsx(I,{type:"monotone",dataKey:"value",stroke:"#3b82f6",strokeWidth:2,fill:`url(#${t}-fill)`,dot:!1})]})})})]})}function Zt({s:t}){const r=gt(t,"mrr","current"),a=r,s=Math.round((t.peakMrr??t.revenue)*16);return e.jsx(U,{href:Q(`/startup/${t.slug}`),className:"group block h-full min-w-0",children:e.jsxs("div",{className:"flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-foreground/25 hover:bg-muted/15",children:[e.jsxs("div",{className:"p-4",children:[e.jsxs("div",{className:"flex items-start gap-3",children:[e.jsx("div",{className:"flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border text-xs font-bold",style:{backgroundColor:t.logoColor},children:e.jsx("img",{src:`https://api.dicebear.com/7.x/shapes/svg?seed=${t.name}`,alt:"",className:"h-8 w-8"})}),e.jsx("div",{className:"min-w-0",children:e.jsx("div",{className:"font-bold leading-tight group-hover:underline line-clamp-2",children:t.name})})]}),e.jsx("p",{className:"mt-2 line-clamp-3 text-sm text-muted-foreground",children:t.description})]}),e.jsx("div",{className:"mt-auto border-t border-dotted border-border bg-muted/10 px-3 py-3",children:e.jsxs("div",{className:"grid grid-cols-3 gap-1 text-center",children:[e.jsxs("div",{children:[e.jsx("div",{className:"text-[9px] font-bold uppercase tracking-wider text-muted-foreground",children:"Rev (30D)"}),e.jsx("div",{className:"text-xs font-bold tabular-nums",children:ae(a)})]}),e.jsxs("div",{children:[e.jsx("div",{className:"text-[9px] font-bold uppercase tracking-wider text-muted-foreground",children:"MRR"}),e.jsx("div",{className:"text-xs font-bold tabular-nums",children:ae(r)})]}),e.jsxs("div",{children:[e.jsx("div",{className:"text-[9px] font-bold uppercase tracking-wider text-muted-foreground",children:"Total"}),e.jsx("div",{className:"text-xs font-bold tabular-nums",children:ae(s)})]})]})})]})})}function sr(){const{slug:t}=ze(),{toast:r}=Te(),a=Ge(),{currentUser:s,isBuyer:i,isAuthenticated:l}=Ie(),{requireAuth:d}=Ye(),[u,x]=D.useState(!1),[o,c]=D.useState(!1),m=oe({queryKey:["marketplace-listings"],queryFn:()=>yt(ke)}),p=oe({queryKey:["marketplace-listing",t],queryFn:()=>jt(ke,t??""),enabled:!!t});D.useEffect(()=>{x(!0)},[]);const n=p.data,h=n?Xe.find(f=>f.handle===n.founderHandle):void 0,g=!!n&&!!s&&n.ownerUserId===s.id,v=oe({queryKey:["marketplace-interests",n?.slug],queryFn:()=>Nt(n.slug),enabled:!!n}),S=D.useMemo(()=>{if(!n)return 1;const k=[...m.data??[]].sort((C,Y)=>Y.revenue-C.revenue).findIndex(C=>C.slug===n.slug);return k>=0?k+1:999},[m.data,n]),b=D.useMemo(()=>n?Jt(n,h,S):null,[n,h,S]),M=Je(),y=D.useMemo(()=>{const f=M.startsWith("?")?M.slice(1):M;return new URLSearchParams(f).get("from")==="leaderboard"},[M]),j=D.useMemo(()=>n?(m.data??[]).filter(f=>f.slug!==n.slug).sort((f,k)=>k.revenue-f.revenue).slice(0,6):[],[m.data,n]);if(!u)return e.jsx("div",{className:"min-h-[500px]"});if(p.isLoading)return e.jsx("div",{className:"min-h-[500px]"});if(!n||!b)return e.jsx("div",{className:"startup-card p-12 text-center",children:e.jsx("h2",{className:"text-2xl font-bold",children:"Startup not found"})});const w=b.mrrDisplay,P=b.foundedLabel,A=b.visitUrl,R=n.name;async function L(){const f=typeof window<"u"?y?window.location.href:`${window.location.origin}${window.location.pathname}`:"";try{navigator.share?await navigator.share({title:R,url:f}):(await navigator.clipboard.writeText(f),r({title:"Link copied"}))}catch{r({title:"Could not share",variant:"destructive"})}}return y?e.jsxs("div",{className:"flex flex-col gap-6 pb-10",children:[e.jsxs("nav",{className:"flex flex-wrap items-center gap-1 font-mono text-sm text-muted-foreground",children:[e.jsx(U,{href:Q("/"),className:"hover:text-foreground",children:"Ownerr"}),e.jsx(W,{className:"h-4 w-4 opacity-50"}),e.jsx("span",{className:"hover:text-foreground",children:e.jsx(U,{href:`${Q("/")}#leaderboard`,children:"Startup"})}),e.jsx(W,{className:"h-4 w-4 opacity-50"}),e.jsx(F,{slug:n.slug,className:"font-bold text-foreground",children:n.name})]}),e.jsx("section",{className:"rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8",children:e.jsxs("div",{className:"flex flex-col gap-6 md:flex-row md:items-start md:justify-between",children:[e.jsxs("div",{className:"flex min-w-0 flex-1 flex-col gap-5 sm:flex-row sm:items-start",children:[e.jsx("div",{className:"flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-black/5 text-4xl font-bold shadow-md dark:border-white/10",style:{backgroundColor:n.logoColor},children:e.jsx("img",{src:`https://api.dicebear.com/7.x/shapes/svg?seed=${n.name}`,alt:`${n.name} avatar`,className:"h-16 w-16"})}),e.jsxs("div",{className:"min-w-0 flex-1",children:[e.jsx("h1",{className:"text-3xl font-bold tracking-tight sm:text-4xl",children:e.jsx(F,{slug:n.slug,className:"text-foreground",children:n.name})}),e.jsx("p",{className:"mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground",children:n.description})]})]}),e.jsxs("div",{className:"flex shrink-0 gap-2 self-start md:self-center",children:[e.jsxs(O,{type:"button",variant:"outline",className:"font-bold",onClick:()=>{L()},children:[e.jsx(he,{className:"h-4 w-4"}),"Share"]}),g?e.jsxs(O,{type:"button",variant:"outline",className:"font-bold",disabled:!0,children:[e.jsx(J,{className:"h-4 w-4"}),"Founder controls below"]}):e.jsxs(O,{type:"button",variant:"outline",className:"font-bold",onClick:()=>{if(!l){d({action:"express_interest",onAllowed:()=>{}});return}c(!0)},children:[e.jsx(J,{className:"h-4 w-4"}),l?i?"Express Interest":"Buyer mode required":"Login to continue"]}),e.jsx(O,{type:"button",variant:"secondary",className:"font-bold bg-primary text-primary-foreground",asChild:!0,children:e.jsxs("a",{href:A,target:"_blank",rel:"noreferrer",children:[e.jsx(pe,{className:"h-4 w-4"}),"Visit"]})})]})]})}),e.jsxs("div",{className:"grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4",children:[e.jsxs("div",{className:"rounded-xl border border-border bg-card p-5 text-center",children:[e.jsx("div",{className:"text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:"All-time revenue"}),e.jsx("div",{className:"mt-2 text-2xl font-bold tabular-nums",children:V(b.allTimeRevenue)}),e.jsxs("p",{className:"mt-1 text-xs text-muted-foreground",children:["Ranked #",b.leaderboardRank," on Ownerr"]})]}),e.jsxs("div",{className:"rounded-xl border border-border bg-card p-5 text-center",children:[e.jsxs("div",{className:"flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:["MRR (estimated)",e.jsx(be,{className:"h-3.5 w-3.5 shrink-0 text-muted-foreground/80","aria-hidden":!0})]}),e.jsx("div",{className:"mt-2 text-2xl font-bold tabular-nums",children:V(w)}),e.jsxs("p",{className:"mt-1 text-xs text-muted-foreground",children:[b.activeSubscriptions," active subscriptions"]})]}),e.jsxs("div",{className:"rounded-xl border border-border bg-card p-5 text-center",children:[e.jsx("div",{className:"text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:"Founder"}),e.jsx("div",{className:"mt-3 flex min-w-0 flex-col items-center gap-2",children:h?e.jsxs(B,{handle:h.handle,className:"flex min-w-0 flex-col items-center gap-2 font-bold text-foreground sm:flex-row",children:[e.jsx("img",{src:Z(h.avatarSeed),alt:"",className:"h-11 w-11 shrink-0 rounded-full border border-border bg-muted"}),e.jsx("span",{className:"max-w-full truncate text-center sm:text-left",children:h.name})]}):e.jsx(B,{handle:n.founderHandle,className:"block max-w-full truncate font-bold text-foreground",children:n.founderDisplayName??n.founderHandle})})]}),e.jsxs("div",{className:"rounded-xl border border-border bg-card p-5 text-center",children:[e.jsx("div",{className:"text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:"Founded"}),e.jsx("div",{className:"mt-2 text-2xl font-bold tabular-nums",children:P}),e.jsxs("div",{className:"mt-2 flex items-center justify-center gap-1.5 text-sm text-muted-foreground",children:[e.jsx("span",{"aria-hidden":!0,children:"🇺🇸"}),e.jsx("span",{children:"United States"})]})]})]}),e.jsx(ge,{startup:n}),e.jsx(Oe,{listing:n}),g?e.jsx(Re,{listing:n,interestRecords:v.data??[],onVerificationUpdated:async(f,k,C)=>{await Ne(n,f,k,C),await Promise.all([a.invalidateQueries({queryKey:["marketplace-listing",n.slug]}),a.invalidateQueries({queryKey:["marketplace-listings"]})])},onDomainVerify:async()=>{await je(n),await Promise.all([a.invalidateQueries({queryKey:["marketplace-listing",n.slug]}),a.invalidateQueries({queryKey:["marketplace-listings"]})])},onInterestStageUpdated:async(f,k)=>{await ye(f,k),await a.invalidateQueries({queryKey:["marketplace-interests",n.slug]})},onSendFounderReply:async f=>{await ve({threadId:f.id,senderUserId:n.ownerUserId,senderName:h?.name??n.founderDisplayName??n.name,senderRole:"founder",body:"Thanks for reaching out. Happy to share more context and next steps for this deal."}),await a.invalidateQueries({queryKey:["marketplace-interests",n.slug]})}}):null,e.jsxs("div",{className:"grid grid-cols-1 gap-4 lg:grid-cols-2",children:[e.jsx(se,{title:"Revenue history",subtitle:`${n.growthPct>=0?"+":""}${n.growthPct}% vs previous month`,points:n.revenueHistory}),e.jsx(se,{title:"Traffic history",subtitle:`${(n.trafficMonthlyVisitors??0).toLocaleString("en-US")} visitors/mo · ${n.verification.traffic.status}`,points:n.trafficHistory,mode:"number"})]}),e.jsxs("section",{className:"rounded-xl border border-border bg-card p-6 sm:p-8",children:[e.jsx("h2",{className:"text-lg font-bold",children:"Startup insights"}),e.jsx("div",{className:"mt-4 border-t border-border pt-4",children:e.jsxs("div",{className:"flex flex-wrap gap-2",children:[e.jsx("span",{className:"rounded-full border border-border bg-muted/30 px-3 py-1 text-xs font-medium text-foreground",children:n.category}),b.insights.tags.map(f=>e.jsx("span",{className:"rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground",children:f},f))]})})]}),e.jsxs("section",{className:"min-w-0",children:[e.jsxs("div",{className:"mb-4 flex flex-wrap items-end justify-between gap-2",children:[e.jsx("h2",{className:"text-lg font-bold",children:"Discover more startups"}),e.jsxs(U,{href:`${Q("/")}#leaderboard`,className:"inline-flex items-center gap-0.5 text-sm font-bold text-muted-foreground hover:text-foreground",children:["Advanced Search",e.jsx(W,{className:"h-3.5 w-3.5 shrink-0 opacity-70","aria-hidden":!0})]})]}),e.jsx("div",{className:"grid gap-4 sm:grid-cols-2 lg:grid-cols-3",children:j.map(f=>e.jsx(Zt,{s:f},f.slug))})]})]}):e.jsxs("div",{className:"flex flex-col gap-4 pb-8 sm:gap-6 sm:pb-10",children:[e.jsxs("nav",{className:"flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm",children:[e.jsx(U,{href:Q("/"),className:"hover:text-foreground",children:"Ownerr"}),e.jsx(W,{className:"h-4 w-4 opacity-50"}),e.jsx("span",{className:"hover:text-foreground",children:e.jsx(U,{href:Q("/acquire"),children:"Startup"})}),e.jsx(W,{className:"h-4 w-4 opacity-50"}),e.jsx(F,{slug:n.slug,className:"font-bold text-foreground",children:n.name})]}),e.jsx("section",{className:"rounded-xl border border-border bg-card p-4 shadow-sm sm:p-8",children:e.jsxs("div",{className:"flex flex-col gap-4 sm:gap-6 md:flex-row md:items-start md:justify-between",children:[e.jsxs("div",{className:"flex min-w-0 flex-1 flex-col gap-4 sm:gap-5 sm:flex-row sm:items-start",children:[e.jsx("div",{className:"flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-black/5 text-4xl font-bold shadow-md sm:h-24 sm:w-24 dark:border-white/10",style:{backgroundColor:n.logoColor},children:e.jsx("img",{src:`https://api.dicebear.com/7.x/shapes/svg?seed=${n.name}`,alt:`${n.name} avatar`,className:"h-14 w-14 sm:h-16 sm:w-16"})}),e.jsxs("div",{className:"min-w-0 flex-1",children:[e.jsx("h1",{className:"text-2xl font-bold tracking-tight sm:text-4xl",children:e.jsx(F,{slug:n.slug,className:"text-foreground",children:n.name})}),e.jsx("p",{className:"mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base",children:n.description})]})]}),e.jsxs("div",{className:"flex w-full shrink-0 gap-2 self-start md:w-auto md:self-center",children:[e.jsxs(O,{type:"button",variant:"outline",className:"h-10 flex-1 font-bold md:h-11 md:flex-none",onClick:()=>{L()},children:[e.jsx(he,{className:"h-4 w-4"}),"Share"]}),g?e.jsxs(O,{type:"button",variant:"outline",className:"h-10 flex-1 font-bold md:h-11 md:flex-none",disabled:!0,children:[e.jsx(J,{className:"h-4 w-4"}),"Founder controls below"]}):e.jsxs(O,{type:"button",variant:"outline",className:"h-10 flex-1 font-bold md:h-11 md:flex-none",onClick:()=>{if(!l){d({action:"express_interest",onAllowed:()=>{}});return}c(!0)},children:[e.jsx(J,{className:"h-4 w-4"}),l?i?"Express Interest":"Buyer mode required":"Login to continue"]}),e.jsx(O,{type:"button",variant:"outline",className:"h-10 flex-1 font-bold md:h-11 md:flex-none",asChild:!0,children:e.jsxs("a",{href:A,target:"_blank",rel:"noreferrer",children:[e.jsx(pe,{className:"h-4 w-4"}),"Visit"]})})]})]})}),e.jsxs("div",{className:"grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4",children:[e.jsxs("div",{className:"rounded-xl border border-border bg-card p-4 text-center sm:p-5",children:[e.jsx("div",{className:"text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:"All-time revenue"}),e.jsx("div",{className:"mt-2 text-2xl font-bold tabular-nums",children:V(b.allTimeRevenue)}),e.jsxs("p",{className:"mt-1 text-xs text-muted-foreground",children:["Ranked #",b.leaderboardRank," on Ownerr"]})]}),e.jsxs("div",{className:"rounded-xl border border-border bg-card p-4 text-center sm:p-5",children:[e.jsxs("div",{className:"flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:["MRR (estimated)",e.jsx(be,{className:"h-3.5 w-3.5 shrink-0 text-muted-foreground/80","aria-hidden":!0})]}),e.jsx("div",{className:"mt-2 text-2xl font-bold tabular-nums",children:V(w)}),e.jsxs("p",{className:"mt-1 text-xs text-muted-foreground",children:[b.activeSubscriptions," active subscriptions"]})]}),e.jsxs("div",{className:"rounded-xl border border-border bg-card p-4 text-center sm:p-5",children:[e.jsx("div",{className:"text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:"Founder"}),e.jsx("div",{className:"mt-3 flex min-w-0 flex-col items-center gap-2",children:h?e.jsxs(B,{handle:h.handle,className:"flex min-w-0 flex-col items-center gap-2 font-bold text-foreground sm:flex-row",children:[e.jsx("img",{src:Z(h.avatarSeed),alt:"",className:"h-11 w-11 shrink-0 rounded-full border border-border bg-muted"}),e.jsx("span",{className:"max-w-full truncate text-center sm:text-left",children:h.name})]}):e.jsx(B,{handle:n.founderHandle,className:"block max-w-full truncate font-bold text-foreground",children:n.founderDisplayName??n.founderHandle})})]}),e.jsxs("div",{className:"rounded-xl border border-border bg-card p-4 text-center sm:p-5",children:[e.jsx("div",{className:"text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:"Founded"}),e.jsx("div",{className:"mt-2 text-2xl font-bold tabular-nums",children:P})]})]}),e.jsx(ge,{startup:n}),e.jsx(Oe,{listing:n}),g?e.jsx(Re,{listing:n,interestRecords:v.data??[],onVerificationUpdated:async(f,k,C)=>{await Ne(n,f,k,C),await Promise.all([a.invalidateQueries({queryKey:["marketplace-listing",n.slug]}),a.invalidateQueries({queryKey:["marketplace-listings"]})])},onDomainVerify:async()=>{await je(n),await Promise.all([a.invalidateQueries({queryKey:["marketplace-listing",n.slug]}),a.invalidateQueries({queryKey:["marketplace-listings"]})])},onInterestStageUpdated:async(f,k)=>{await ye(f,k),await a.invalidateQueries({queryKey:["marketplace-interests",n.slug]})},onSendFounderReply:async f=>{await ve({threadId:f.id,senderUserId:n.ownerUserId,senderName:h?.name??n.founderDisplayName??n.name,senderRole:"founder",body:"Thanks for reaching out. Happy to share more context and next steps for this deal."}),await a.invalidateQueries({queryKey:["marketplace-interests",n.slug]})}}):null,e.jsxs("div",{className:"grid grid-cols-1 gap-4 lg:grid-cols-2",children:[e.jsx(se,{title:"Revenue history",subtitle:`${n.growthPct>=0?"+":""}${n.growthPct}% vs previous month`,points:n.revenueHistory}),e.jsx(se,{title:"Traffic history",subtitle:`${(n.trafficMonthlyVisitors??0).toLocaleString("en-US")} visitors/mo · ${n.verification.traffic.status}`,points:n.trafficHistory,mode:"number"})]}),e.jsxs("section",{className:"rounded-xl border border-border bg-card p-4 sm:p-8",children:[e.jsx("h2",{className:"mb-4 text-lg font-bold sm:mb-6",children:"Startup insights"}),e.jsxs("div",{className:"grid gap-5 sm:gap-8 lg:grid-cols-2",children:[e.jsxs("div",{className:"space-y-5 sm:space-y-6",children:[e.jsx(G,{icon:e.jsx(Ze,{className:"h-4 w-4"}),label:"Value proposition",body:b.insights.valueProposition}),e.jsx(G,{icon:e.jsx(et,{className:"h-4 w-4"}),label:"Problem solved",body:b.insights.problemSolved}),e.jsx(G,{icon:e.jsx(tt,{className:"h-4 w-4"}),label:"Pricing",body:b.insights.pricing})]}),e.jsxs("div",{className:"space-y-5 sm:space-y-6",children:[e.jsx(G,{icon:e.jsx(we,{className:"h-4 w-4"}),label:"Target audience",body:b.insights.targetAudience}),e.jsxs("div",{children:[e.jsxs("div",{className:"mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:[e.jsx(rt,{className:"h-4 w-4"}),"Business details"]}),e.jsxs("div",{className:"flex flex-wrap gap-2",children:[b.insights.businessPills.map(f=>e.jsx("span",{className:"rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-bold",children:f},f)),e.jsxs("span",{className:"inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-bold",children:[e.jsx(we,{className:"h-3.5 w-3.5"}),b.insights.userCountLabel]})]})]}),e.jsx(G,{icon:e.jsx(st,{className:"h-4 w-4"}),label:"Additional info",body:b.insights.additionalInfo})]})]}),e.jsx("div",{className:"mt-6 flex flex-wrap gap-2 border-t border-border pt-5 sm:mt-8 sm:pt-6",children:b.insights.tags.map(f=>e.jsx("span",{className:"rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground",children:f},f))})]}),e.jsxs("section",{className:"rounded-xl border border-border bg-card p-4 sm:p-8",children:[e.jsx("h2",{className:"mb-4 text-lg font-bold sm:mb-6",children:"Tech stack"}),e.jsxs("div",{className:"space-y-4 sm:space-y-5",children:[e.jsxs("div",{children:[e.jsx("div",{className:"mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:"Frontend"}),e.jsx("div",{className:"flex flex-wrap gap-2",children:b.techStack.frontend.map(f=>e.jsx(Le,{tech:f},f))})]}),e.jsxs("div",{children:[e.jsx("div",{className:"mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:"Backend"}),e.jsx("div",{className:"flex flex-wrap gap-2",children:b.techStack.backend.map(f=>e.jsx(Le,{tech:f},f))})]})]})]}),e.jsxs("section",{className:"rounded-xl border border-border bg-card px-4 py-7 text-center sm:px-10 sm:py-10",children:[e.jsx(at,{className:"mx-auto mb-4 h-8 w-8 text-muted-foreground/40"}),e.jsx("blockquote",{className:"mx-auto max-w-2xl text-base font-medium leading-relaxed sm:text-lg",children:b.founderQuote}),e.jsx("div",{className:"mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2",children:h?e.jsxs(e.Fragment,{children:[e.jsxs(B,{handle:h.handle,className:"inline-flex items-center gap-3 text-foreground",children:[e.jsx("img",{src:Z(h.avatarSeed),alt:"",className:"h-10 w-10 shrink-0 rounded-full border border-border bg-muted"}),e.jsx("span",{className:"text-left font-bold",children:h.name})]}),e.jsxs("div",{className:"max-w-full text-center text-sm text-muted-foreground sm:text-left",children:["Founder of"," ",e.jsx(F,{slug:n.slug,className:"text-muted-foreground hover:text-foreground",children:n.name})]})]}):e.jsxs("div",{className:"flex items-center gap-3 text-left",children:[e.jsx("img",{src:Z(n.founderHandle),alt:"",className:"h-10 w-10 rounded-full border border-border bg-muted"}),e.jsxs("div",{children:[e.jsx(B,{handle:n.founderHandle,className:"block font-bold text-foreground",children:n.founderDisplayName??n.founderHandle}),e.jsxs("div",{className:"text-sm text-muted-foreground",children:["Founder of"," ",e.jsx(F,{slug:n.slug,className:"text-muted-foreground",children:n.name})]})]})]})})]}),e.jsx(nt,{open:o,onOpenChange:c,children:e.jsxs(it,{className:"max-w-md border-border bg-card sm:rounded-xl",children:[e.jsxs(ot,{children:[e.jsxs(lt,{className:"text-left text-xl font-bold",children:["Express Interest in ",n.name]}),e.jsx(dt,{className:"text-left text-sm text-muted-foreground",children:"Non-binding expression of interest. Your message helps the founder understand your profile. No transaction is handled on the platform."})]}),e.jsx(er,{listing:n,startupName:n.name,onSent:async()=>{await Promise.all([a.invalidateQueries({queryKey:["marketplace-interests",n.slug]}),a.invalidateQueries({queryKey:["marketplace-listing",n.slug]})]),c(!1),r({title:"Interest expressed",description:"The founder will be notified."})}})]})})]})}function Le({tech:t}){const a=`https://icon.horse/icon/${t.toLowerCase().replace(/ /g,"").replace(/\./g,"")+".com"}`;return e.jsxs("span",{className:"inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-bold",children:[e.jsx("img",{src:a,alt:`${t} logo`,className:"h-4 w-4"}),t]})}function Oe({listing:t}){return e.jsxs("section",{className:"rounded-xl border border-border bg-card p-4 sm:p-6",children:[e.jsxs("div",{className:"mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between",children:[e.jsxs("div",{children:[e.jsx("h2",{className:"text-sm font-bold uppercase tracking-wider text-muted-foreground",children:"Trust & verification"}),e.jsx("p",{className:"mt-1 text-sm text-muted-foreground",children:"Ownerr does not handle payments. Deals happen off-platform after introductions."})]}),e.jsxs("div",{className:"min-w-[180px] rounded-xl border border-border bg-muted/20 p-3",children:[e.jsxs("div",{className:"flex items-center justify-between",children:[e.jsx("span",{className:"text-xs font-bold uppercase tracking-wide text-muted-foreground",children:"Trust score"}),e.jsxs("span",{className:"text-sm font-bold",children:[t.trustScore,"/100"]})]}),e.jsx("div",{className:"mt-2 h-2 overflow-hidden rounded-full bg-muted",children:e.jsx("div",{className:"mp-progress-fill h-full rounded-full",style:{width:`${t.trustScore}%`}})}),e.jsx("div",{className:"mt-2 text-sm font-bold text-foreground",children:ct(t.trustScore)})]})]}),e.jsxs("div",{className:"grid grid-cols-1 gap-3 sm:grid-cols-3",children:[e.jsxs("div",{className:"flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3",children:[e.jsx("div",{className:`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${t.verification.revenue.status==="verified"?"mp-badge-lime":"bg-muted mp-muted"}`,children:e.jsx(ut,{className:"h-4 w-4"})}),e.jsxs("div",{className:"min-w-0",children:[e.jsxs("div",{className:"text-xs font-bold",children:["Revenue ",t.verification.revenue.status]}),e.jsxs("div",{className:"text-[10px] text-muted-foreground",children:[t.verification.revenue.provider??"No provider connected"," · ",t.revenueHistory.length," months"]})]})]}),e.jsxs("div",{className:"flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3",children:[e.jsx("div",{className:`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${t.verification.domain.status==="verified"?"mp-badge-orange":"bg-muted mp-muted"}`,children:e.jsx(mt,{className:"h-4 w-4"})}),e.jsxs("div",{className:"min-w-0",children:[e.jsxs("div",{className:"text-xs font-bold",children:["Domain ",t.verification.domain.status]}),e.jsx("div",{className:"text-[10px] text-muted-foreground",children:t.verification.domain.note})]})]}),e.jsxs("div",{className:"flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3",children:[e.jsx("div",{className:`flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${t.verification.traffic.status==="verified"?"mp-badge-amber":"bg-muted mp-muted"}`,children:e.jsx(xt,{className:"h-4 w-4"})}),e.jsxs("div",{className:"min-w-0",children:[e.jsxs("div",{className:"text-xs font-bold",children:["Traffic ",t.verification.traffic.status]}),e.jsx("div",{className:"text-[10px] text-muted-foreground",children:t.trafficMonthlyVisitors!=null?`${t.trafficMonthlyVisitors.toLocaleString()} visitors/mo · ${t.trafficTrend}`:"No data"}),e.jsx("div",{className:"mt-1 text-[10px] text-muted-foreground",children:t.verification.traffic.sourceLabel??"Manual upload"})]})]})]})]})}function Re({listing:t,interestRecords:r,onVerificationUpdated:a,onDomainVerify:s,onInterestStageUpdated:i,onSendFounderReply:l}){const d=[t.revenueVerified,t.domainVerified,t.trafficVerified],u=d.filter(Boolean).length,x=Math.round(u/d.length*100);return e.jsxs("section",{className:"rounded-xl border border-border bg-card p-4 sm:p-6",children:[e.jsxs("div",{className:"flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between",children:[e.jsxs("div",{children:[e.jsx("h2",{className:"text-lg font-bold",children:"Founder controls"}),e.jsx("p",{className:"text-sm text-muted-foreground",children:"Mock-only verification and inbox tools for the listing owner."})]}),e.jsxs("div",{className:"text-sm text-muted-foreground",children:["Inbox: ",e.jsx("span",{className:"font-bold text-foreground",children:r.length})]})]}),e.jsxs("div",{className:"mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3",children:[e.jsx(ce,{title:"Revenue verification",description:`${t.verification.revenue.note} Provider: ${t.verification.revenue.provider??"none"}`,actions:[{label:"Mark pending",onClick:()=>a("revenue","pending",t.revenueProvider??"Stripe")},{label:"Verify",onClick:()=>a("revenue","verified",t.revenueProvider??"Stripe")}]}),e.jsx(ce,{title:"Domain verification",description:`Add this TXT record: ${t.verification.domain.expectedValue??"n/a"}`,actions:[{label:"Verify TXT record",onClick:s}],helper:"Why it matters: buyers trust that the founder actually controls the domain before moving off-platform."}),e.jsx(ce,{title:"Traffic connection",description:`${t.verification.traffic.note} Source: ${t.verification.traffic.sourceLabel??"Manual upload"}`,actions:[{label:"Manual upload",onClick:()=>a("traffic","verified","Manual upload")},{label:"Connect GA",onClick:()=>a("traffic","verified","Google Analytics")}]})]}),e.jsxs("div",{className:"mt-5 rounded-lg border border-border bg-muted/20 p-4",children:[e.jsxs("div",{className:"flex items-center justify-between",children:[e.jsxs("div",{children:[e.jsx("div",{className:"text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:"Founder checklist"}),e.jsxs("div",{className:"text-sm font-bold text-foreground",children:[x,"% complete"]})]}),e.jsxs("div",{className:"text-xs text-muted-foreground",children:[u,"/3 completed"]})]}),e.jsx("div",{className:"mt-3 h-2 overflow-hidden rounded-full bg-muted",children:e.jsx("div",{className:"mp-progress-fill h-full rounded-full",style:{width:`${x}%`}})}),e.jsxs("div",{className:"mt-3 space-y-2 text-sm",children:[e.jsx(ue,{done:t.revenueVerified,label:"Verify revenue"}),e.jsx(ue,{done:t.domainVerified,label:"Verify domain"}),e.jsx(ue,{done:t.trafficVerified,label:"Add traffic"})]})]}),e.jsxs("div",{className:"mt-5 rounded-lg border border-border bg-muted/20 p-4",children:[e.jsx("div",{className:"mb-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:"Inbox"}),r.length===0?e.jsx("p",{className:"text-sm text-muted-foreground",children:"No buyer messages yet."}):e.jsx("div",{className:"space-y-3",children:r.slice().sort((o,c)=>new Date(c.createdAt).getTime()-new Date(o.createdAt).getTime()).map(o=>e.jsxs("div",{className:"rounded-lg border border-border bg-card p-3",children:[e.jsxs("div",{className:"flex flex-wrap items-center justify-between gap-2",children:[e.jsx("div",{className:"font-bold",children:o.buyerName}),e.jsx("div",{className:"text-xs text-muted-foreground",children:new Date(o.createdAt).toLocaleString()})]}),e.jsxs("div",{className:"mt-1 text-xs text-muted-foreground",children:[o.email," · ",o.buyerRole,o.offerAmount?` · ${V(o.offerAmount)}`:""]}),e.jsxs("div",{className:"mt-3 flex items-center justify-between gap-2",children:[e.jsx("span",{className:"rounded-full border border-border px-2 py-0.5 text-[10px] font-bold",children:o.stage}),e.jsxs("div",{className:"flex items-center gap-2",children:[e.jsx(O,{type:"button",variant:"outline",size:"sm",onClick:()=>{l(o)},children:"Reply"}),e.jsxs(ft,{value:o.stage,onValueChange:c=>{i(o,c)},children:[e.jsx(ht,{className:"h-8 w-[150px]",children:e.jsx(pt,{})}),e.jsxs(bt,{children:[e.jsx(ee,{value:"interested",children:"Interested"}),e.jsx(ee,{value:"contacted",children:"Contacted"}),e.jsx(ee,{value:"negotiating",children:"Negotiating"}),e.jsx(ee,{value:"closed",children:"Closed"})]})]})]})]}),e.jsx("div",{className:"mt-3 space-y-2",children:o.messages.map(c=>e.jsxs("div",{className:"rounded-md border border-border bg-muted/20 px-3 py-2",children:[e.jsxs("div",{className:"text-[10px] font-bold uppercase tracking-wide text-muted-foreground",children:[c.senderName," · ",c.senderRole]}),e.jsx("p",{className:"mt-1 text-sm text-foreground",children:c.body})]},c.id))})]},o.id))})]})]})}function ce({title:t,description:r,actions:a,helper:s}){return e.jsxs("div",{className:"rounded-lg border border-border bg-muted/20 p-4",children:[e.jsx("div",{className:"text-sm font-bold",children:t}),e.jsx("p",{className:"mt-1 text-sm text-muted-foreground",children:r}),s?e.jsx("p",{className:"mt-2 text-xs text-muted-foreground",children:s}):null,e.jsx("div",{className:"mt-3 flex flex-wrap gap-2",children:a.map(i=>e.jsx(O,{type:"button",variant:"outline",size:"sm",onClick:()=>{i.onClick()},children:i.label},i.label))})]})}function ue({done:t,label:r}){return e.jsxs("div",{className:"flex items-center justify-between gap-3",children:[e.jsx("span",{className:"text-foreground",children:r}),e.jsx("span",{className:`rounded-full px-2 py-0.5 text-[10px] font-bold ${t?"mp-badge-lime":"bg-muted mp-muted"}`,children:t?"Done":"Pending"})]})}function G({icon:t,label:r,body:a}){return e.jsxs("div",{children:[e.jsxs("div",{className:"mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",children:[t,r]}),e.jsx("p",{className:"text-sm leading-relaxed text-foreground",children:a})]})}function er({listing:t,startupName:r,onSent:a}){const{currentUser:s}=Ie(),{toast:i}=Te(),[l,d]=D.useState("John Doe"),[u,x]=D.useState("john@example.com"),[o,c]=D.useState("Can you share more about your growth and churn?"),[m,p]=D.useState("10000");async function n(h){if(h.preventDefault(),!!s&&!(o.trim().length<20))try{await vt({listingId:t.slug,buyerUserId:s.id,buyerName:l.trim()||s.name,buyerRole:s.role,email:u.trim(),message:o.trim(),offerAmount:m.trim()?Number(m.replace(/[^0-9.]/g,"")):null}),await a()}catch(g){i({title:"Could not send interest",description:g instanceof Error?g.message:"Please try again.",variant:"destructive"})}}return e.jsxs("form",{onSubmit:n,className:"space-y-4",children:[e.jsxs("div",{className:"space-y-2",children:[e.jsx(te,{htmlFor:"cs-name",className:"font-bold",children:"Your Name *"}),e.jsx(le,{id:"cs-name",value:l,onChange:h=>d(h.target.value),className:"border-border bg-background",autoComplete:"name"})]}),e.jsxs("div",{className:"space-y-2",children:[e.jsx(te,{htmlFor:"cs-email",className:"font-bold",children:"Your Email *"}),e.jsx(le,{id:"cs-email",type:"email",value:u,onChange:h=>x(h.target.value),className:"border-border bg-background",autoComplete:"email"})]}),e.jsxs("div",{className:"space-y-2",children:[e.jsx(te,{htmlFor:"cs-msg",className:"font-bold",children:"Message (minimum 20 characters) *"}),e.jsx(Ke,{id:"cs-msg",value:o,onChange:h=>c(h.target.value),rows:4,className:"resize-y border-border bg-background",placeholder:`Tell us about your interest in ${r}…`})]}),e.jsxs("div",{className:"space-y-2",children:[e.jsx(te,{htmlFor:"cs-offer",className:"font-bold",children:"Offer Amount (USD) (optional)"}),e.jsx(le,{id:"cs-offer",inputMode:"numeric",value:m,onChange:h=>p(h.target.value),className:"border-border bg-background"})]}),e.jsx(O,{type:"submit",className:"w-full bg-[color:var(--terminal-ochre)] font-bold text-[color:var(--mp-text-on-accent)] hover:bg-[color:var(--terminal-ochre-hover)]",children:"Send message"}),e.jsx("p",{className:"text-center text-xs text-muted-foreground",children:"Ownerr does not handle payments. Deals happen off-platform."})]})}export{sr as default};
+import {
+  R as N,
+  H as $e,
+  r as D,
+  j as e,
+  c as He,
+  W as We,
+  X as V,
+  v as ae,
+  b2 as ze,
+  ad as Te,
+  b3 as Ge,
+  ae as Ie,
+  af as Ye,
+  aV as oe,
+  U as Xe,
+  aS as Je,
+  L as U,
+  d as Q,
+  av as W,
+  a2 as F,
+  B as O,
+  b4 as he,
+  al as J,
+  b5 as pe,
+  a$ as be,
+  $ as B,
+  a0 as Z,
+  b6 as ge,
+  b7 as ve,
+  b8 as ye,
+  b9 as je,
+  ba as Ne,
+  bb as Ze,
+  bc as et,
+  bd as tt,
+  be as we,
+  bf as rt,
+  S as st,
+  bg as at,
+  ao as nt,
+  ap as it,
+  aq as ot,
+  ar as lt,
+  as as dt,
+  bh as ct,
+  a3 as ut,
+  a4 as mt,
+  C as xt,
+  l as ft,
+  n as ht,
+  o as pt,
+  p as bt,
+  q as ee,
+  bi as gt,
+  at as te,
+  I as le,
+  am as vt,
+  b1 as yt,
+  a1 as ke,
+  bj as jt,
+  bk as Nt,
+} from "./index-B-37iCee.js";
+import {
+  f as _,
+  L as z,
+  r as re,
+  s as K,
+  C as de,
+  A as wt,
+  i as q,
+  j as Se,
+  t as kt,
+  c as Ae,
+  v as St,
+  k as At,
+  u as Mt,
+  h as me,
+  G as Pt,
+  g as Me,
+  m as Pe,
+  D as Ct,
+  n as Dt,
+  X as Ve,
+  Y as Ee,
+  o as Lt,
+  R as Ot,
+  p as Rt,
+  T as $t,
+} from "./generateCategoricalChart-Hp5p9eTs.js";
+var Tt = ["layout", "type", "stroke", "connectNulls", "isRange", "ref"],
+  It = ["key"],
+  Fe;
+function H(t) {
+  "@babel/helpers - typeof";
+  return (
+    (H =
+      typeof Symbol == "function" && typeof Symbol.iterator == "symbol"
+        ? function (r) {
+            return typeof r;
+          }
+        : function (r) {
+            return r &&
+              typeof Symbol == "function" &&
+              r.constructor === Symbol &&
+              r !== Symbol.prototype
+              ? "symbol"
+              : typeof r;
+          }),
+    H(t)
+  );
+}
+function Be(t, r) {
+  if (t == null) return {};
+  var a = Vt(t, r),
+    s,
+    i;
+  if (Object.getOwnPropertySymbols) {
+    var l = Object.getOwnPropertySymbols(t);
+    for (i = 0; i < l.length; i++)
+      ((s = l[i]),
+        !(r.indexOf(s) >= 0) &&
+          Object.prototype.propertyIsEnumerable.call(t, s) &&
+          (a[s] = t[s]));
+  }
+  return a;
+}
+function Vt(t, r) {
+  if (t == null) return {};
+  var a = {};
+  for (var s in t)
+    if (Object.prototype.hasOwnProperty.call(t, s)) {
+      if (r.indexOf(s) >= 0) continue;
+      a[s] = t[s];
+    }
+  return a;
+}
+function E() {
+  return (
+    (E = Object.assign
+      ? Object.assign.bind()
+      : function (t) {
+          for (var r = 1; r < arguments.length; r++) {
+            var a = arguments[r];
+            for (var s in a)
+              Object.prototype.hasOwnProperty.call(a, s) && (t[s] = a[s]);
+          }
+          return t;
+        }),
+    E.apply(this, arguments)
+  );
+}
+function Ce(t, r) {
+  var a = Object.keys(t);
+  if (Object.getOwnPropertySymbols) {
+    var s = Object.getOwnPropertySymbols(t);
+    (r &&
+      (s = s.filter(function (i) {
+        return Object.getOwnPropertyDescriptor(t, i).enumerable;
+      })),
+      a.push.apply(a, s));
+  }
+  return a;
+}
+function T(t) {
+  for (var r = 1; r < arguments.length; r++) {
+    var a = arguments[r] != null ? arguments[r] : {};
+    r % 2
+      ? Ce(Object(a), !0).forEach(function (s) {
+          $(t, s, a[s]);
+        })
+      : Object.getOwnPropertyDescriptors
+        ? Object.defineProperties(t, Object.getOwnPropertyDescriptors(a))
+        : Ce(Object(a)).forEach(function (s) {
+            Object.defineProperty(t, s, Object.getOwnPropertyDescriptor(a, s));
+          });
+  }
+  return t;
+}
+function Et(t, r) {
+  if (!(t instanceof r))
+    throw new TypeError("Cannot call a class as a function");
+}
+function De(t, r) {
+  for (var a = 0; a < r.length; a++) {
+    var s = r[a];
+    ((s.enumerable = s.enumerable || !1),
+      (s.configurable = !0),
+      "value" in s && (s.writable = !0),
+      Object.defineProperty(t, qe(s.key), s));
+  }
+}
+function Ft(t, r, a) {
+  return (
+    r && De(t.prototype, r),
+    a && De(t, a),
+    Object.defineProperty(t, "prototype", { writable: !1 }),
+    t
+  );
+}
+function Bt(t, r, a) {
+  return (
+    (r = ne(r)),
+    _t(
+      t,
+      _e() ? Reflect.construct(r, a || [], ne(t).constructor) : r.apply(t, a),
+    )
+  );
+}
+function _t(t, r) {
+  if (r && (H(r) === "object" || typeof r == "function")) return r;
+  if (r !== void 0)
+    throw new TypeError(
+      "Derived constructors may only return object or undefined",
+    );
+  return qt(t);
+}
+function qt(t) {
+  if (t === void 0)
+    throw new ReferenceError(
+      "this hasn't been initialised - super() hasn't been called",
+    );
+  return t;
+}
+function _e() {
+  try {
+    var t = !Boolean.prototype.valueOf.call(
+      Reflect.construct(Boolean, [], function () {}),
+    );
+  } catch {}
+  return (_e = function () {
+    return !!t;
+  })();
+}
+function ne(t) {
+  return (
+    (ne = Object.setPrototypeOf
+      ? Object.getPrototypeOf.bind()
+      : function (a) {
+          return a.__proto__ || Object.getPrototypeOf(a);
+        }),
+    ne(t)
+  );
+}
+function Ut(t, r) {
+  if (typeof r != "function" && r !== null)
+    throw new TypeError("Super expression must either be null or a function");
+  ((t.prototype = Object.create(r && r.prototype, {
+    constructor: { value: t, writable: !0, configurable: !0 },
+  })),
+    Object.defineProperty(t, "prototype", { writable: !1 }),
+    r && xe(t, r));
+}
+function xe(t, r) {
+  return (
+    (xe = Object.setPrototypeOf
+      ? Object.setPrototypeOf.bind()
+      : function (s, i) {
+          return ((s.__proto__ = i), s);
+        }),
+    xe(t, r)
+  );
+}
+function $(t, r, a) {
+  return (
+    (r = qe(r)),
+    r in t
+      ? Object.defineProperty(t, r, {
+          value: a,
+          enumerable: !0,
+          configurable: !0,
+          writable: !0,
+        })
+      : (t[r] = a),
+    t
+  );
+}
+function qe(t) {
+  var r = Qt(t, "string");
+  return H(r) == "symbol" ? r : r + "";
+}
+function Qt(t, r) {
+  if (H(t) != "object" || !t) return t;
+  var a = t[Symbol.toPrimitive];
+  if (a !== void 0) {
+    var s = a.call(t, r);
+    if (H(s) != "object") return s;
+    throw new TypeError("@@toPrimitive must return a primitive value.");
+  }
+  return String(t);
+}
+var I = (function (t) {
+  function r() {
+    var a;
+    Et(this, r);
+    for (var s = arguments.length, i = new Array(s), l = 0; l < s; l++)
+      i[l] = arguments[l];
+    return (
+      (a = Bt(this, r, [].concat(i))),
+      $(a, "state", { isAnimationFinished: !0 }),
+      $(a, "id", Mt("recharts-area-")),
+      $(a, "handleAnimationEnd", function () {
+        var d = a.props.onAnimationEnd;
+        (a.setState({ isAnimationFinished: !0 }), me(d) && d());
+      }),
+      $(a, "handleAnimationStart", function () {
+        var d = a.props.onAnimationStart;
+        (a.setState({ isAnimationFinished: !1 }), me(d) && d());
+      }),
+      a
+    );
+  }
+  return (
+    Ut(r, t),
+    Ft(
+      r,
+      [
+        {
+          key: "renderDots",
+          value: function (s, i, l) {
+            var d = this.props.isAnimationActive,
+              u = this.state.isAnimationFinished;
+            if (d && !u) return null;
+            var x = this.props,
+              o = x.dot,
+              c = x.points,
+              m = x.dataKey,
+              p = _(this.props, !1),
+              n = _(o, !0),
+              h = c.map(function (v, S) {
+                var b = T(
+                  T(T({ key: "dot-".concat(S), r: 3 }, p), n),
+                  {},
+                  {
+                    index: S,
+                    cx: v.x,
+                    cy: v.y,
+                    dataKey: m,
+                    value: v.value,
+                    payload: v.payload,
+                    points: c,
+                  },
+                );
+                return r.renderDotItem(o, b);
+              }),
+              g = {
+                clipPath: s
+                  ? "url(#clipPath-".concat(i ? "" : "dots-").concat(l, ")")
+                  : null,
+              };
+            return N.createElement(
+              z,
+              E({ className: "recharts-area-dots" }, g),
+              h,
+            );
+          },
+        },
+        {
+          key: "renderHorizontalRect",
+          value: function (s) {
+            var i = this.props,
+              l = i.baseLine,
+              d = i.points,
+              u = i.strokeWidth,
+              x = d[0].x,
+              o = d[d.length - 1].x,
+              c = s * Math.abs(x - o),
+              m = re(
+                d.map(function (p) {
+                  return p.y || 0;
+                }),
+              );
+            return (
+              K(l) && typeof l == "number"
+                ? (m = Math.max(l, m))
+                : l &&
+                  Array.isArray(l) &&
+                  l.length &&
+                  (m = Math.max(
+                    re(
+                      l.map(function (p) {
+                        return p.y || 0;
+                      }),
+                    ),
+                    m,
+                  )),
+              K(m)
+                ? N.createElement("rect", {
+                    x: x < o ? x : x - c,
+                    y: 0,
+                    width: c,
+                    height: Math.floor(
+                      m + (u ? parseInt("".concat(u), 10) : 1),
+                    ),
+                  })
+                : null
+            );
+          },
+        },
+        {
+          key: "renderVerticalRect",
+          value: function (s) {
+            var i = this.props,
+              l = i.baseLine,
+              d = i.points,
+              u = i.strokeWidth,
+              x = d[0].y,
+              o = d[d.length - 1].y,
+              c = s * Math.abs(x - o),
+              m = re(
+                d.map(function (p) {
+                  return p.x || 0;
+                }),
+              );
+            return (
+              K(l) && typeof l == "number"
+                ? (m = Math.max(l, m))
+                : l &&
+                  Array.isArray(l) &&
+                  l.length &&
+                  (m = Math.max(
+                    re(
+                      l.map(function (p) {
+                        return p.x || 0;
+                      }),
+                    ),
+                    m,
+                  )),
+              K(m)
+                ? N.createElement("rect", {
+                    x: 0,
+                    y: x < o ? x : x - c,
+                    width: m + (u ? parseInt("".concat(u), 10) : 1),
+                    height: Math.floor(c),
+                  })
+                : null
+            );
+          },
+        },
+        {
+          key: "renderClipRect",
+          value: function (s) {
+            var i = this.props.layout;
+            return i === "vertical"
+              ? this.renderVerticalRect(s)
+              : this.renderHorizontalRect(s);
+          },
+        },
+        {
+          key: "renderAreaStatically",
+          value: function (s, i, l, d) {
+            var u = this.props,
+              x = u.layout,
+              o = u.type,
+              c = u.stroke,
+              m = u.connectNulls,
+              p = u.isRange;
+            u.ref;
+            var n = Be(u, Tt);
+            return N.createElement(
+              z,
+              { clipPath: l ? "url(#clipPath-".concat(d, ")") : null },
+              N.createElement(
+                de,
+                E({}, _(n, !0), {
+                  points: s,
+                  connectNulls: m,
+                  type: o,
+                  baseLine: i,
+                  layout: x,
+                  stroke: "none",
+                  className: "recharts-area-area",
+                }),
+              ),
+              c !== "none" &&
+                N.createElement(
+                  de,
+                  E({}, _(this.props, !1), {
+                    className: "recharts-area-curve",
+                    layout: x,
+                    type: o,
+                    connectNulls: m,
+                    fill: "none",
+                    points: s,
+                  }),
+                ),
+              c !== "none" &&
+                p &&
+                N.createElement(
+                  de,
+                  E({}, _(this.props, !1), {
+                    className: "recharts-area-curve",
+                    layout: x,
+                    type: o,
+                    connectNulls: m,
+                    fill: "none",
+                    points: i,
+                  }),
+                ),
+            );
+          },
+        },
+        {
+          key: "renderAreaWithAnimation",
+          value: function (s, i) {
+            var l = this,
+              d = this.props,
+              u = d.points,
+              x = d.baseLine,
+              o = d.isAnimationActive,
+              c = d.animationBegin,
+              m = d.animationDuration,
+              p = d.animationEasing,
+              n = d.animationId,
+              h = this.state,
+              g = h.prevPoints,
+              v = h.prevBaseLine;
+            return N.createElement(
+              wt,
+              {
+                begin: c,
+                duration: m,
+                isActive: o,
+                easing: p,
+                from: { t: 0 },
+                to: { t: 1 },
+                key: "area-".concat(n),
+                onAnimationEnd: this.handleAnimationEnd,
+                onAnimationStart: this.handleAnimationStart,
+              },
+              function (S) {
+                var b = S.t;
+                if (g) {
+                  var M = g.length / u.length,
+                    y = u.map(function (A, R) {
+                      var L = Math.floor(R * M);
+                      if (g[L]) {
+                        var f = g[L],
+                          k = q(f.x, A.x),
+                          C = q(f.y, A.y);
+                        return T(T({}, A), {}, { x: k(b), y: C(b) });
+                      }
+                      return A;
+                    }),
+                    j;
+                  if (K(x) && typeof x == "number") {
+                    var w = q(v, x);
+                    j = w(b);
+                  } else if (Se(x) || kt(x)) {
+                    var P = q(v, 0);
+                    j = P(b);
+                  } else
+                    j = x.map(function (A, R) {
+                      var L = Math.floor(R * M);
+                      if (v[L]) {
+                        var f = v[L],
+                          k = q(f.x, A.x),
+                          C = q(f.y, A.y);
+                        return T(T({}, A), {}, { x: k(b), y: C(b) });
+                      }
+                      return A;
+                    });
+                  return l.renderAreaStatically(y, j, s, i);
+                }
+                return N.createElement(
+                  z,
+                  null,
+                  N.createElement(
+                    "defs",
+                    null,
+                    N.createElement(
+                      "clipPath",
+                      { id: "animationClipPath-".concat(i) },
+                      l.renderClipRect(b),
+                    ),
+                  ),
+                  N.createElement(
+                    z,
+                    { clipPath: "url(#animationClipPath-".concat(i, ")") },
+                    l.renderAreaStatically(u, x, s, i),
+                  ),
+                );
+              },
+            );
+          },
+        },
+        {
+          key: "renderArea",
+          value: function (s, i) {
+            var l = this.props,
+              d = l.points,
+              u = l.baseLine,
+              x = l.isAnimationActive,
+              o = this.state,
+              c = o.prevPoints,
+              m = o.prevBaseLine,
+              p = o.totalLength;
+            return x &&
+              d &&
+              d.length &&
+              ((!c && p > 0) || !Ae(c, d) || !Ae(m, u))
+              ? this.renderAreaWithAnimation(s, i)
+              : this.renderAreaStatically(d, u, s, i);
+          },
+        },
+        {
+          key: "render",
+          value: function () {
+            var s,
+              i = this.props,
+              l = i.hide,
+              d = i.dot,
+              u = i.points,
+              x = i.className,
+              o = i.top,
+              c = i.left,
+              m = i.xAxis,
+              p = i.yAxis,
+              n = i.width,
+              h = i.height,
+              g = i.isAnimationActive,
+              v = i.id;
+            if (l || !u || !u.length) return null;
+            var S = this.state.isAnimationFinished,
+              b = u.length === 1,
+              M = $e("recharts-area", x),
+              y = m && m.allowDataOverflow,
+              j = p && p.allowDataOverflow,
+              w = y || j,
+              P = Se(v) ? this.id : v,
+              A =
+                (s = _(d, !1)) !== null && s !== void 0
+                  ? s
+                  : { r: 3, strokeWidth: 2 },
+              R = A.r,
+              L = R === void 0 ? 3 : R,
+              f = A.strokeWidth,
+              k = f === void 0 ? 2 : f,
+              C = St(d) ? d : {},
+              Y = C.clipDot,
+              fe = Y === void 0 ? !0 : Y,
+              X = L * 2 + k;
+            return N.createElement(
+              z,
+              { className: M },
+              y || j
+                ? N.createElement(
+                    "defs",
+                    null,
+                    N.createElement(
+                      "clipPath",
+                      { id: "clipPath-".concat(P) },
+                      N.createElement("rect", {
+                        x: y ? c : c - n / 2,
+                        y: j ? o : o - h / 2,
+                        width: y ? n : n * 2,
+                        height: j ? h : h * 2,
+                      }),
+                    ),
+                    !fe &&
+                      N.createElement(
+                        "clipPath",
+                        { id: "clipPath-dots-".concat(P) },
+                        N.createElement("rect", {
+                          x: c - X / 2,
+                          y: o - X / 2,
+                          width: n + X,
+                          height: h + X,
+                        }),
+                      ),
+                  )
+                : null,
+              b ? null : this.renderArea(w, P),
+              (d || b) && this.renderDots(w, fe, P),
+              (!g || S) && At.renderCallByParent(this.props, u),
+            );
+          },
+        },
+      ],
+      [
+        {
+          key: "getDerivedStateFromProps",
+          value: function (s, i) {
+            return s.animationId !== i.prevAnimationId
+              ? {
+                  prevAnimationId: s.animationId,
+                  curPoints: s.points,
+                  curBaseLine: s.baseLine,
+                  prevPoints: i.curPoints,
+                  prevBaseLine: i.curBaseLine,
+                }
+              : s.points !== i.curPoints || s.baseLine !== i.curBaseLine
+                ? { curPoints: s.points, curBaseLine: s.baseLine }
+                : null;
+          },
+        },
+      ],
+    )
+  );
+})(D.PureComponent);
+Fe = I;
+$(I, "displayName", "Area");
+$(I, "defaultProps", {
+  stroke: "#3182bd",
+  fill: "#3182bd",
+  fillOpacity: 0.6,
+  xAxisId: 0,
+  yAxisId: 0,
+  legendType: "line",
+  connectNulls: !1,
+  points: [],
+  dot: !1,
+  activeDot: !0,
+  hide: !1,
+  isAnimationActive: !Pt.isSsr,
+  animationBegin: 0,
+  animationDuration: 1500,
+  animationEasing: "ease",
+});
+$(I, "getBaseValue", function (t, r, a, s) {
+  var i = t.layout,
+    l = t.baseValue,
+    d = r.props.baseValue,
+    u = d ?? l;
+  if (K(u) && typeof u == "number") return u;
+  var x = i === "horizontal" ? s : a,
+    o = x.scale.domain();
+  if (x.type === "number") {
+    var c = Math.max(o[0], o[1]),
+      m = Math.min(o[0], o[1]);
+    return u === "dataMin"
+      ? m
+      : u === "dataMax" || c < 0
+        ? c
+        : Math.max(Math.min(o[0], o[1]), 0);
+  }
+  return u === "dataMin" ? o[0] : u === "dataMax" ? o[1] : o[0];
+});
+$(I, "getComposedData", function (t) {
+  var r = t.props,
+    a = t.item,
+    s = t.xAxis,
+    i = t.yAxis,
+    l = t.xAxisTicks,
+    d = t.yAxisTicks,
+    u = t.bandSize,
+    x = t.dataKey,
+    o = t.stackedData,
+    c = t.dataStartIndex,
+    m = t.displayedData,
+    p = t.offset,
+    n = r.layout,
+    h = o && o.length,
+    g = Fe.getBaseValue(r, a, s, i),
+    v = n === "horizontal",
+    S = !1,
+    b = m.map(function (y, j) {
+      var w;
+      h
+        ? (w = o[c + j])
+        : ((w = Me(y, x)), Array.isArray(w) ? (S = !0) : (w = [g, w]));
+      var P = w[1] == null || (h && Me(y, x) == null);
+      return v
+        ? {
+            x: Pe({ axis: s, ticks: l, bandSize: u, entry: y, index: j }),
+            y: P ? null : i.scale(w[1]),
+            value: w,
+            payload: y,
+          }
+        : {
+            x: P ? null : s.scale(w[1]),
+            y: Pe({ axis: i, ticks: d, bandSize: u, entry: y, index: j }),
+            value: w,
+            payload: y,
+          };
+    }),
+    M;
+  return (
+    h || S
+      ? (M = b.map(function (y) {
+          var j = Array.isArray(y.value) ? y.value[0] : null;
+          return v
+            ? { x: y.x, y: j != null && y.y != null ? i.scale(j) : null }
+            : { x: j != null ? s.scale(j) : null, y: y.y };
+        }))
+      : (M = v ? i.scale(g) : s.scale(g)),
+    T({ points: b, baseLine: M, layout: n, isRange: S }, p)
+  );
+});
+$(I, "renderDotItem", function (t, r) {
+  var a;
+  if (N.isValidElement(t)) a = N.cloneElement(t, r);
+  else if (me(t)) a = t(r);
+  else {
+    var s = $e("recharts-area-dot", typeof t != "boolean" ? t.className : ""),
+      i = r.key,
+      l = Be(r, It);
+    a = N.createElement(Ct, E({}, l, { key: i, className: s }));
+  }
+  return a;
+});
+var Kt = Dt({
+  chartName: "AreaChart",
+  GraphicalChild: I,
+  axisComponents: [
+    { axisType: "xAxis", AxisComp: Ve },
+    { axisType: "yAxis", AxisComp: Ee },
+  ],
+  formatAxisMap: Lt,
+});
+const Ue = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
+function Qe(t) {
+  let r = 0;
+  for (let a = 0; a < t.length; a++) r = (r * 31 + t.charCodeAt(a)) >>> 0;
+  return r;
+}
+function ie(t) {
+  return `${Ue[t.getMonth()]} ${t.getDate()}`;
+}
+function Ht(t, r) {
+  let s = Qe(t) || 1;
+  const i = () => ((s = (s * 1103515245 + 12345) >>> 0), s / 4294967296),
+    l = [];
+  for (let m = 0; m < 28; m++) {
+    const p = 70 + Math.sin(m / 3.5) * 45 + i() * 95;
+    l.push(Math.max(35, Math.round(p)));
+  }
+  const d = l.reduce((m, p) => m + p, 0),
+    u = l.map((m) => Math.round((m / d) * Math.max(1, r))),
+    x = Math.max(1, r) - u.reduce((m, p) => m + p, 0);
+  u[27] = Math.max(0, u[27] + x);
+  const o = new Date(),
+    c = [];
+  for (let m = 0; m < 28; m++) {
+    const p = new Date(o);
+    p.setDate(o.getDate() - (27 - m));
+    const n = new Date(p);
+    n.setMonth(p.getMonth() - 1);
+    const h = 1 + Math.floor(i() * 4),
+      g = u[m],
+      v = Math.max(15, Math.round(g * (0.36 + i() * 0.26)));
+    c.push({ label: ie(p), prevLabel: ie(n), current: g, prev: v, charges: h });
+  }
+  return c;
+}
+function Wt(t) {
+  return t >= 1e6
+    ? `~${(t / 1e6).toFixed(1)}M users`
+    : t >= 1e4
+      ? `~${Math.round(t / 1e3)}k users`
+      : t >= 1e3
+        ? `~${(t / 1e3).toFixed(1)}k users`
+        : `~${t} users`;
+}
+function zt(t) {
+  const r = t.toLowerCase(),
+    a = ["React", "TypeScript", "Tailwind CSS"];
+  return r.includes("mobile")
+    ? {
+        frontend: ["React Native", "TypeScript"],
+        backend: ["Node.js", "PostgreSQL", "AWS", "Redis", "Stripe"],
+      }
+    : r.includes("artificial") || r.includes("ai")
+      ? {
+          frontend: [...a],
+          backend: [
+            "OpenAI",
+            "Node.js",
+            "PostgreSQL",
+            "Redis",
+            "Vercel",
+            "Stripe",
+          ],
+        }
+      : r.includes("crypto") || r.includes("web3")
+        ? {
+            frontend: [...a],
+            backend: [
+              "Node.js",
+              "PostgreSQL",
+              "Redis",
+              "Alchemy",
+              "Solidity tooling",
+            ],
+          }
+        : {
+            frontend: [...a],
+            backend: [
+              "Node.js",
+              "PostgreSQL",
+              "Redis",
+              "AWS",
+              "Stripe",
+              "Docker",
+            ],
+          };
+}
+function Gt(t, r) {
+  const a = r.insights ? { ...t.insights, ...r.insights } : t.insights,
+    s = r.techStack ? { ...t.techStack, ...r.techStack } : t.techStack;
+  return { ...t, ...r, insights: a, techStack: s };
+}
+function Yt(t, r, a) {
+  const s = Qe(t.slug),
+    i = t.peakMrr ?? t.revenue,
+    l = Math.max(
+      Math.round(i * 12 * (1.15 + (s % 20) / 100)),
+      Math.round(t.revenue * 18),
+    ),
+    d = t.revenue,
+    u = Math.max(8, Math.round(t.customers * (0.06 + (s % 8) / 200))),
+    x =
+      t.listingViews ??
+      Math.max(100, Math.round(t.customers * (6 + (s % 5)) + (s % 400))),
+    o = t.listingFavorites ?? Math.max(1, (s % 9) + 2),
+    m = `${Ue[s % 12]} ${t.foundedYear}`,
+    p = Math.max(1, Math.round(t.revenue * (0.55 + ((s >> 3) % 15) / 100))),
+    n = Ht(t.slug, p),
+    h = n.reduce((R, L) => R + L.current, 0);
+  let g = t.revenueGrowth30dPct ?? null;
+  g == null &&
+    ((g = Math.round(t.momGrowth * 0.85 + ((s % 11) - 5))),
+    (g = Math.max(-18, Math.min(28, g))));
+  const v = `https://${t.slug.replace(/[^a-z0-9-]/gi, "")}.example`,
+    S = t.category.toLowerCase(),
+    b = t.category,
+    M = Array.from(
+      new Set([
+        b,
+        "SaaS",
+        S.includes("mobile") ? "Mobile" : "Product",
+        t.slug.length > 3
+          ? t.slug.slice(0, 1).toUpperCase() + t.slug.slice(1, 8)
+          : "Startup",
+      ]),
+    ).filter(Boolean),
+    j =
+      !S.includes("consumer") && !S.includes("b2c")
+        ? ["B2B", "SaaS"]
+        : ["B2C", "Product"],
+    w = zt(t.category),
+    P = new Date().toLocaleString("en-US", {
+      month: "short",
+      day: "numeric",
+      year: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+    }),
+    A = s % 2 === 0 ? "stripe" : "paddle";
+  return {
+    foundedLabel: m,
+    allTimeRevenue: l,
+    leaderboardRank: a,
+    mrrDisplay: d,
+    activeSubscriptions: u,
+    buyersViewed: x,
+    offersReceived: o,
+    chartPeriodTotal: h,
+    chartVsPrevPct: g,
+    chartMetricLabel: "Revenue",
+    verifiedProvider: A,
+    lastUpdated: P,
+    visitUrl: v,
+    dailyChart: n,
+    trafficMonthlyVisitors:
+      t.trafficMonthlyVisitors ?? Math.max(200, Math.round(t.customers * 2.5)),
+    trafficTrend: t.trafficTrend ?? (t.momGrowth >= 0 ? "up" : "flat"),
+    trafficVerified: t.trafficVerified ?? !1,
+    domainVerified: t.domainVerified ?? !1,
+    revenueVerified: t.revenueVerified ?? !1,
+    revenueProvider: t.revenueProvider,
+    insights: {
+      valueProposition: t.description,
+      problemSolved: `${t.name} addresses operational gaps for teams in ${t.category.toLowerCase()}: faster workflows, clearer metrics, and less manual overhead.`,
+      pricing:
+        "Pricing is shared with serious buyers after introduction. Many listings use tiered plans from starter to scale—ask the seller for the latest structure.",
+      targetAudience: `Operators and teams buying in ${t.category.toLowerCase()}.`,
+      businessPills: j,
+      userCountLabel: Wt(t.customers),
+      additionalInfo: r
+        ? `Verified founder listing on Ownerr. ${r.lookingForCofounder ? "Open to strategic partners." : ""}`
+        : "Community-verified metrics on Ownerr.",
+      tags: M,
+    },
+    techStack: w,
+    founderQuote:
+      r?.bio ??
+      `Looking for the right buyer to take ${t.name} further—the product is solid; it needs focused distribution and sales.`,
+  };
+}
+const Xt = {
+  chatwith: {
+    foundedLabel: "September 2023",
+    allTimeRevenue: 110967,
+    leaderboardRank: 314,
+    mrrDisplay: 5984,
+    activeSubscriptions: 65,
+    buyersViewed: 3751,
+    offersReceived: 10,
+    chartPeriodTotal: 4807,
+    chartVsPrevPct: -5,
+    verifiedProvider: "paddle",
+    lastUpdated: "Apr 22, 2026, 12:36 PM",
+    visitUrl: "https://chatwith.example",
+    dailyChart: (() => {
+      let a = 42;
+      const s = () => ((a = (a * 1103515245 + 12345) >>> 0), a / 4294967296),
+        i = [];
+      for (let o = 0; o < 28; o++) {
+        const c = 85 + Math.sin(o / 4) * 55 + s() * 100;
+        i.push(Math.max(45, Math.round(c)));
+      }
+      const l = i.reduce((o, c) => o + c, 0),
+        d = i.map((o) => Math.round((o / l) * 4807));
+      d[27] += 4807 - d.reduce((o, c) => o + c, 0);
+      const u = new Date(2026, 2, 26),
+        x = [];
+      for (let o = 0; o < 28; o++) {
+        const c = new Date(u);
+        c.setDate(u.getDate() + o);
+        const m = new Date(c);
+        m.setMonth(c.getMonth() - 1);
+        const p = 1 + Math.floor(s() * 4),
+          n = d[o],
+          h = Math.max(20, Math.round(n * (0.38 + s() * 0.22)));
+        x.push({
+          label: ie(c),
+          prevLabel: ie(m),
+          current: n,
+          prev: h,
+          charges: p,
+        });
+      }
+      return x;
+    })(),
+    insights: {
+      valueProposition:
+        "White-label AI chatbots your clients will love. Build, brand, and resell—no code required.",
+      problemSolved:
+        "Solve the problem of not being able to provide 24/7 customer assistance and multilingual support, as well as the need for easy integration and customization of AI chatbots.",
+      pricing: "Hobby: $19/month, Standard: $99/month, Business: $399/month",
+      targetAudience: "AI agencies",
+      businessPills: ["B2B"],
+      userCountLabel: "~9,107 users",
+      additionalInfo: "Made in the EU",
+      tags: ["Customer Support", "AI", "Saas", "No Code", "Ecommerce"],
+    },
+    techStack: {
+      frontend: ["Next.js", "Tailwind CSS", "TypeScript"],
+      backend: [
+        "Anthropic",
+        "Cloudflare",
+        "Node.js",
+        "OpenAI",
+        "Pinecone",
+        "Prisma",
+        "PostgreSQL",
+        "Supabase",
+        "Vercel",
+        "Redis",
+      ],
+    },
+    founderQuote:
+      "No time to grow it. It receives inbound B2B leads but I have no capacity to handle the sales process.",
+  },
+};
+function Jt(t, r, a) {
+  const s = Yt(t, r, a),
+    i = Xt[t.slug];
+  return i ? Gt(s, i) : s;
+}
+const Ke = D.forwardRef(({ className: t, ...r }, a) =>
+  e.jsx("textarea", {
+    className: He(
+      "flex min-h-[60px] w-full rounded-md border border-input bg-transparent px-3 py-2 text-base shadow-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-1 focus-visible:ring-ring disabled:cursor-not-allowed disabled:opacity-50 md:text-sm",
+      t,
+    ),
+    ref: a,
+    ...r,
+  }),
+);
+Ke.displayName = "Textarea";
+function se({ title: t, subtitle: r, points: a, mode: s = "currency" }) {
+  const i = We(),
+    l = i ? "#2a2a2a" : "#d4d4d8",
+    d = i ? "#737373" : "#52525b",
+    u = a.at(-1)?.value ?? 0;
+  return e.jsxs("section", {
+    className: "rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6",
+    children: [
+      e.jsxs("div", {
+        className: "flex flex-col gap-1",
+        children: [
+          e.jsx("div", { className: "mp-label text-[10px]", children: t }),
+          e.jsx("div", {
+            className: "text-2xl font-bold tabular-nums",
+            children: s === "currency" ? V(u) : u.toLocaleString("en-US"),
+          }),
+          e.jsx("p", { className: "mp-body text-sm", children: r }),
+        ],
+      }),
+      e.jsx("div", {
+        className: "mt-4 h-[260px] w-full",
+        children: e.jsx(Ot, {
+          width: "100%",
+          height: "100%",
+          children: e.jsxs(Kt, {
+            data: a,
+            margin: { top: 8, right: 8, left: 0, bottom: 0 },
+            children: [
+              e.jsx("defs", {
+                children: e.jsxs("linearGradient", {
+                  id: `${t}-fill`,
+                  x1: "0",
+                  y1: "0",
+                  x2: "0",
+                  y2: "1",
+                  children: [
+                    e.jsx("stop", {
+                      offset: "0%",
+                      stopColor: "#3b82f6",
+                      stopOpacity: 0.35,
+                    }),
+                    e.jsx("stop", {
+                      offset: "100%",
+                      stopColor: "#3b82f6",
+                      stopOpacity: 0,
+                    }),
+                  ],
+                }),
+              }),
+              e.jsx(Rt, { stroke: l, strokeDasharray: "4 4", vertical: !1 }),
+              e.jsx(Ve, {
+                dataKey: "label",
+                tick: { fill: d, fontSize: 11 },
+                axisLine: !1,
+                tickLine: !1,
+              }),
+              e.jsx(Ee, {
+                tick: { fill: d, fontSize: 11 },
+                axisLine: !1,
+                tickLine: !1,
+                tickFormatter: (x) =>
+                  s === "currency"
+                    ? ae(Number(x))
+                    : Number(x).toLocaleString("en-US"),
+              }),
+              e.jsx($t, {
+                content: ({ active: x, payload: o }) => {
+                  const c = o?.[0]?.payload;
+                  return !x || !c
+                    ? null
+                    : e.jsxs("div", {
+                        className:
+                          "rounded-lg border border-border bg-popover px-3 py-2 text-xs text-popover-foreground shadow-xl",
+                        children: [
+                          e.jsx("div", {
+                            className: "mp-value font-bold",
+                            children: c.label,
+                          }),
+                          e.jsx("div", {
+                            className: "mt-1",
+                            children:
+                              s === "currency"
+                                ? V(c.value)
+                                : c.value.toLocaleString("en-US"),
+                          }),
+                        ],
+                      });
+                },
+              }),
+              e.jsx(I, {
+                type: "monotone",
+                dataKey: "value",
+                stroke: "#3b82f6",
+                strokeWidth: 2,
+                fill: `url(#${t}-fill)`,
+                dot: !1,
+              }),
+            ],
+          }),
+        }),
+      }),
+    ],
+  });
+}
+function Zt({ s: t }) {
+  const r = gt(t, "mrr", "current"),
+    a = r,
+    s = Math.round((t.peakMrr ?? t.revenue) * 16);
+  return e.jsx(U, {
+    href: Q(`/startup/${t.slug}`),
+    className: "group block h-full min-w-0",
+    children: e.jsxs("div", {
+      className:
+        "flex h-full min-h-0 flex-col overflow-hidden rounded-xl border border-border bg-card transition-colors hover:border-foreground/25 hover:bg-muted/15",
+      children: [
+        e.jsxs("div", {
+          className: "p-4",
+          children: [
+            e.jsxs("div", {
+              className: "flex items-start gap-3",
+              children: [
+                e.jsx("div", {
+                  className:
+                    "flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border text-xs font-bold",
+                  style: { backgroundColor: t.logoColor },
+                  children: e.jsx("img", {
+                    src: `https://api.dicebear.com/7.x/shapes/svg?seed=${t.name}`,
+                    alt: "",
+                    className: "h-8 w-8",
+                  }),
+                }),
+                e.jsx("div", {
+                  className: "min-w-0",
+                  children: e.jsx("div", {
+                    className:
+                      "font-bold leading-tight group-hover:underline line-clamp-2",
+                    children: t.name,
+                  }),
+                }),
+              ],
+            }),
+            e.jsx("p", {
+              className: "mt-2 line-clamp-3 text-sm text-muted-foreground",
+              children: t.description,
+            }),
+          ],
+        }),
+        e.jsx("div", {
+          className:
+            "mt-auto border-t border-dotted border-border bg-muted/10 px-3 py-3",
+          children: e.jsxs("div", {
+            className: "grid grid-cols-3 gap-1 text-center",
+            children: [
+              e.jsxs("div", {
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[9px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: "Rev (30D)",
+                  }),
+                  e.jsx("div", {
+                    className: "text-xs font-bold tabular-nums",
+                    children: ae(a),
+                  }),
+                ],
+              }),
+              e.jsxs("div", {
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[9px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: "MRR",
+                  }),
+                  e.jsx("div", {
+                    className: "text-xs font-bold tabular-nums",
+                    children: ae(r),
+                  }),
+                ],
+              }),
+              e.jsxs("div", {
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[9px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: "Total",
+                  }),
+                  e.jsx("div", {
+                    className: "text-xs font-bold tabular-nums",
+                    children: ae(s),
+                  }),
+                ],
+              }),
+            ],
+          }),
+        }),
+      ],
+    }),
+  });
+}
+function sr() {
+  const { slug: t } = ze(),
+    { toast: r } = Te(),
+    a = Ge(),
+    { currentUser: s, isBuyer: i, isAuthenticated: l } = Ie(),
+    { requireAuth: d } = Ye(),
+    [u, x] = D.useState(!1),
+    [o, c] = D.useState(!1),
+    m = oe({ queryKey: ["marketplace-listings"], queryFn: () => yt(ke) }),
+    p = oe({
+      queryKey: ["marketplace-listing", t],
+      queryFn: () => jt(ke, t ?? ""),
+      enabled: !!t,
+    });
+  D.useEffect(() => {
+    x(!0);
+  }, []);
+  const n = p.data,
+    h = n ? Xe.find((f) => f.handle === n.founderHandle) : void 0,
+    g = !!n && !!s && n.ownerUserId === s.id,
+    v = oe({
+      queryKey: ["marketplace-interests", n?.slug],
+      queryFn: () => Nt(n.slug),
+      enabled: !!n,
+    }),
+    S = D.useMemo(() => {
+      if (!n) return 1;
+      const k = [...(m.data ?? [])]
+        .sort((C, Y) => Y.revenue - C.revenue)
+        .findIndex((C) => C.slug === n.slug);
+      return k >= 0 ? k + 1 : 999;
+    }, [m.data, n]),
+    b = D.useMemo(() => (n ? Jt(n, h, S) : null), [n, h, S]),
+    M = Je(),
+    y = D.useMemo(() => {
+      const f = M.startsWith("?") ? M.slice(1) : M;
+      return new URLSearchParams(f).get("from") === "leaderboard";
+    }, [M]),
+    j = D.useMemo(
+      () =>
+        n
+          ? (m.data ?? [])
+              .filter((f) => f.slug !== n.slug)
+              .sort((f, k) => k.revenue - f.revenue)
+              .slice(0, 6)
+          : [],
+      [m.data, n],
+    );
+  if (!u) return e.jsx("div", { className: "min-h-[500px]" });
+  if (p.isLoading) return e.jsx("div", { className: "min-h-[500px]" });
+  if (!n || !b)
+    return e.jsx("div", {
+      className: "startup-card p-12 text-center",
+      children: e.jsx("h2", {
+        className: "text-2xl font-bold",
+        children: "Startup not found",
+      }),
+    });
+  const w = b.mrrDisplay,
+    P = b.foundedLabel,
+    A = b.visitUrl,
+    R = n.name;
+  async function L() {
+    const f =
+      typeof window < "u"
+        ? y
+          ? window.location.href
+          : `${window.location.origin}${window.location.pathname}`
+        : "";
+    try {
+      navigator.share
+        ? await navigator.share({ title: R, url: f })
+        : (await navigator.clipboard.writeText(f), r({ title: "Link copied" }));
+    } catch {
+      r({ title: "Could not share", variant: "destructive" });
+    }
+  }
+  return y
+    ? e.jsxs("div", {
+        className: "flex flex-col gap-6 pb-10",
+        children: [
+          e.jsxs("nav", {
+            className:
+              "flex flex-wrap items-center gap-1 font-mono text-sm text-muted-foreground",
+            children: [
+              e.jsx(U, {
+                href: Q("/"),
+                className: "hover:text-foreground",
+                children: "Ownerr",
+              }),
+              e.jsx(W, { className: "h-4 w-4 opacity-50" }),
+              e.jsx("span", {
+                className: "hover:text-foreground",
+                children: e.jsx(U, {
+                  href: `${Q("/")}#leaderboard`,
+                  children: "Startup",
+                }),
+              }),
+              e.jsx(W, { className: "h-4 w-4 opacity-50" }),
+              e.jsx(F, {
+                slug: n.slug,
+                className: "font-bold text-foreground",
+                children: n.name,
+              }),
+            ],
+          }),
+          e.jsx("section", {
+            className:
+              "rounded-xl border border-border bg-card p-6 shadow-sm sm:p-8",
+            children: e.jsxs("div", {
+              className:
+                "flex flex-col gap-6 md:flex-row md:items-start md:justify-between",
+              children: [
+                e.jsxs("div", {
+                  className:
+                    "flex min-w-0 flex-1 flex-col gap-5 sm:flex-row sm:items-start",
+                  children: [
+                    e.jsx("div", {
+                      className:
+                        "flex h-24 w-24 shrink-0 items-center justify-center rounded-2xl border border-black/5 text-4xl font-bold shadow-md dark:border-white/10",
+                      style: { backgroundColor: n.logoColor },
+                      children: e.jsx("img", {
+                        src: `https://api.dicebear.com/7.x/shapes/svg?seed=${n.name}`,
+                        alt: `${n.name} avatar`,
+                        className: "h-16 w-16",
+                      }),
+                    }),
+                    e.jsxs("div", {
+                      className: "min-w-0 flex-1",
+                      children: [
+                        e.jsx("h1", {
+                          className:
+                            "text-3xl font-bold tracking-tight sm:text-4xl",
+                          children: e.jsx(F, {
+                            slug: n.slug,
+                            className: "text-foreground",
+                            children: n.name,
+                          }),
+                        }),
+                        e.jsx("p", {
+                          className:
+                            "mt-3 max-w-2xl text-base leading-relaxed text-muted-foreground",
+                          children: n.description,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                e.jsxs("div", {
+                  className: "flex shrink-0 gap-2 self-start md:self-center",
+                  children: [
+                    e.jsxs(O, {
+                      type: "button",
+                      variant: "outline",
+                      className: "font-bold",
+                      onClick: () => {
+                        L();
+                      },
+                      children: [e.jsx(he, { className: "h-4 w-4" }), "Share"],
+                    }),
+                    g
+                      ? e.jsxs(O, {
+                          type: "button",
+                          variant: "outline",
+                          className: "font-bold",
+                          disabled: !0,
+                          children: [
+                            e.jsx(J, { className: "h-4 w-4" }),
+                            "Founder controls below",
+                          ],
+                        })
+                      : e.jsxs(O, {
+                          type: "button",
+                          variant: "outline",
+                          className: "font-bold",
+                          onClick: () => {
+                            if (!l) {
+                              d({
+                                action: "express_interest",
+                                onAllowed: () => {},
+                              });
+                              return;
+                            }
+                            c(!0);
+                          },
+                          children: [
+                            e.jsx(J, { className: "h-4 w-4" }),
+                            l
+                              ? i
+                                ? "Express Interest"
+                                : "Buyer mode required"
+                              : "Login to continue",
+                          ],
+                        }),
+                    e.jsx(O, {
+                      type: "button",
+                      variant: "secondary",
+                      className: "font-bold bg-primary text-primary-foreground",
+                      asChild: !0,
+                      children: e.jsxs("a", {
+                        href: A,
+                        target: "_blank",
+                        rel: "noreferrer",
+                        children: [
+                          e.jsx(pe, { className: "h-4 w-4" }),
+                          "Visit",
+                        ],
+                      }),
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          }),
+          e.jsxs("div", {
+            className: "grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4",
+            children: [
+              e.jsxs("div", {
+                className:
+                  "rounded-xl border border-border bg-card p-5 text-center",
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: "All-time revenue",
+                  }),
+                  e.jsx("div", {
+                    className: "mt-2 text-2xl font-bold tabular-nums",
+                    children: V(b.allTimeRevenue),
+                  }),
+                  e.jsxs("p", {
+                    className: "mt-1 text-xs text-muted-foreground",
+                    children: ["Ranked #", b.leaderboardRank, " on Ownerr"],
+                  }),
+                ],
+              }),
+              e.jsxs("div", {
+                className:
+                  "rounded-xl border border-border bg-card p-5 text-center",
+                children: [
+                  e.jsxs("div", {
+                    className:
+                      "flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: [
+                      "MRR (estimated)",
+                      e.jsx(be, {
+                        className:
+                          "h-3.5 w-3.5 shrink-0 text-muted-foreground/80",
+                        "aria-hidden": !0,
+                      }),
+                    ],
+                  }),
+                  e.jsx("div", {
+                    className: "mt-2 text-2xl font-bold tabular-nums",
+                    children: V(w),
+                  }),
+                  e.jsxs("p", {
+                    className: "mt-1 text-xs text-muted-foreground",
+                    children: [b.activeSubscriptions, " active subscriptions"],
+                  }),
+                ],
+              }),
+              e.jsxs("div", {
+                className:
+                  "rounded-xl border border-border bg-card p-5 text-center",
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: "Founder",
+                  }),
+                  e.jsx("div", {
+                    className: "mt-3 flex min-w-0 flex-col items-center gap-2",
+                    children: h
+                      ? e.jsxs(B, {
+                          handle: h.handle,
+                          className:
+                            "flex min-w-0 flex-col items-center gap-2 font-bold text-foreground sm:flex-row",
+                          children: [
+                            e.jsx("img", {
+                              src: Z(h.avatarSeed),
+                              alt: "",
+                              className:
+                                "h-11 w-11 shrink-0 rounded-full border border-border bg-muted",
+                            }),
+                            e.jsx("span", {
+                              className:
+                                "max-w-full truncate text-center sm:text-left",
+                              children: h.name,
+                            }),
+                          ],
+                        })
+                      : e.jsx(B, {
+                          handle: n.founderHandle,
+                          className:
+                            "block max-w-full truncate font-bold text-foreground",
+                          children: n.founderDisplayName ?? n.founderHandle,
+                        }),
+                  }),
+                ],
+              }),
+              e.jsxs("div", {
+                className:
+                  "rounded-xl border border-border bg-card p-5 text-center",
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: "Founded",
+                  }),
+                  e.jsx("div", {
+                    className: "mt-2 text-2xl font-bold tabular-nums",
+                    children: P,
+                  }),
+                  e.jsxs("div", {
+                    className:
+                      "mt-2 flex items-center justify-center gap-1.5 text-sm text-muted-foreground",
+                    children: [
+                      e.jsx("span", { "aria-hidden": !0, children: "🇺🇸" }),
+                      e.jsx("span", { children: "United States" }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+          e.jsx(ge, { startup: n }),
+          e.jsx(Oe, { listing: n }),
+          g
+            ? e.jsx(Re, {
+                listing: n,
+                interestRecords: v.data ?? [],
+                onVerificationUpdated: async (f, k, C) => {
+                  (await Ne(n, f, k, C),
+                    await Promise.all([
+                      a.invalidateQueries({
+                        queryKey: ["marketplace-listing", n.slug],
+                      }),
+                      a.invalidateQueries({
+                        queryKey: ["marketplace-listings"],
+                      }),
+                    ]));
+                },
+                onDomainVerify: async () => {
+                  (await je(n),
+                    await Promise.all([
+                      a.invalidateQueries({
+                        queryKey: ["marketplace-listing", n.slug],
+                      }),
+                      a.invalidateQueries({
+                        queryKey: ["marketplace-listings"],
+                      }),
+                    ]));
+                },
+                onInterestStageUpdated: async (f, k) => {
+                  (await ye(f, k),
+                    await a.invalidateQueries({
+                      queryKey: ["marketplace-interests", n.slug],
+                    }));
+                },
+                onSendFounderReply: async (f) => {
+                  (await ve({
+                    threadId: f.id,
+                    senderUserId: n.ownerUserId,
+                    senderName: h?.name ?? n.founderDisplayName ?? n.name,
+                    senderRole: "founder",
+                    body: "Thanks for reaching out. Happy to share more context and next steps for this deal.",
+                  }),
+                    await a.invalidateQueries({
+                      queryKey: ["marketplace-interests", n.slug],
+                    }));
+                },
+              })
+            : null,
+          e.jsxs("div", {
+            className: "grid grid-cols-1 gap-4 lg:grid-cols-2",
+            children: [
+              e.jsx(se, {
+                title: "Revenue history",
+                subtitle: `${n.growthPct >= 0 ? "+" : ""}${n.growthPct}% vs previous month`,
+                points: n.revenueHistory,
+              }),
+              e.jsx(se, {
+                title: "Traffic history",
+                subtitle: `${(n.trafficMonthlyVisitors ?? 0).toLocaleString("en-US")} visitors/mo · ${n.verification.traffic.status}`,
+                points: n.trafficHistory,
+                mode: "number",
+              }),
+            ],
+          }),
+          e.jsxs("section", {
+            className: "rounded-xl border border-border bg-card p-6 sm:p-8",
+            children: [
+              e.jsx("h2", {
+                className: "text-lg font-bold",
+                children: "Startup insights",
+              }),
+              e.jsx("div", {
+                className: "mt-4 border-t border-border pt-4",
+                children: e.jsxs("div", {
+                  className: "flex flex-wrap gap-2",
+                  children: [
+                    e.jsx("span", {
+                      className:
+                        "rounded-full border border-border bg-muted/30 px-3 py-1 text-xs font-medium text-foreground",
+                      children: n.category,
+                    }),
+                    b.insights.tags.map((f) =>
+                      e.jsx(
+                        "span",
+                        {
+                          className:
+                            "rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground",
+                          children: f,
+                        },
+                        f,
+                      ),
+                    ),
+                  ],
+                }),
+              }),
+            ],
+          }),
+          e.jsxs("section", {
+            className: "min-w-0",
+            children: [
+              e.jsxs("div", {
+                className:
+                  "mb-4 flex flex-wrap items-end justify-between gap-2",
+                children: [
+                  e.jsx("h2", {
+                    className: "text-lg font-bold",
+                    children: "Discover more startups",
+                  }),
+                  e.jsxs(U, {
+                    href: `${Q("/")}#leaderboard`,
+                    className:
+                      "inline-flex items-center gap-0.5 text-sm font-bold text-muted-foreground hover:text-foreground",
+                    children: [
+                      "Advanced Search",
+                      e.jsx(W, {
+                        className: "h-3.5 w-3.5 shrink-0 opacity-70",
+                        "aria-hidden": !0,
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+              e.jsx("div", {
+                className: "grid gap-4 sm:grid-cols-2 lg:grid-cols-3",
+                children: j.map((f) => e.jsx(Zt, { s: f }, f.slug)),
+              }),
+            ],
+          }),
+        ],
+      })
+    : e.jsxs("div", {
+        className: "flex flex-col gap-4 pb-8 sm:gap-6 sm:pb-10",
+        children: [
+          e.jsxs("nav", {
+            className:
+              "flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm",
+            children: [
+              e.jsx(U, {
+                href: Q("/"),
+                className: "hover:text-foreground",
+                children: "Ownerr",
+              }),
+              e.jsx(W, { className: "h-4 w-4 opacity-50" }),
+              e.jsx("span", {
+                className: "hover:text-foreground",
+                children: e.jsx(U, {
+                  href: Q("/acquire"),
+                  children: "Startup",
+                }),
+              }),
+              e.jsx(W, { className: "h-4 w-4 opacity-50" }),
+              e.jsx(F, {
+                slug: n.slug,
+                className: "font-bold text-foreground",
+                children: n.name,
+              }),
+            ],
+          }),
+          e.jsx("section", {
+            className:
+              "rounded-xl border border-border bg-card p-4 shadow-sm sm:p-8",
+            children: e.jsxs("div", {
+              className:
+                "flex flex-col gap-4 sm:gap-6 md:flex-row md:items-start md:justify-between",
+              children: [
+                e.jsxs("div", {
+                  className:
+                    "flex min-w-0 flex-1 flex-col gap-4 sm:gap-5 sm:flex-row sm:items-start",
+                  children: [
+                    e.jsx("div", {
+                      className:
+                        "flex h-20 w-20 shrink-0 items-center justify-center rounded-2xl border border-black/5 text-4xl font-bold shadow-md sm:h-24 sm:w-24 dark:border-white/10",
+                      style: { backgroundColor: n.logoColor },
+                      children: e.jsx("img", {
+                        src: `https://api.dicebear.com/7.x/shapes/svg?seed=${n.name}`,
+                        alt: `${n.name} avatar`,
+                        className: "h-14 w-14 sm:h-16 sm:w-16",
+                      }),
+                    }),
+                    e.jsxs("div", {
+                      className: "min-w-0 flex-1",
+                      children: [
+                        e.jsx("h1", {
+                          className:
+                            "text-2xl font-bold tracking-tight sm:text-4xl",
+                          children: e.jsx(F, {
+                            slug: n.slug,
+                            className: "text-foreground",
+                            children: n.name,
+                          }),
+                        }),
+                        e.jsx("p", {
+                          className:
+                            "mt-2 max-w-2xl text-sm leading-relaxed text-muted-foreground sm:mt-3 sm:text-base",
+                          children: n.description,
+                        }),
+                      ],
+                    }),
+                  ],
+                }),
+                e.jsxs("div", {
+                  className:
+                    "flex w-full shrink-0 gap-2 self-start md:w-auto md:self-center",
+                  children: [
+                    e.jsxs(O, {
+                      type: "button",
+                      variant: "outline",
+                      className: "h-10 flex-1 font-bold md:h-11 md:flex-none",
+                      onClick: () => {
+                        L();
+                      },
+                      children: [e.jsx(he, { className: "h-4 w-4" }), "Share"],
+                    }),
+                    g
+                      ? e.jsxs(O, {
+                          type: "button",
+                          variant: "outline",
+                          className:
+                            "h-10 flex-1 font-bold md:h-11 md:flex-none",
+                          disabled: !0,
+                          children: [
+                            e.jsx(J, { className: "h-4 w-4" }),
+                            "Founder controls below",
+                          ],
+                        })
+                      : e.jsxs(O, {
+                          type: "button",
+                          variant: "outline",
+                          className:
+                            "h-10 flex-1 font-bold md:h-11 md:flex-none",
+                          onClick: () => {
+                            if (!l) {
+                              d({
+                                action: "express_interest",
+                                onAllowed: () => {},
+                              });
+                              return;
+                            }
+                            c(!0);
+                          },
+                          children: [
+                            e.jsx(J, { className: "h-4 w-4" }),
+                            l
+                              ? i
+                                ? "Express Interest"
+                                : "Buyer mode required"
+                              : "Login to continue",
+                          ],
+                        }),
+                    e.jsx(O, {
+                      type: "button",
+                      variant: "outline",
+                      className: "h-10 flex-1 font-bold md:h-11 md:flex-none",
+                      asChild: !0,
+                      children: e.jsxs("a", {
+                        href: A,
+                        target: "_blank",
+                        rel: "noreferrer",
+                        children: [
+                          e.jsx(pe, { className: "h-4 w-4" }),
+                          "Visit",
+                        ],
+                      }),
+                    }),
+                  ],
+                }),
+              ],
+            }),
+          }),
+          e.jsxs("div", {
+            className:
+              "grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4",
+            children: [
+              e.jsxs("div", {
+                className:
+                  "rounded-xl border border-border bg-card p-4 text-center sm:p-5",
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: "All-time revenue",
+                  }),
+                  e.jsx("div", {
+                    className: "mt-2 text-2xl font-bold tabular-nums",
+                    children: V(b.allTimeRevenue),
+                  }),
+                  e.jsxs("p", {
+                    className: "mt-1 text-xs text-muted-foreground",
+                    children: ["Ranked #", b.leaderboardRank, " on Ownerr"],
+                  }),
+                ],
+              }),
+              e.jsxs("div", {
+                className:
+                  "rounded-xl border border-border bg-card p-4 text-center sm:p-5",
+                children: [
+                  e.jsxs("div", {
+                    className:
+                      "flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: [
+                      "MRR (estimated)",
+                      e.jsx(be, {
+                        className:
+                          "h-3.5 w-3.5 shrink-0 text-muted-foreground/80",
+                        "aria-hidden": !0,
+                      }),
+                    ],
+                  }),
+                  e.jsx("div", {
+                    className: "mt-2 text-2xl font-bold tabular-nums",
+                    children: V(w),
+                  }),
+                  e.jsxs("p", {
+                    className: "mt-1 text-xs text-muted-foreground",
+                    children: [b.activeSubscriptions, " active subscriptions"],
+                  }),
+                ],
+              }),
+              e.jsxs("div", {
+                className:
+                  "rounded-xl border border-border bg-card p-4 text-center sm:p-5",
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: "Founder",
+                  }),
+                  e.jsx("div", {
+                    className: "mt-3 flex min-w-0 flex-col items-center gap-2",
+                    children: h
+                      ? e.jsxs(B, {
+                          handle: h.handle,
+                          className:
+                            "flex min-w-0 flex-col items-center gap-2 font-bold text-foreground sm:flex-row",
+                          children: [
+                            e.jsx("img", {
+                              src: Z(h.avatarSeed),
+                              alt: "",
+                              className:
+                                "h-11 w-11 shrink-0 rounded-full border border-border bg-muted",
+                            }),
+                            e.jsx("span", {
+                              className:
+                                "max-w-full truncate text-center sm:text-left",
+                              children: h.name,
+                            }),
+                          ],
+                        })
+                      : e.jsx(B, {
+                          handle: n.founderHandle,
+                          className:
+                            "block max-w-full truncate font-bold text-foreground",
+                          children: n.founderDisplayName ?? n.founderHandle,
+                        }),
+                  }),
+                ],
+              }),
+              e.jsxs("div", {
+                className:
+                  "rounded-xl border border-border bg-card p-4 text-center sm:p-5",
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: "Founded",
+                  }),
+                  e.jsx("div", {
+                    className: "mt-2 text-2xl font-bold tabular-nums",
+                    children: P,
+                  }),
+                ],
+              }),
+            ],
+          }),
+          e.jsx(ge, { startup: n }),
+          e.jsx(Oe, { listing: n }),
+          g
+            ? e.jsx(Re, {
+                listing: n,
+                interestRecords: v.data ?? [],
+                onVerificationUpdated: async (f, k, C) => {
+                  (await Ne(n, f, k, C),
+                    await Promise.all([
+                      a.invalidateQueries({
+                        queryKey: ["marketplace-listing", n.slug],
+                      }),
+                      a.invalidateQueries({
+                        queryKey: ["marketplace-listings"],
+                      }),
+                    ]));
+                },
+                onDomainVerify: async () => {
+                  (await je(n),
+                    await Promise.all([
+                      a.invalidateQueries({
+                        queryKey: ["marketplace-listing", n.slug],
+                      }),
+                      a.invalidateQueries({
+                        queryKey: ["marketplace-listings"],
+                      }),
+                    ]));
+                },
+                onInterestStageUpdated: async (f, k) => {
+                  (await ye(f, k),
+                    await a.invalidateQueries({
+                      queryKey: ["marketplace-interests", n.slug],
+                    }));
+                },
+                onSendFounderReply: async (f) => {
+                  (await ve({
+                    threadId: f.id,
+                    senderUserId: n.ownerUserId,
+                    senderName: h?.name ?? n.founderDisplayName ?? n.name,
+                    senderRole: "founder",
+                    body: "Thanks for reaching out. Happy to share more context and next steps for this deal.",
+                  }),
+                    await a.invalidateQueries({
+                      queryKey: ["marketplace-interests", n.slug],
+                    }));
+                },
+              })
+            : null,
+          e.jsxs("div", {
+            className: "grid grid-cols-1 gap-4 lg:grid-cols-2",
+            children: [
+              e.jsx(se, {
+                title: "Revenue history",
+                subtitle: `${n.growthPct >= 0 ? "+" : ""}${n.growthPct}% vs previous month`,
+                points: n.revenueHistory,
+              }),
+              e.jsx(se, {
+                title: "Traffic history",
+                subtitle: `${(n.trafficMonthlyVisitors ?? 0).toLocaleString("en-US")} visitors/mo · ${n.verification.traffic.status}`,
+                points: n.trafficHistory,
+                mode: "number",
+              }),
+            ],
+          }),
+          e.jsxs("section", {
+            className: "rounded-xl border border-border bg-card p-4 sm:p-8",
+            children: [
+              e.jsx("h2", {
+                className: "mb-4 text-lg font-bold sm:mb-6",
+                children: "Startup insights",
+              }),
+              e.jsxs("div", {
+                className: "grid gap-5 sm:gap-8 lg:grid-cols-2",
+                children: [
+                  e.jsxs("div", {
+                    className: "space-y-5 sm:space-y-6",
+                    children: [
+                      e.jsx(G, {
+                        icon: e.jsx(Ze, { className: "h-4 w-4" }),
+                        label: "Value proposition",
+                        body: b.insights.valueProposition,
+                      }),
+                      e.jsx(G, {
+                        icon: e.jsx(et, { className: "h-4 w-4" }),
+                        label: "Problem solved",
+                        body: b.insights.problemSolved,
+                      }),
+                      e.jsx(G, {
+                        icon: e.jsx(tt, { className: "h-4 w-4" }),
+                        label: "Pricing",
+                        body: b.insights.pricing,
+                      }),
+                    ],
+                  }),
+                  e.jsxs("div", {
+                    className: "space-y-5 sm:space-y-6",
+                    children: [
+                      e.jsx(G, {
+                        icon: e.jsx(we, { className: "h-4 w-4" }),
+                        label: "Target audience",
+                        body: b.insights.targetAudience,
+                      }),
+                      e.jsxs("div", {
+                        children: [
+                          e.jsxs("div", {
+                            className:
+                              "mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                            children: [
+                              e.jsx(rt, { className: "h-4 w-4" }),
+                              "Business details",
+                            ],
+                          }),
+                          e.jsxs("div", {
+                            className: "flex flex-wrap gap-2",
+                            children: [
+                              b.insights.businessPills.map((f) =>
+                                e.jsx(
+                                  "span",
+                                  {
+                                    className:
+                                      "rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-bold",
+                                    children: f,
+                                  },
+                                  f,
+                                ),
+                              ),
+                              e.jsxs("span", {
+                                className:
+                                  "inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-bold",
+                                children: [
+                                  e.jsx(we, { className: "h-3.5 w-3.5" }),
+                                  b.insights.userCountLabel,
+                                ],
+                              }),
+                            ],
+                          }),
+                        ],
+                      }),
+                      e.jsx(G, {
+                        icon: e.jsx(st, { className: "h-4 w-4" }),
+                        label: "Additional info",
+                        body: b.insights.additionalInfo,
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+              e.jsx("div", {
+                className:
+                  "mt-6 flex flex-wrap gap-2 border-t border-border pt-5 sm:mt-8 sm:pt-6",
+                children: b.insights.tags.map((f) =>
+                  e.jsx(
+                    "span",
+                    {
+                      className:
+                        "rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground",
+                      children: f,
+                    },
+                    f,
+                  ),
+                ),
+              }),
+            ],
+          }),
+          e.jsxs("section", {
+            className: "rounded-xl border border-border bg-card p-4 sm:p-8",
+            children: [
+              e.jsx("h2", {
+                className: "mb-4 text-lg font-bold sm:mb-6",
+                children: "Tech stack",
+              }),
+              e.jsxs("div", {
+                className: "space-y-4 sm:space-y-5",
+                children: [
+                  e.jsxs("div", {
+                    children: [
+                      e.jsx("div", {
+                        className:
+                          "mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                        children: "Frontend",
+                      }),
+                      e.jsx("div", {
+                        className: "flex flex-wrap gap-2",
+                        children: b.techStack.frontend.map((f) =>
+                          e.jsx(Le, { tech: f }, f),
+                        ),
+                      }),
+                    ],
+                  }),
+                  e.jsxs("div", {
+                    children: [
+                      e.jsx("div", {
+                        className:
+                          "mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                        children: "Backend",
+                      }),
+                      e.jsx("div", {
+                        className: "flex flex-wrap gap-2",
+                        children: b.techStack.backend.map((f) =>
+                          e.jsx(Le, { tech: f }, f),
+                        ),
+                      }),
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+          e.jsxs("section", {
+            className:
+              "rounded-xl border border-border bg-card px-4 py-7 text-center sm:px-10 sm:py-10",
+            children: [
+              e.jsx(at, {
+                className: "mx-auto mb-4 h-8 w-8 text-muted-foreground/40",
+              }),
+              e.jsx("blockquote", {
+                className:
+                  "mx-auto max-w-2xl text-base font-medium leading-relaxed sm:text-lg",
+                children: b.founderQuote,
+              }),
+              e.jsx("div", {
+                className:
+                  "mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2",
+                children: h
+                  ? e.jsxs(e.Fragment, {
+                      children: [
+                        e.jsxs(B, {
+                          handle: h.handle,
+                          className:
+                            "inline-flex items-center gap-3 text-foreground",
+                          children: [
+                            e.jsx("img", {
+                              src: Z(h.avatarSeed),
+                              alt: "",
+                              className:
+                                "h-10 w-10 shrink-0 rounded-full border border-border bg-muted",
+                            }),
+                            e.jsx("span", {
+                              className: "text-left font-bold",
+                              children: h.name,
+                            }),
+                          ],
+                        }),
+                        e.jsxs("div", {
+                          className:
+                            "max-w-full text-center text-sm text-muted-foreground sm:text-left",
+                          children: [
+                            "Founder of",
+                            " ",
+                            e.jsx(F, {
+                              slug: n.slug,
+                              className:
+                                "text-muted-foreground hover:text-foreground",
+                              children: n.name,
+                            }),
+                          ],
+                        }),
+                      ],
+                    })
+                  : e.jsxs("div", {
+                      className: "flex items-center gap-3 text-left",
+                      children: [
+                        e.jsx("img", {
+                          src: Z(n.founderHandle),
+                          alt: "",
+                          className:
+                            "h-10 w-10 rounded-full border border-border bg-muted",
+                        }),
+                        e.jsxs("div", {
+                          children: [
+                            e.jsx(B, {
+                              handle: n.founderHandle,
+                              className: "block font-bold text-foreground",
+                              children: n.founderDisplayName ?? n.founderHandle,
+                            }),
+                            e.jsxs("div", {
+                              className: "text-sm text-muted-foreground",
+                              children: [
+                                "Founder of",
+                                " ",
+                                e.jsx(F, {
+                                  slug: n.slug,
+                                  className: "text-muted-foreground",
+                                  children: n.name,
+                                }),
+                              ],
+                            }),
+                          ],
+                        }),
+                      ],
+                    }),
+              }),
+            ],
+          }),
+          e.jsx(nt, {
+            open: o,
+            onOpenChange: c,
+            children: e.jsxs(it, {
+              className: "max-w-md border-border bg-card sm:rounded-xl",
+              children: [
+                e.jsxs(ot, {
+                  children: [
+                    e.jsxs(lt, {
+                      className: "text-left text-xl font-bold",
+                      children: ["Express Interest in ", n.name],
+                    }),
+                    e.jsx(dt, {
+                      className: "text-left text-sm text-muted-foreground",
+                      children:
+                        "Non-binding expression of interest. Your message helps the founder understand your profile. No transaction is handled on the platform.",
+                    }),
+                  ],
+                }),
+                e.jsx(er, {
+                  listing: n,
+                  startupName: n.name,
+                  onSent: async () => {
+                    (await Promise.all([
+                      a.invalidateQueries({
+                        queryKey: ["marketplace-interests", n.slug],
+                      }),
+                      a.invalidateQueries({
+                        queryKey: ["marketplace-listing", n.slug],
+                      }),
+                    ]),
+                      c(!1),
+                      r({
+                        title: "Interest expressed",
+                        description: "The founder will be notified.",
+                      }));
+                  },
+                }),
+              ],
+            }),
+          }),
+        ],
+      });
+}
+function Le({ tech: t }) {
+  const a = `https://icon.horse/icon/${t.toLowerCase().replace(/ /g, "").replace(/\./g, "") + ".com"}`;
+  return e.jsxs("span", {
+    className:
+      "inline-flex items-center gap-2 rounded-full border border-border bg-background px-3 py-1.5 text-xs font-bold",
+    children: [
+      e.jsx("img", { src: a, alt: `${t} logo`, className: "h-4 w-4" }),
+      t,
+    ],
+  });
+}
+function Oe({ listing: t }) {
+  return e.jsxs("section", {
+    className: "rounded-xl border border-border bg-card p-4 sm:p-6",
+    children: [
+      e.jsxs("div", {
+        className:
+          "mb-4 flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between",
+        children: [
+          e.jsxs("div", {
+            children: [
+              e.jsx("h2", {
+                className:
+                  "text-sm font-bold uppercase tracking-wider text-muted-foreground",
+                children: "Trust & verification",
+              }),
+              e.jsx("p", {
+                className: "mt-1 text-sm text-muted-foreground",
+                children:
+                  "Ownerr does not handle payments. Deals happen off-platform after introductions.",
+              }),
+            ],
+          }),
+          e.jsxs("div", {
+            className:
+              "min-w-[180px] rounded-xl border border-border bg-muted/20 p-3",
+            children: [
+              e.jsxs("div", {
+                className: "flex items-center justify-between",
+                children: [
+                  e.jsx("span", {
+                    className:
+                      "text-xs font-bold uppercase tracking-wide text-muted-foreground",
+                    children: "Trust score",
+                  }),
+                  e.jsxs("span", {
+                    className: "text-sm font-bold",
+                    children: [t.trustScore, "/100"],
+                  }),
+                ],
+              }),
+              e.jsx("div", {
+                className: "mt-2 h-2 overflow-hidden rounded-full bg-muted",
+                children: e.jsx("div", {
+                  className: "mp-progress-fill h-full rounded-full",
+                  style: { width: `${t.trustScore}%` },
+                }),
+              }),
+              e.jsx("div", {
+                className: "mt-2 text-sm font-bold text-foreground",
+                children: ct(t.trustScore),
+              }),
+            ],
+          }),
+        ],
+      }),
+      e.jsxs("div", {
+        className: "grid grid-cols-1 gap-3 sm:grid-cols-3",
+        children: [
+          e.jsxs("div", {
+            className:
+              "flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3",
+            children: [
+              e.jsx("div", {
+                className: `flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${t.verification.revenue.status === "verified" ? "mp-badge-lime" : "bg-muted mp-muted"}`,
+                children: e.jsx(ut, { className: "h-4 w-4" }),
+              }),
+              e.jsxs("div", {
+                className: "min-w-0",
+                children: [
+                  e.jsxs("div", {
+                    className: "text-xs font-bold",
+                    children: ["Revenue ", t.verification.revenue.status],
+                  }),
+                  e.jsxs("div", {
+                    className: "text-[10px] text-muted-foreground",
+                    children: [
+                      t.verification.revenue.provider ??
+                        "No provider connected",
+                      " · ",
+                      t.revenueHistory.length,
+                      " months",
+                    ],
+                  }),
+                ],
+              }),
+            ],
+          }),
+          e.jsxs("div", {
+            className:
+              "flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3",
+            children: [
+              e.jsx("div", {
+                className: `flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${t.verification.domain.status === "verified" ? "mp-badge-orange" : "bg-muted mp-muted"}`,
+                children: e.jsx(mt, { className: "h-4 w-4" }),
+              }),
+              e.jsxs("div", {
+                className: "min-w-0",
+                children: [
+                  e.jsxs("div", {
+                    className: "text-xs font-bold",
+                    children: ["Domain ", t.verification.domain.status],
+                  }),
+                  e.jsx("div", {
+                    className: "text-[10px] text-muted-foreground",
+                    children: t.verification.domain.note,
+                  }),
+                ],
+              }),
+            ],
+          }),
+          e.jsxs("div", {
+            className:
+              "flex items-center gap-3 rounded-lg border border-border bg-muted/20 p-3",
+            children: [
+              e.jsx("div", {
+                className: `flex h-8 w-8 shrink-0 items-center justify-center rounded-full ${t.verification.traffic.status === "verified" ? "mp-badge-amber" : "bg-muted mp-muted"}`,
+                children: e.jsx(xt, { className: "h-4 w-4" }),
+              }),
+              e.jsxs("div", {
+                className: "min-w-0",
+                children: [
+                  e.jsxs("div", {
+                    className: "text-xs font-bold",
+                    children: ["Traffic ", t.verification.traffic.status],
+                  }),
+                  e.jsx("div", {
+                    className: "text-[10px] text-muted-foreground",
+                    children:
+                      t.trafficMonthlyVisitors != null
+                        ? `${t.trafficMonthlyVisitors.toLocaleString()} visitors/mo · ${t.trafficTrend}`
+                        : "No data",
+                  }),
+                  e.jsx("div", {
+                    className: "mt-1 text-[10px] text-muted-foreground",
+                    children:
+                      t.verification.traffic.sourceLabel ?? "Manual upload",
+                  }),
+                ],
+              }),
+            ],
+          }),
+        ],
+      }),
+    ],
+  });
+}
+function Re({
+  listing: t,
+  interestRecords: r,
+  onVerificationUpdated: a,
+  onDomainVerify: s,
+  onInterestStageUpdated: i,
+  onSendFounderReply: l,
+}) {
+  const d = [t.revenueVerified, t.domainVerified, t.trafficVerified],
+    u = d.filter(Boolean).length,
+    x = Math.round((u / d.length) * 100);
+  return e.jsxs("section", {
+    className: "rounded-xl border border-border bg-card p-4 sm:p-6",
+    children: [
+      e.jsxs("div", {
+        className:
+          "flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between",
+        children: [
+          e.jsxs("div", {
+            children: [
+              e.jsx("h2", {
+                className: "text-lg font-bold",
+                children: "Founder controls",
+              }),
+              e.jsx("p", {
+                className: "text-sm text-muted-foreground",
+                children:
+                  "Mock-only verification and inbox tools for the listing owner.",
+              }),
+            ],
+          }),
+          e.jsxs("div", {
+            className: "text-sm text-muted-foreground",
+            children: [
+              "Inbox: ",
+              e.jsx("span", {
+                className: "font-bold text-foreground",
+                children: r.length,
+              }),
+            ],
+          }),
+        ],
+      }),
+      e.jsxs("div", {
+        className: "mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3",
+        children: [
+          e.jsx(ce, {
+            title: "Revenue verification",
+            description: `${t.verification.revenue.note} Provider: ${t.verification.revenue.provider ?? "none"}`,
+            actions: [
+              {
+                label: "Mark pending",
+                onClick: () =>
+                  a("revenue", "pending", t.revenueProvider ?? "Stripe"),
+              },
+              {
+                label: "Verify",
+                onClick: () =>
+                  a("revenue", "verified", t.revenueProvider ?? "Stripe"),
+              },
+            ],
+          }),
+          e.jsx(ce, {
+            title: "Domain verification",
+            description: `Add this TXT record: ${t.verification.domain.expectedValue ?? "n/a"}`,
+            actions: [{ label: "Verify TXT record", onClick: s }],
+            helper:
+              "Why it matters: buyers trust that the founder actually controls the domain before moving off-platform.",
+          }),
+          e.jsx(ce, {
+            title: "Traffic connection",
+            description: `${t.verification.traffic.note} Source: ${t.verification.traffic.sourceLabel ?? "Manual upload"}`,
+            actions: [
+              {
+                label: "Manual upload",
+                onClick: () => a("traffic", "verified", "Manual upload"),
+              },
+              {
+                label: "Connect GA",
+                onClick: () => a("traffic", "verified", "Google Analytics"),
+              },
+            ],
+          }),
+        ],
+      }),
+      e.jsxs("div", {
+        className: "mt-5 rounded-lg border border-border bg-muted/20 p-4",
+        children: [
+          e.jsxs("div", {
+            className: "flex items-center justify-between",
+            children: [
+              e.jsxs("div", {
+                children: [
+                  e.jsx("div", {
+                    className:
+                      "text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+                    children: "Founder checklist",
+                  }),
+                  e.jsxs("div", {
+                    className: "text-sm font-bold text-foreground",
+                    children: [x, "% complete"],
+                  }),
+                ],
+              }),
+              e.jsxs("div", {
+                className: "text-xs text-muted-foreground",
+                children: [u, "/3 completed"],
+              }),
+            ],
+          }),
+          e.jsx("div", {
+            className: "mt-3 h-2 overflow-hidden rounded-full bg-muted",
+            children: e.jsx("div", {
+              className: "mp-progress-fill h-full rounded-full",
+              style: { width: `${x}%` },
+            }),
+          }),
+          e.jsxs("div", {
+            className: "mt-3 space-y-2 text-sm",
+            children: [
+              e.jsx(ue, { done: t.revenueVerified, label: "Verify revenue" }),
+              e.jsx(ue, { done: t.domainVerified, label: "Verify domain" }),
+              e.jsx(ue, { done: t.trafficVerified, label: "Add traffic" }),
+            ],
+          }),
+        ],
+      }),
+      e.jsxs("div", {
+        className: "mt-5 rounded-lg border border-border bg-muted/20 p-4",
+        children: [
+          e.jsx("div", {
+            className:
+              "mb-3 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+            children: "Inbox",
+          }),
+          r.length === 0
+            ? e.jsx("p", {
+                className: "text-sm text-muted-foreground",
+                children: "No buyer messages yet.",
+              })
+            : e.jsx("div", {
+                className: "space-y-3",
+                children: r
+                  .slice()
+                  .sort(
+                    (o, c) =>
+                      new Date(c.createdAt).getTime() -
+                      new Date(o.createdAt).getTime(),
+                  )
+                  .map((o) =>
+                    e.jsxs(
+                      "div",
+                      {
+                        className:
+                          "rounded-lg border border-border bg-card p-3",
+                        children: [
+                          e.jsxs("div", {
+                            className:
+                              "flex flex-wrap items-center justify-between gap-2",
+                            children: [
+                              e.jsx("div", {
+                                className: "font-bold",
+                                children: o.buyerName,
+                              }),
+                              e.jsx("div", {
+                                className: "text-xs text-muted-foreground",
+                                children: new Date(
+                                  o.createdAt,
+                                ).toLocaleString(),
+                              }),
+                            ],
+                          }),
+                          e.jsxs("div", {
+                            className: "mt-1 text-xs text-muted-foreground",
+                            children: [
+                              o.email,
+                              " · ",
+                              o.buyerRole,
+                              o.offerAmount ? ` · ${V(o.offerAmount)}` : "",
+                            ],
+                          }),
+                          e.jsxs("div", {
+                            className:
+                              "mt-3 flex items-center justify-between gap-2",
+                            children: [
+                              e.jsx("span", {
+                                className:
+                                  "rounded-full border border-border px-2 py-0.5 text-[10px] font-bold",
+                                children: o.stage,
+                              }),
+                              e.jsxs("div", {
+                                className: "flex items-center gap-2",
+                                children: [
+                                  e.jsx(O, {
+                                    type: "button",
+                                    variant: "outline",
+                                    size: "sm",
+                                    onClick: () => {
+                                      l(o);
+                                    },
+                                    children: "Reply",
+                                  }),
+                                  e.jsxs(ft, {
+                                    value: o.stage,
+                                    onValueChange: (c) => {
+                                      i(o, c);
+                                    },
+                                    children: [
+                                      e.jsx(ht, {
+                                        className: "h-8 w-[150px]",
+                                        children: e.jsx(pt, {}),
+                                      }),
+                                      e.jsxs(bt, {
+                                        children: [
+                                          e.jsx(ee, {
+                                            value: "interested",
+                                            children: "Interested",
+                                          }),
+                                          e.jsx(ee, {
+                                            value: "contacted",
+                                            children: "Contacted",
+                                          }),
+                                          e.jsx(ee, {
+                                            value: "negotiating",
+                                            children: "Negotiating",
+                                          }),
+                                          e.jsx(ee, {
+                                            value: "closed",
+                                            children: "Closed",
+                                          }),
+                                        ],
+                                      }),
+                                    ],
+                                  }),
+                                ],
+                              }),
+                            ],
+                          }),
+                          e.jsx("div", {
+                            className: "mt-3 space-y-2",
+                            children: o.messages.map((c) =>
+                              e.jsxs(
+                                "div",
+                                {
+                                  className:
+                                    "rounded-md border border-border bg-muted/20 px-3 py-2",
+                                  children: [
+                                    e.jsxs("div", {
+                                      className:
+                                        "text-[10px] font-bold uppercase tracking-wide text-muted-foreground",
+                                      children: [
+                                        c.senderName,
+                                        " · ",
+                                        c.senderRole,
+                                      ],
+                                    }),
+                                    e.jsx("p", {
+                                      className: "mt-1 text-sm text-foreground",
+                                      children: c.body,
+                                    }),
+                                  ],
+                                },
+                                c.id,
+                              ),
+                            ),
+                          }),
+                        ],
+                      },
+                      o.id,
+                    ),
+                  ),
+              }),
+        ],
+      }),
+    ],
+  });
+}
+function ce({ title: t, description: r, actions: a, helper: s }) {
+  return e.jsxs("div", {
+    className: "rounded-lg border border-border bg-muted/20 p-4",
+    children: [
+      e.jsx("div", { className: "text-sm font-bold", children: t }),
+      e.jsx("p", {
+        className: "mt-1 text-sm text-muted-foreground",
+        children: r,
+      }),
+      s
+        ? e.jsx("p", {
+            className: "mt-2 text-xs text-muted-foreground",
+            children: s,
+          })
+        : null,
+      e.jsx("div", {
+        className: "mt-3 flex flex-wrap gap-2",
+        children: a.map((i) =>
+          e.jsx(
+            O,
+            {
+              type: "button",
+              variant: "outline",
+              size: "sm",
+              onClick: () => {
+                i.onClick();
+              },
+              children: i.label,
+            },
+            i.label,
+          ),
+        ),
+      }),
+    ],
+  });
+}
+function ue({ done: t, label: r }) {
+  return e.jsxs("div", {
+    className: "flex items-center justify-between gap-3",
+    children: [
+      e.jsx("span", { className: "text-foreground", children: r }),
+      e.jsx("span", {
+        className: `rounded-full px-2 py-0.5 text-[10px] font-bold ${t ? "mp-badge-lime" : "bg-muted mp-muted"}`,
+        children: t ? "Done" : "Pending",
+      }),
+    ],
+  });
+}
+function G({ icon: t, label: r, body: a }) {
+  return e.jsxs("div", {
+    children: [
+      e.jsxs("div", {
+        className:
+          "mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground",
+        children: [t, r],
+      }),
+      e.jsx("p", {
+        className: "text-sm leading-relaxed text-foreground",
+        children: a,
+      }),
+    ],
+  });
+}
+function er({ listing: t, startupName: r, onSent: a }) {
+  const { currentUser: s } = Ie(),
+    { toast: i } = Te(),
+    [l, d] = D.useState("John Doe"),
+    [u, x] = D.useState("john@example.com"),
+    [o, c] = D.useState("Can you share more about your growth and churn?"),
+    [m, p] = D.useState("10000");
+  async function n(h) {
+    if ((h.preventDefault(), !!s && !(o.trim().length < 20)))
+      try {
+        (await vt({
+          listingId: t.slug,
+          buyerUserId: s.id,
+          buyerName: l.trim() || s.name,
+          buyerRole: s.role,
+          email: u.trim(),
+          message: o.trim(),
+          offerAmount: m.trim() ? Number(m.replace(/[^0-9.]/g, "")) : null,
+        }),
+          await a());
+      } catch (g) {
+        i({
+          title: "Could not send interest",
+          description: g instanceof Error ? g.message : "Please try again.",
+          variant: "destructive",
+        });
+      }
+  }
+  return e.jsxs("form", {
+    onSubmit: n,
+    className: "space-y-4",
+    children: [
+      e.jsxs("div", {
+        className: "space-y-2",
+        children: [
+          e.jsx(te, {
+            htmlFor: "cs-name",
+            className: "font-bold",
+            children: "Your Name *",
+          }),
+          e.jsx(le, {
+            id: "cs-name",
+            value: l,
+            onChange: (h) => d(h.target.value),
+            className: "border-border bg-background",
+            autoComplete: "name",
+          }),
+        ],
+      }),
+      e.jsxs("div", {
+        className: "space-y-2",
+        children: [
+          e.jsx(te, {
+            htmlFor: "cs-email",
+            className: "font-bold",
+            children: "Your Email *",
+          }),
+          e.jsx(le, {
+            id: "cs-email",
+            type: "email",
+            value: u,
+            onChange: (h) => x(h.target.value),
+            className: "border-border bg-background",
+            autoComplete: "email",
+          }),
+        ],
+      }),
+      e.jsxs("div", {
+        className: "space-y-2",
+        children: [
+          e.jsx(te, {
+            htmlFor: "cs-msg",
+            className: "font-bold",
+            children: "Message (minimum 20 characters) *",
+          }),
+          e.jsx(Ke, {
+            id: "cs-msg",
+            value: o,
+            onChange: (h) => c(h.target.value),
+            rows: 4,
+            className: "resize-y border-border bg-background",
+            placeholder: `Tell us about your interest in ${r}…`,
+          }),
+        ],
+      }),
+      e.jsxs("div", {
+        className: "space-y-2",
+        children: [
+          e.jsx(te, {
+            htmlFor: "cs-offer",
+            className: "font-bold",
+            children: "Offer Amount (USD) (optional)",
+          }),
+          e.jsx(le, {
+            id: "cs-offer",
+            inputMode: "numeric",
+            value: m,
+            onChange: (h) => p(h.target.value),
+            className: "border-border bg-background",
+          }),
+        ],
+      }),
+      e.jsx(O, {
+        type: "submit",
+        className:
+          "w-full bg-[color:var(--terminal-ochre)] font-bold text-[color:var(--mp-text-on-accent)] hover:bg-[color:var(--terminal-ochre-hover)]",
+        children: "Send message",
+      }),
+      e.jsx("p", {
+        className: "text-center text-xs text-muted-foreground",
+        children: "Ownerr does not handle payments. Deals happen off-platform.",
+      }),
+    ],
+  });
+}
+export { sr as default };

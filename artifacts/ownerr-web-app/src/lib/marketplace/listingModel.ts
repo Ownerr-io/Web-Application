@@ -1,4 +1,9 @@
-import type { Startup, MarketplaceListing, TimeSeriesPoint, TrustLabel } from '@/lib/marketplace/types';
+import type {
+  Startup,
+  MarketplaceListing,
+  TimeSeriesPoint,
+  TrustLabel,
+} from "@/lib/marketplace/types";
 function hash(seed: string): number {
   let value = 0;
   for (let i = 0; i < seed.length; i++) {
@@ -21,12 +26,21 @@ function monthLabel(date: Date): string {
 
 function roundSeries(series: number[], target: number): number[] {
   const rounded = series.map((value) => Math.max(0, Math.round(value)));
-  const drift = Math.round(target) - rounded.reduce((sum, value) => sum + value, 0);
-  rounded[rounded.length - 1] = Math.max(0, rounded[rounded.length - 1] + drift);
+  const drift =
+    Math.round(target) - rounded.reduce((sum, value) => sum + value, 0);
+  rounded[rounded.length - 1] = Math.max(
+    0,
+    rounded[rounded.length - 1] + drift,
+  );
   return rounded;
 }
 
-function buildHistorySeries(seed: string, currentValue: number, months: number, variance: number): TimeSeriesPoint[] {
+function buildHistorySeries(
+  seed: string,
+  currentValue: number,
+  months: number,
+  variance: number,
+): TimeSeriesPoint[] {
   const values: number[] = [];
   let pointer = hash(seed) || 17;
   const next = () => {
@@ -75,7 +89,13 @@ function inferNicheTags(startup: Startup): string[] {
 function buildKeywords(startup: Startup, nicheTags: string[]): string[] {
   return Array.from(
     new Set(
-      [startup.name, startup.slug, startup.category, startup.description, ...nicheTags]
+      [
+        startup.name,
+        startup.slug,
+        startup.category,
+        startup.description,
+        ...nicheTags,
+      ]
         .join(" ")
         .toLowerCase()
         .split(/[^a-z0-9]+/g)
@@ -92,7 +112,9 @@ export function calculateGrowthPct(revenueHistory: TimeSeriesPoint[]): number {
   return Math.round(((last - prev) / prev) * 100);
 }
 
-function buildVerification(startup: Startup): MarketplaceListing["verification"] {
+function buildVerification(
+  startup: Startup,
+): MarketplaceListing["verification"] {
   const now = new Date().toISOString();
   return {
     revenue: {
@@ -110,7 +132,9 @@ function buildVerification(startup: Startup): MarketplaceListing["verification"]
       provider: "DNS TXT",
       updatedAt: startup.domainVerified ? now : null,
       requestedAt: startup.domainVerified ? now : null,
-      note: startup.domainVerified ? "DNS ownership confirmed" : "DNS check not started",
+      note: startup.domainVerified
+        ? "DNS ownership confirmed"
+        : "DNS check not started",
       mode: "dns_txt",
       sourceLabel: "TXT record",
       expectedValue: `ownerr-verification=${startup.slug}-${Math.abs(hash(startup.slug)).toString(36)}`,
@@ -120,14 +144,23 @@ function buildVerification(startup: Startup): MarketplaceListing["verification"]
       provider: startup.trafficVerified ? "Google Analytics" : null,
       updatedAt: startup.trafficVerified ? now : null,
       requestedAt: startup.trafficVerified ? now : null,
-      note: startup.trafficVerified ? "Analytics property connected" : "Analytics not connected",
+      note: startup.trafficVerified
+        ? "Analytics property connected"
+        : "Analytics not connected",
       mode: startup.trafficVerified ? "google_analytics" : "manual",
-      sourceLabel: startup.trafficVerified ? "Google Analytics connected (mock)" : "Manual upload",
+      sourceLabel: startup.trafficVerified
+        ? "Google Analytics connected (mock)"
+        : "Manual upload",
     },
   };
 }
 
-export function computeTrustScore(listing: Pick<MarketplaceListing, "revenueVerified" | "domainVerified" | "trafficVerified">): number {
+export function computeTrustScore(
+  listing: Pick<
+    MarketplaceListing,
+    "revenueVerified" | "domainVerified" | "trafficVerified"
+  >,
+): number {
   const score =
     (listing.revenueVerified ? 40 : 0) +
     (listing.domainVerified ? 30 : 0) +
@@ -146,7 +179,8 @@ function normalizeRevenueVerification(
   revenue: number,
   verification: MarketplaceListing["verification"]["revenue"],
 ): MarketplaceListing["verification"]["revenue"] {
-  const historyIsSufficient = revenueHistory.filter((point) => point.value > 0).length >= 3;
+  const historyIsSufficient =
+    revenueHistory.filter((point) => point.value > 0).length >= 3;
   const hasMrr = revenue > 0;
   if (!historyIsSufficient || !hasMrr) {
     return {
@@ -164,22 +198,42 @@ export function buildMarketplaceListingFromStartup(
 ): MarketplaceListing {
   const revenueHistory =
     overrides?.revenueHistory ??
-    buildHistorySeries(`${startup.slug}:revenue`, Math.max(1, Math.round(startup.revenue)), 12, 0.18);
+    buildHistorySeries(
+      `${startup.slug}:revenue`,
+      Math.max(1, Math.round(startup.revenue)),
+      12,
+      0.18,
+    );
   const growthPct = overrides?.growthPct ?? calculateGrowthPct(revenueHistory);
   const trafficBase =
-    startup.trafficMonthlyVisitors ?? Math.max(400, Math.round(startup.customers * 2.2) || startup.revenue * 2);
+    startup.trafficMonthlyVisitors ??
+    Math.max(400, Math.round(startup.customers * 2.2) || startup.revenue * 2);
   const trafficHistory =
     overrides?.trafficHistory ??
-    buildHistorySeries(`${startup.slug}:traffic`, Math.max(1, Math.round(trafficBase)), 12, 0.22);
+    buildHistorySeries(
+      `${startup.slug}:traffic`,
+      Math.max(1, Math.round(trafficBase)),
+      12,
+      0.22,
+    );
   const nicheTags = overrides?.nicheTags ?? inferNicheTags(startup);
   const createdAt =
     overrides?.createdAt ??
-    new Date(startup.foundedYear, Math.min(hash(startup.slug) % 12, 11), 1).toISOString();
+    new Date(
+      startup.foundedYear,
+      Math.min(hash(startup.slug) % 12, 11),
+      1,
+    ).toISOString();
   const updatedAt = overrides?.updatedAt ?? new Date().toISOString();
-  const verificationBase = overrides?.verification ?? buildVerification(startup);
+  const verificationBase =
+    overrides?.verification ?? buildVerification(startup);
   const verification = {
     ...verificationBase,
-    revenue: normalizeRevenueVerification(revenueHistory, startup.revenue, verificationBase.revenue),
+    revenue: normalizeRevenueVerification(
+      revenueHistory,
+      startup.revenue,
+      verificationBase.revenue,
+    ),
   };
 
   const enriched: MarketplaceListing = {
@@ -194,7 +248,8 @@ export function buildMarketplaceListingFromStartup(
     growthPct,
     trustScore: 0,
     trustLabel: "Low Trust",
-    trafficMonthlyVisitors: trafficHistory.at(-1)?.value ?? startup.trafficMonthlyVisitors ?? null,
+    trafficMonthlyVisitors:
+      trafficHistory.at(-1)?.value ?? startup.trafficMonthlyVisitors ?? null,
     trafficTrend:
       trafficHistory.length >= 2
         ? trafficHistory.at(-1)!.value > trafficHistory.at(-2)!.value
@@ -218,9 +273,19 @@ export function buildMarketplaceListingFromStartup(
   enriched.trustLabel = trustLabelFromScore(enriched.trustScore);
   return enriched;
 }
-export function bestDealScore(listing: Pick<MarketplaceListing, "revenue" | "growthPct" | "multiple" | "trustScore">): number {
+export function bestDealScore(
+  listing: Pick<
+    MarketplaceListing,
+    "revenue" | "growthPct" | "multiple" | "trustScore"
+  >,
+): number {
   const normalizedRevenue = Math.min(listing.revenue / 1000, 200);
   const normalizedGrowth = Math.max(-20, Math.min(100, listing.growthPct + 20));
   const multiplePenalty = Math.max(0, 20 - (listing.multiple ?? 0) * 4);
-  return normalizedRevenue * 0.35 + normalizedGrowth * 0.25 + multiplePenalty * 0.15 + listing.trustScore * 0.25;
+  return (
+    normalizedRevenue * 0.35 +
+    normalizedGrowth * 0.25 +
+    multiplePenalty * 0.15 +
+    listing.trustScore * 0.25
+  );
 }

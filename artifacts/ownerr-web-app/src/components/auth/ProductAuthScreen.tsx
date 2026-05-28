@@ -77,9 +77,15 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
 
   useEffect(() => {
     if (appSlug !== "ownerr_os") return;
-    const qs = typeof window !== "undefined" ? window.location.search : "";
-    navigate(`${PRODUCT_ROUTES.ownerrOsJoin}${qs}`, { replace: true });
-  }, [appSlug, navigate]);
+    const params = new URLSearchParams(
+      typeof window !== "undefined" ? window.location.search : "",
+    );
+    params.set("mode", initialMode === "signup" ? "register" : "signin");
+    const qs = params.toString();
+    navigate(`${PRODUCT_ROUTES.ownerrOsJoin}${qs ? `?${qs}` : ""}`, {
+      replace: true,
+    });
+  }, [appSlug, navigate, initialMode]);
 
   useEffect(() => {
     if (loading || !session || !authUser?.id) return;
@@ -90,7 +96,9 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
       consumeIntendedRoute() ??
       sanitizePostAuthRedirectParam(params.get("returnTo"));
     const stayOnPublicPortal =
-      appSlug === "marketplace" && returnTo && isMarketplacePublicPortalPath(returnTo);
+      appSlug === "marketplace" &&
+      returnTo &&
+      isMarketplacePublicPortalPath(returnTo);
     if (!stayOnPublicPortal) {
       setActiveProduct(appSlug);
     }
@@ -112,13 +120,23 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
       const slugs = await listActiveUserAppSlugs(authUser.id);
       const dest = resolveAuthenticatedAppEntry({
         slugs,
-        activeProduct: stayOnPublicPortal ? null : readActiveProduct() ?? appSlug,
+        activeProduct: stayOnPublicPortal
+          ? null
+          : (readActiveProduct() ?? appSlug),
         currentUser,
         returnTo,
       });
       navigate(dest, { replace: true });
     })();
-  }, [loading, session, authUser?.id, appSlug, setActiveProduct, navigate, currentUser]);
+  }, [
+    loading,
+    session,
+    authUser?.id,
+    appSlug,
+    setActiveProduct,
+    navigate,
+    currentUser,
+  ]);
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -137,7 +155,10 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
       return;
     }
     if (password.length < 6) {
-      toast({ title: "Password must be at least 6 characters", variant: "destructive" });
+      toast({
+        title: "Password must be at least 6 characters",
+        variant: "destructive",
+      });
       return;
     }
     if (mode === "signup" && name.trim().length < 2) {
@@ -147,12 +168,7 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
     setBusy(true);
     try {
       if (mode === "signup") {
-        await signUpWithEmail(
-          trimmedEmail,
-          password,
-          name.trim(),
-          undefined,
-        );
+        await signUpWithEmail(trimmedEmail, password, name.trim(), undefined);
         toast({
           title: "Check your email",
           description: "Confirm your email, then sign in to continue.",
@@ -166,7 +182,9 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
       const params = new URLSearchParams(window.location.search);
       const returnTo = sanitizePostAuthRedirectParam(params.get("returnTo"));
       const stayOnPublicPortal =
-        appSlug === "marketplace" && returnTo && isMarketplacePublicPortalPath(returnTo);
+        appSlug === "marketplace" &&
+        returnTo &&
+        isMarketplacePublicPortalPath(returnTo);
       if (!stayOnPublicPortal) {
         setActiveProduct(appSlug);
       }
@@ -184,7 +202,9 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
   async function onGoogle() {
     if (session) return;
     const callbackPath =
-      appSlug === "marketplace" && typeof window !== "undefined" && window.location.pathname.startsWith("/marketplace/")
+      appSlug === "marketplace" &&
+      typeof window !== "undefined" &&
+      window.location.pathname.startsWith("/marketplace/")
         ? marketplacePortalAuthPath("callback")
         : resolveProductAuthPath(appSlug, "callback");
     const redirectTo = `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, "")}${callbackPath}`;
@@ -219,7 +239,9 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
 
   return (
     <MarketingLayout>
-      <div className={`${MARKETING_SHELL_CLASS} landing-terminal-palette mx-auto max-w-md px-4 py-12 sm:py-16`}>
+      <div
+        className={`${MARKETING_SHELL_CLASS} landing-terminal-palette mx-auto max-w-md px-4 py-12 sm:py-16`}
+      >
         <motion.div
           initial={{ opacity: 0, y: 12 }}
           animate={{ opacity: 1, y: 0 }}
@@ -237,7 +259,11 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
               : "You will stay in this product after sign-in."}
           </p>
 
-          <form className="mt-8 space-y-4" onSubmit={(e) => void onSubmit(e)} noValidate>
+          <form
+            className="mt-8 space-y-4"
+            onSubmit={(e) => void onSubmit(e)}
+            noValidate
+          >
             {mode === "signup" ? (
               <div className="space-y-2">
                 <Label htmlFor="auth-name">Your name</Label>
@@ -267,7 +293,9 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
             ) : null}
 
             <div className="space-y-2">
-              <Label htmlFor="auth-email">{isOwnerr ? "Work email (company domain)" : "Email"}</Label>
+              <Label htmlFor="auth-email">
+                {isOwnerr ? "Work email (company domain)" : "Email"}
+              </Label>
               <Input
                 id="auth-email"
                 type="email"
@@ -297,14 +325,24 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 className="border-[color:var(--terminal-border)] bg-[color:var(--terminal-bg)]"
-                autoComplete={mode === "signup" ? "new-password" : "current-password"}
+                autoComplete={
+                  mode === "signup" ? "new-password" : "current-password"
+                }
                 minLength={6}
                 required
               />
             </div>
 
-            <Button type="submit" disabled={busy || loading} className="btn-platform-gradient w-full font-bold">
-              {busy ? "Please wait…" : mode === "signup" ? "Create account" : "Sign in"}
+            <Button
+              type="submit"
+              disabled={busy || loading}
+              className="btn-platform-gradient w-full font-bold"
+            >
+              {busy
+                ? "Please wait…"
+                : mode === "signup"
+                  ? "Create account"
+                  : "Sign in"}
             </Button>
           </form>
 
@@ -318,20 +356,28 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
             {busy ? "Opening Google…" : "Continue with Google"}
           </Button>
 
-          {appSlug === "marketplace" && mode === "signin" ? <DemoAccountsHint /> : null}
+          {appSlug === "marketplace" && mode === "signin" ? (
+            <DemoAccountsHint />
+          ) : null}
 
           <p className="mt-6 text-center text-xs text-[color:var(--terminal-muted)]">
             {mode === "signup" ? (
               <>
                 Already have an account?{" "}
-                <Link href={resolveProductAuthPath(appSlug, "login")} className="font-bold text-[color:var(--terminal-ochre)]">
+                <Link
+                  href={resolveProductAuthPath(appSlug, "login")}
+                  className="font-bold text-[color:var(--terminal-ochre)]"
+                >
                   Sign in
                 </Link>
               </>
             ) : (
               <>
                 New here?{" "}
-                <Link href={resolveProductAuthPath(appSlug, "register")} className="font-bold text-[color:var(--terminal-ochre)]">
+                <Link
+                  href={resolveProductAuthPath(appSlug, "register")}
+                  className="font-bold text-[color:var(--terminal-ochre)]"
+                >
                   Create account
                 </Link>
               </>

@@ -1,7 +1,7 @@
-import { type ReactNode } from 'react';
-import { Link } from 'wouter';
-import { cn } from '@/lib/utils';
-import { marketplacePath } from '@/lib/appPaths';
+import { type ReactNode } from "react";
+import { Link, useLocation } from "wouter";
+import { cn } from "@/lib/utils";
+import { marketplaceFounderPath, marketplaceStartupPath } from "@/lib/appPaths";
 
 /**
  * Renders a link to a startup, or a span when the slug is empty or invalid.
@@ -15,11 +15,12 @@ export function StartupLink({
   className?: string;
   children: ReactNode;
 }) {
+  const [location] = useLocation();
   if (!slug) return <span className={className}>{children}</span>;
   return (
     <Link
-      href={marketplacePath(`/startup/${encodeURIComponent(slug)}`)}
-      className={cn('text-inherit hover:underline', className)}
+      href={marketplaceStartupPath(slug, location)}
+      className={cn("text-inherit hover:underline", className)}
     >
       {children}
     </Link>
@@ -38,11 +39,12 @@ export function FounderLink({
   className?: string;
   children: ReactNode;
 }) {
+  const [location] = useLocation();
   if (!handle) return <span className={className}>{children}</span>;
   return (
     <Link
-      href={marketplacePath(`/founder/${encodeURIComponent(handle)}`)}
-      className={cn('text-inherit hover:underline', className)}
+      href={marketplaceFounderPath(handle, location)}
+      className={cn("text-inherit hover:underline", className)}
     >
       {children}
     </Link>

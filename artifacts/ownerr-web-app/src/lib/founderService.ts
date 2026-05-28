@@ -4,10 +4,7 @@ import type {
   FounderSocialLinks,
   FounderSubmissionRecord,
 } from "./founderTypes";
-import {
-  buildReferralLink,
-  generateReferralCode,
-} from "./founderReferral";
+import { buildReferralLink, generateReferralCode } from "./founderReferral";
 import {
   getAllFounderSubmissionsDB,
   getFounderByReferralCodeDB,
@@ -38,7 +35,9 @@ type FounderSubmissionDbRow = {
 const FOUNDER_SUBMISSION_SELECT =
   "id, founder_name, startup_name, tagline, description, website, social_links, founder_photo, category, location, referral_code, referral_link, share_card_url, visit_count, referral_signup_count, created_at";
 
-function mapFounderSubmissionRow(row: FounderSubmissionDbRow): FounderSubmissionRecord {
+function mapFounderSubmissionRow(
+  row: FounderSubmissionDbRow,
+): FounderSubmissionRecord {
   return {
     id: row.id,
     founderName: row.founder_name,
@@ -98,7 +97,10 @@ export class FounderApiError extends Error {
 
 function siteOrigin(): string {
   if (typeof window !== "undefined") return window.location.origin;
-  return (import.meta.env.VITE_PUBLIC_SITE_URL as string | undefined) ?? "https://ownerros.com";
+  return (
+    (import.meta.env.VITE_PUBLIC_SITE_URL as string | undefined) ??
+    "https://ownerros.com"
+  );
 }
 
 function normalizeShareCardPng(raw?: string): string | null {
@@ -109,14 +111,17 @@ function normalizeShareCardPng(raw?: string): string | null {
 }
 
 async function requireAuthUserId(): Promise<string> {
-  if (!isSupabaseConfigured()) throw new FounderApiError(503, "Supabase is not configured");
+  if (!isSupabaseConfigured())
+    throw new FounderApiError(503, "Supabase is not configured");
   const { data, error } = await getSupabase().auth.getUser();
   if (error) throw new FounderApiError(401, error.message);
   if (!data.user) throw new FounderApiError(401, "Not authenticated");
   return data.user.id;
 }
 
-async function createLocal(input: CreateFounderInput): Promise<FounderSubmissionRecord> {
+async function createLocal(
+  input: CreateFounderInput,
+): Promise<FounderSubmissionRecord> {
   const origin = siteOrigin();
   let referralCode = generateReferralCode(8);
   for (let i = 0; i < 8; i++) {
@@ -147,7 +152,9 @@ async function createLocal(input: CreateFounderInput): Promise<FounderSubmission
   return record;
 }
 
-async function createFounderSupabase(input: CreateFounderInput): Promise<FounderSubmissionRecord> {
+async function createFounderSupabase(
+  input: CreateFounderInput,
+): Promise<FounderSubmissionRecord> {
   const authUserId = await requireAuthUserId();
   const supabase = getSupabase();
   const origin = siteOrigin();
@@ -341,12 +348,16 @@ export async function trackReferral(
     ...local,
     visitCount: eventType === "visit" ? local.visitCount + 1 : local.visitCount,
     referralSignupCount:
-      eventType === "signup" ? local.referralSignupCount + 1 : local.referralSignupCount,
+      eventType === "signup"
+        ? local.referralSignupCount + 1
+        : local.referralSignupCount,
   };
   await putFounderSubmissionDB(updated);
 }
 
-function toPublicFounderRecord(record: FounderSubmissionRecord): FounderSubmissionRecord {
+function toPublicFounderRecord(
+  record: FounderSubmissionRecord,
+): FounderSubmissionRecord {
   return {
     ...record,
     visitCount: 0,
@@ -360,9 +371,12 @@ export async function fetchFounderByReferralCodePublic(
   const trimmed = code.trim();
   if (!trimmed) return null;
   if (isSupabaseConfigured()) {
-    const { data, error } = await getSupabase().rpc("founder_public_by_referral_code", {
-      p_code: trimmed,
-    });
+    const { data, error } = await getSupabase().rpc(
+      "founder_public_by_referral_code",
+      {
+        p_code: trimmed,
+      },
+    );
     if (!error && data) {
       const mapped = mapFounderFromRpcJson(data);
       if (mapped) return toPublicFounderRecord(mapped);
@@ -372,7 +386,9 @@ export async function fetchFounderByReferralCodePublic(
   return local ? toPublicFounderRecord(local) : null;
 }
 
-export async function fetchFounderSubmissionById(id: string): Promise<FounderSubmissionRecord | null> {
+export async function fetchFounderSubmissionById(
+  id: string,
+): Promise<FounderSubmissionRecord | null> {
   const trimmed = id.trim();
   if (!trimmed) return null;
   const cached = (await getFounderSubmissionDB(trimmed)) ?? null;
@@ -412,7 +428,9 @@ export async function loadFounderSubmissionsForUser(
       .order("created_at", { ascending: false });
 
     if (!error && data) {
-      const records = (data as FounderSubmissionDbRow[]).map((row) => mapFounderSubmissionRow(row));
+      const records = (data as FounderSubmissionDbRow[]).map((row) =>
+        mapFounderSubmissionRow(row),
+      );
       for (const record of records) {
         await putFounderSubmissionDB(record);
       }
@@ -433,13 +451,18 @@ export async function loadFounderSubmissionForUser(
   return rows[0] ?? null;
 }
 
-export async function fetchFounderAnalytics(adminKey?: string): Promise<FounderAnalytics> {
+export async function fetchFounderAnalytics(
+  adminKey?: string,
+): Promise<FounderAnalytics> {
   const key = adminKey?.trim() ?? "";
   if (isSupabaseConfigured() && key) {
     try {
-      const { data, error } = await getSupabase().rpc("founder_analytics_summary", {
-        p_admin_key: key,
-      });
+      const { data, error } = await getSupabase().rpc(
+        "founder_analytics_summary",
+        {
+          p_admin_key: key,
+        },
+      );
       if (!error && data && typeof data === "object") {
         return data as FounderAnalytics;
       }
@@ -455,7 +478,9 @@ export async function fetchFounderAnalytics(adminKey?: string): Promise<FounderA
   const topFounders = [...rows]
     .sort(
       (a, b) =>
-        b.visitCount + b.referralSignupCount * 3 - (a.visitCount + a.referralSignupCount * 3),
+        b.visitCount +
+        b.referralSignupCount * 3 -
+        (a.visitCount + a.referralSignupCount * 3),
     )
     .slice(0, 10)
     .map((r) => ({

@@ -16,6 +16,9 @@ export function OwnerrNetworkStickyCtaBar() {
     void hasCompletedOnboarding(profile.id).then(setOnboardingDone);
   }, [profile]);
 
-  const { href, label } = ownerrNetworkStickyCtaTarget(Boolean(session), onboardingDone);
+  const { href, label } = ownerrNetworkStickyCtaTarget(
+    Boolean(session),
+    onboardingDone,
+  );
   return <OwnerrNetworkStickyCta href={href} label={label} />;
 }

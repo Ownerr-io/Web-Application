@@ -1,4 +1,4 @@
-import type { Founder, Startup } from '@/lib/mockData';
+import type { Founder, Startup } from "@/lib/mockData";
 
 export interface StartupDetailDailyPoint {
   label: string;
@@ -19,12 +19,12 @@ export interface StartupDetailRich {
   chartPeriodTotal: number;
   chartVsPrevPct: number;
   chartMetricLabel: string;
-  verifiedProvider: 'paddle' | 'stripe';
+  verifiedProvider: "paddle" | "stripe";
   lastUpdated: string;
   visitUrl: string;
   dailyChart: StartupDetailDailyPoint[];
   trafficMonthlyVisitors: number;
-  trafficTrend: 'up' | 'down' | 'flat';
+  trafficTrend: "up" | "down" | "flat";
   trafficVerified: boolean;
   domainVerified: boolean;
   revenueVerified: boolean;
@@ -46,7 +46,20 @@ export interface StartupDetailRich {
   founderQuote: string;
 }
 
-const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
+const MONTHS = [
+  "Jan",
+  "Feb",
+  "Mar",
+  "Apr",
+  "May",
+  "Jun",
+  "Jul",
+  "Aug",
+  "Sep",
+  "Oct",
+  "Nov",
+  "Dec",
+];
 
 function slugHash(slug: string): number {
   let h = 0;
@@ -59,7 +72,10 @@ function formatChartDay(d: Date): string {
 }
 
 /** ~28 daily points scaled to `targetSum`, deterministic per slug. */
-export function buildSyntheticDailyChart(slug: string, targetSum: number): StartupDetailDailyPoint[] {
+export function buildSyntheticDailyChart(
+  slug: string,
+  targetSum: number,
+): StartupDetailDailyPoint[] {
   const n = 28;
   let h = slugHash(slug) || 1;
   const next = (): number => {
@@ -104,36 +120,52 @@ function formatCompactUsers(n: number): string {
   return `~${n} users`;
 }
 
-function defaultTechForCategory(category: string): { frontend: string[]; backend: string[] } {
+function defaultTechForCategory(category: string): {
+  frontend: string[];
+  backend: string[];
+} {
   const c = category.toLowerCase();
-  const fe = ['React', 'TypeScript', 'Tailwind CSS'];
-  if (c.includes('mobile')) {
+  const fe = ["React", "TypeScript", "Tailwind CSS"];
+  if (c.includes("mobile")) {
     return {
-      frontend: ['React Native', 'TypeScript'],
-      backend: ['Node.js', 'PostgreSQL', 'AWS', 'Redis', 'Stripe'],
+      frontend: ["React Native", "TypeScript"],
+      backend: ["Node.js", "PostgreSQL", "AWS", "Redis", "Stripe"],
     };
   }
-  if (c.includes('artificial') || c.includes('ai')) {
+  if (c.includes("artificial") || c.includes("ai")) {
     return {
       frontend: [...fe],
-      backend: ['OpenAI', 'Node.js', 'PostgreSQL', 'Redis', 'Vercel', 'Stripe'],
+      backend: ["OpenAI", "Node.js", "PostgreSQL", "Redis", "Vercel", "Stripe"],
     };
   }
-  if (c.includes('crypto') || c.includes('web3')) {
+  if (c.includes("crypto") || c.includes("web3")) {
     return {
       frontend: [...fe],
-      backend: ['Node.js', 'PostgreSQL', 'Redis', 'Alchemy', 'Solidity tooling'],
+      backend: [
+        "Node.js",
+        "PostgreSQL",
+        "Redis",
+        "Alchemy",
+        "Solidity tooling",
+      ],
     };
   }
   return {
     frontend: [...fe],
-    backend: ['Node.js', 'PostgreSQL', 'Redis', 'AWS', 'Stripe', 'Docker'],
+    backend: ["Node.js", "PostgreSQL", "Redis", "AWS", "Stripe", "Docker"],
   };
 }
 
-function deepMergeDetail(base: StartupDetailRich, patch: Partial<StartupDetailRich>): StartupDetailRich {
-  const insights = patch.insights ? { ...base.insights, ...patch.insights } : base.insights;
-  const techStack = patch.techStack ? { ...base.techStack, ...patch.techStack } : base.techStack;
+function deepMergeDetail(
+  base: StartupDetailRich,
+  patch: Partial<StartupDetailRich>,
+): StartupDetailRich {
+  const insights = patch.insights
+    ? { ...base.insights, ...patch.insights }
+    : base.insights;
+  const techStack = patch.techStack
+    ? { ...base.techStack, ...patch.techStack }
+    : base.techStack;
   return {
     ...base,
     ...patch,
@@ -142,7 +174,11 @@ function deepMergeDetail(base: StartupDetailRich, patch: Partial<StartupDetailRi
   };
 }
 
-function buildDefaultDetail(startup: Startup, founder: Founder | undefined, leaderboardRank: number): StartupDetailRich {
+function buildDefaultDetail(
+  startup: Startup,
+  founder: Founder | undefined,
+  leaderboardRank: number,
+): StartupDetailRich {
   const h = slugHash(startup.slug);
   const peak = startup.peakMrr ?? startup.revenue;
   const allTimeRevenue = Math.max(
@@ -150,9 +186,13 @@ function buildDefaultDetail(startup: Startup, founder: Founder | undefined, lead
     Math.round(startup.revenue * 18),
   );
   const mrrDisplay = startup.revenue;
-  const activeSubscriptions = Math.max(8, Math.round(startup.customers * (0.06 + (h % 8) / 200)));
+  const activeSubscriptions = Math.max(
+    8,
+    Math.round(startup.customers * (0.06 + (h % 8) / 200)),
+  );
   const buyersViewed =
-    startup.listingViews ?? Math.max(100, Math.round(startup.customers * (6 + (h % 5)) + (h % 400)));
+    startup.listingViews ??
+    Math.max(100, Math.round(startup.customers * (6 + (h % 5)) + (h % 400)));
   const offersReceived = startup.listingFavorites ?? Math.max(1, (h % 9) + 2);
 
   const foundedMonth = MONTHS[h % 12];
@@ -171,32 +211,35 @@ function buildDefaultDetail(startup: Startup, founder: Founder | undefined, lead
     chartVsPrevPct = Math.max(-18, Math.min(28, chartVsPrevPct));
   }
 
-  const visitUrl = `https://${startup.slug.replace(/[^a-z0-9-]/gi, '')}.example`;
+  const visitUrl = `https://${startup.slug.replace(/[^a-z0-9-]/gi, "")}.example`;
 
   const c = startup.category.toLowerCase();
   const categoryTag = startup.category;
   const tags = Array.from(
     new Set([
       categoryTag,
-      'SaaS',
-      c.includes('mobile') ? 'Mobile' : 'Product',
-      startup.slug.length > 3 ? startup.slug.slice(0, 1).toUpperCase() + startup.slug.slice(1, 8) : 'Startup',
+      "SaaS",
+      c.includes("mobile") ? "Mobile" : "Product",
+      startup.slug.length > 3
+        ? startup.slug.slice(0, 1).toUpperCase() + startup.slug.slice(1, 8)
+        : "Startup",
     ]),
   ).filter(Boolean);
-  const b2b = !c.includes('consumer') && !c.includes('b2c');
-  const businessPills = b2b ? ['B2B', 'SaaS'] : ['B2C', 'Product'];
+  const b2b = !c.includes("consumer") && !c.includes("b2c");
+  const businessPills = b2b ? ["B2B", "SaaS"] : ["B2C", "Product"];
 
   const techStack = defaultTechForCategory(startup.category);
 
-  const lastUpdated = new Date().toLocaleString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
-    hour: 'numeric',
-    minute: '2-digit',
+  const lastUpdated = new Date().toLocaleString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
+    hour: "numeric",
+    minute: "2-digit",
   });
 
-  const verifiedProvider: 'paddle' | 'stripe' = h % 2 === 0 ? 'stripe' : 'paddle';
+  const verifiedProvider: "paddle" | "stripe" =
+    h % 2 === 0 ? "stripe" : "paddle";
 
   return {
     foundedLabel,
@@ -208,13 +251,16 @@ function buildDefaultDetail(startup: Startup, founder: Founder | undefined, lead
     offersReceived,
     chartPeriodTotal,
     chartVsPrevPct,
-    chartMetricLabel: 'Revenue',
+    chartMetricLabel: "Revenue",
     verifiedProvider,
     lastUpdated,
     visitUrl,
     dailyChart,
-    trafficMonthlyVisitors: startup.trafficMonthlyVisitors ?? Math.max(200, Math.round(startup.customers * 2.5)),
-    trafficTrend: startup.trafficTrend ?? (startup.momGrowth >= 0 ? 'up' : 'flat'),
+    trafficMonthlyVisitors:
+      startup.trafficMonthlyVisitors ??
+      Math.max(200, Math.round(startup.customers * 2.5)),
+    trafficTrend:
+      startup.trafficTrend ?? (startup.momGrowth >= 0 ? "up" : "flat"),
     trafficVerified: startup.trafficVerified ?? false,
     domainVerified: startup.domainVerified ?? false,
     revenueVerified: startup.revenueVerified ?? false,
@@ -223,13 +269,13 @@ function buildDefaultDetail(startup: Startup, founder: Founder | undefined, lead
       valueProposition: startup.description,
       problemSolved: `${startup.name} addresses operational gaps for teams in ${startup.category.toLowerCase()}: faster workflows, clearer metrics, and less manual overhead.`,
       pricing:
-        'Pricing is shared with serious buyers after introduction. Many listings use tiered plans from starter to scale—ask the seller for the latest structure.',
+        "Pricing is shared with serious buyers after introduction. Many listings use tiered plans from starter to scale—ask the seller for the latest structure.",
       targetAudience: `Operators and teams buying in ${startup.category.toLowerCase()}.`,
       businessPills,
       userCountLabel: formatCompactUsers(startup.customers),
       additionalInfo: founder
-        ? `Verified founder listing on Ownerr. ${founder.lookingForCofounder ? 'Open to strategic partners.' : ''}`
-        : 'Community-verified metrics on Ownerr.',
+        ? `Verified founder listing on Ownerr. ${founder.lookingForCofounder ? "Open to strategic partners." : ""}`
+        : "Community-verified metrics on Ownerr.",
       tags,
     },
     techStack,
@@ -240,9 +286,11 @@ function buildDefaultDetail(startup: Startup, founder: Founder | undefined, lead
 }
 
 /** Optional per-slug overrides merged on top of generated defaults (e.g. curated Chatwith copy). */
-const STARTUP_DETAIL_OVERRIDES: Partial<Record<string, Partial<StartupDetailRich>>> = {
+const STARTUP_DETAIL_OVERRIDES: Partial<
+  Record<string, Partial<StartupDetailRich>>
+> = {
   chatwith: {
-    foundedLabel: 'September 2023',
+    foundedLabel: "September 2023",
     allTimeRevenue: 110_967,
     leaderboardRank: 314,
     mrrDisplay: 5984,
@@ -251,9 +299,9 @@ const STARTUP_DETAIL_OVERRIDES: Partial<Record<string, Partial<StartupDetailRich
     offersReceived: 10,
     chartPeriodTotal: 4807,
     chartVsPrevPct: -5,
-    verifiedProvider: 'paddle',
-    lastUpdated: 'Apr 22, 2026, 12:36 PM',
-    visitUrl: 'https://chatwith.example',
+    verifiedProvider: "paddle",
+    lastUpdated: "Apr 22, 2026, 12:36 PM",
+    visitUrl: "https://chatwith.example",
     dailyChart: (() => {
       const target = 4807;
       const n = 28;
@@ -292,33 +340,33 @@ const STARTUP_DETAIL_OVERRIDES: Partial<Record<string, Partial<StartupDetailRich
     })(),
     insights: {
       valueProposition:
-        'White-label AI chatbots your clients will love. Build, brand, and resell—no code required.',
+        "White-label AI chatbots your clients will love. Build, brand, and resell—no code required.",
       problemSolved:
-        'Solve the problem of not being able to provide 24/7 customer assistance and multilingual support, as well as the need for easy integration and customization of AI chatbots.',
-      pricing: 'Hobby: $19/month, Standard: $99/month, Business: $399/month',
-      targetAudience: 'AI agencies',
-      businessPills: ['B2B'],
-      userCountLabel: '~9,107 users',
-      additionalInfo: 'Made in the EU',
-      tags: ['Customer Support', 'AI', 'Saas', 'No Code', 'Ecommerce'],
+        "Solve the problem of not being able to provide 24/7 customer assistance and multilingual support, as well as the need for easy integration and customization of AI chatbots.",
+      pricing: "Hobby: $19/month, Standard: $99/month, Business: $399/month",
+      targetAudience: "AI agencies",
+      businessPills: ["B2B"],
+      userCountLabel: "~9,107 users",
+      additionalInfo: "Made in the EU",
+      tags: ["Customer Support", "AI", "Saas", "No Code", "Ecommerce"],
     },
     techStack: {
-      frontend: ['Next.js', 'Tailwind CSS', 'TypeScript'],
+      frontend: ["Next.js", "Tailwind CSS", "TypeScript"],
       backend: [
-        'Anthropic',
-        'Cloudflare',
-        'Node.js',
-        'OpenAI',
-        'Pinecone',
-        'Prisma',
-        'PostgreSQL',
-        'Supabase',
-        'Vercel',
-        'Redis',
+        "Anthropic",
+        "Cloudflare",
+        "Node.js",
+        "OpenAI",
+        "Pinecone",
+        "Prisma",
+        "PostgreSQL",
+        "Supabase",
+        "Vercel",
+        "Redis",
       ],
     },
     founderQuote:
-      'No time to grow it. It receives inbound B2B leads but I have no capacity to handle the sales process.',
+      "No time to grow it. It receives inbound B2B leads but I have no capacity to handle the sales process.",
   },
 };
 

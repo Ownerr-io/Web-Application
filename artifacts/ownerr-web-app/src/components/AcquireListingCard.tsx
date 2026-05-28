@@ -1,13 +1,13 @@
-import { Link } from 'wouter';
-import { Eye, Heart, BadgeCheck, Globe, BarChart3 } from 'lucide-react';
-import type { ReactNode } from 'react';
-import type { Startup } from '@/lib/mockData';
-import { cn, formatShortCurrency } from '@/lib/utils';
-import { marketplacePath } from '@/lib/appPaths';
-import { StartupTripleScores } from '@/components/StartupTripleScores';
+import { Link, useLocation } from "wouter";
+import { Eye, Heart, BadgeCheck, Globe, BarChart3 } from "lucide-react";
+import type { ReactNode } from "react";
+import type { Startup } from "@/lib/mockData";
+import { cn, formatShortCurrency } from "@/lib/utils";
+import { marketplaceStartupPath } from "@/lib/appPaths";
+import { StartupTripleScores } from "@/components/StartupTripleScores";
 
 const SCORE_STRIP_CLASS =
-  'text-center [&>div:nth-child(2)]:border-l [&>div:nth-child(2)]:border-border/60 [&>div:nth-child(2)]:pl-1 [&>div:nth-child(3)]:border-l [&>div:nth-child(3)]:border-border/60 [&>div:nth-child(3)]:pl-1 sm:[&>div:nth-child(2)]:pl-2 sm:[&>div:nth-child(3)]:pl-2';
+  "text-center [&>div:nth-child(2)]:border-l [&>div:nth-child(2)]:border-border/60 [&>div:nth-child(2)]:pl-1 [&>div:nth-child(3)]:border-l [&>div:nth-child(3)]:border-border/60 [&>div:nth-child(3)]:pl-1 sm:[&>div:nth-child(2)]:pl-2 sm:[&>div:nth-child(3)]:pl-2";
 
 function startupGrowthValue(startup: Startup): number | null {
   const maybeGrowth = startup as Startup & { growthPct?: number };
@@ -20,17 +20,20 @@ function startupNicheTags(startup: Startup): string[] {
 }
 
 function startupTrust(startup: Startup): { score: number; label: string } {
-  const maybeListing = startup as Startup & { trustScore?: number; trustLabel?: string };
+  const maybeListing = startup as Startup & {
+    trustScore?: number;
+    trustLabel?: string;
+  };
   return {
     score: maybeListing.trustScore ?? 0,
-    label: maybeListing.trustLabel ?? 'Low Trust',
+    label: maybeListing.trustLabel ?? "Low Trust",
   };
 }
 
 function formatGrowthPct(n: number | null | undefined): string | null {
   if (n == null) return null;
-  const sign = n > 0 ? '↑' : '↓';
-  return `${sign}${Math.abs(n).toLocaleString('en-US')}%`;
+  const sign = n > 0 ? "↑" : "↓";
+  return `${sign}${Math.abs(n).toLocaleString("en-US")}%`;
 }
 
 function MetricCell({
@@ -43,7 +46,7 @@ function MetricCell({
   className?: string;
 }) {
   return (
-    <div className={cn('min-w-0 px-0.5 text-center', className)}>
+    <div className={cn("min-w-0 px-0.5 text-center", className)}>
       <div className="mp-label mx-auto max-w-[28ch] font-mono text-[9px] leading-snug sm:text-[10px]">
         {label}
       </div>
@@ -54,7 +57,15 @@ function MetricCell({
   );
 }
 
-export function AcquireListingCard({ startup, footer }: { startup: Startup; footer?: ReactNode }) {
+export function AcquireListingCard({
+  startup,
+  footer,
+}: {
+  startup: Startup;
+  footer?: ReactNode;
+}) {
+  const [location] = useLocation();
+  const detailHref = marketplaceStartupPath(startup.slug, location);
   const views = startup.listingViews ?? Math.round(startup.customers * 1.2);
   const favs = startup.listingFavorites ?? Math.round(views / 400);
   const growth = formatGrowthPct(startupGrowthValue(startup));
@@ -65,7 +76,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
   return (
     <div className="shine-effect flex h-full flex-col overflow-hidden rounded-[14px] border border-border bg-card text-card-foreground transition-colors hover:border-muted-foreground/30">
       <Link
-        href={marketplacePath(`/startup/${startup.slug}`)}
+        href={detailHref}
         className="group flex min-h-[260px] flex-1 flex-col px-3 pb-3 pt-3.5 sm:min-h-[300px] sm:px-4 sm:pt-4"
       >
         <article className="flex min-h-0 flex-1 flex-col gap-3">
@@ -94,7 +105,7 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                       {startup.revenueVerified ? (
                         <span className="mp-badge-lime inline-flex items-center gap-0.5 rounded-full px-1.5 py-px text-[9px] font-bold">
                           <BadgeCheck className="h-2.5 w-2.5" />
-                          Verified {startup.revenueProvider ?? 'Revenue'}
+                          Verified {startup.revenueProvider ?? "Revenue"}
                         </span>
                       ) : null}
                       {startup.domainVerified ? (
@@ -106,7 +117,15 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                       {startup.trafficVerified ? (
                         <span className="mp-badge-amber inline-flex items-center gap-0.5 rounded-full px-1.5 py-px text-[9px] font-bold">
                           <BarChart3 className="h-2.5 w-2.5" />
-                          {('verification' in startup && (startup as Startup & { verification?: { traffic?: { sourceLabel?: string } } }).verification?.traffic?.sourceLabel) ?? 'Traffic'}
+                          {("verification" in startup &&
+                            (
+                              startup as Startup & {
+                                verification?: {
+                                  traffic?: { sourceLabel?: string };
+                                };
+                              }
+                            ).verification?.traffic?.sourceLabel) ??
+                            "Traffic"}
                         </span>
                       ) : null}
                     </div>
@@ -130,7 +149,10 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
             <div className="rounded-lg border border-border/80 bg-muted/15 px-2 py-3 border-border bg-muted/35 sm:px-3">
               <div className="grid grid-cols-3 gap-x-1 gap-y-2 sm:gap-x-2">
                 <MetricCell label="Revenue (30 D)">
-                  <span className="block truncate" title={formatShortCurrency(startup.revenue)}>
+                  <span
+                    className="block truncate"
+                    title={formatShortCurrency(startup.revenue)}
+                  >
                     {formatShortCurrency(startup.revenue)}
                   </span>
                   {growth != null ? (
@@ -139,7 +161,10 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                     </div>
                   ) : null}
                 </MetricCell>
-                <MetricCell label="Asking price" className="border-l border-border/60 border-border">
+                <MetricCell
+                  label="Asking price"
+                  className="border-l border-border/60 border-border"
+                >
                   <div className="mx-auto min-w-0 max-w-full space-y-0.5 text-center">
                     {strike != null ? (
                       <div
@@ -151,14 +176,27 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                     ) : null}
                     <span
                       className="block truncate"
-                      title={startup.price != null ? formatShortCurrency(startup.price) : undefined}
+                      title={
+                        startup.price != null
+                          ? formatShortCurrency(startup.price)
+                          : undefined
+                      }
                     >
-                      {startup.price != null ? formatShortCurrency(startup.price) : '—'}
+                      {startup.price != null
+                        ? formatShortCurrency(startup.price)
+                        : "—"}
                     </span>
                   </div>
                 </MetricCell>
-                <MetricCell label="Revenue multiple" className="border-l border-border/60 border-border">
-                  <span className="block truncate">{startup.multiple != null ? `${startup.multiple.toFixed(1)}x` : '—'}</span>
+                <MetricCell
+                  label="Revenue multiple"
+                  className="border-l border-border/60 border-border"
+                >
+                  <span className="block truncate">
+                    {startup.multiple != null
+                      ? `${startup.multiple.toFixed(1)}x`
+                      : "—"}
+                  </span>
                 </MetricCell>
               </div>
             </div>
@@ -176,7 +214,10 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
                 <span>{trust.score}/100</span>
               </div>
               <div className="mt-1.5 h-1.5 overflow-hidden rounded-full bg-muted">
-                <div className="platform-gradient-bg h-full rounded-full" style={{ width: `${trust.score}%` }} />
+                <div
+                  className="platform-gradient-bg h-full rounded-full"
+                  style={{ width: `${trust.score}%` }}
+                />
               </div>
             </div>
           </div>
@@ -187,7 +228,10 @@ export function AcquireListingCard({ startup, footer }: { startup: Startup; foot
           {nicheTags.length > 0 ? (
             <div className="flex flex-wrap gap-1">
               {nicheTags.slice(0, 3).map((tag) => (
-                <span key={tag} className="mp-muted rounded-full border border-border px-2 py-0.5 text-[9px] font-bold">
+                <span
+                  key={tag}
+                  className="mp-muted rounded-full border border-border px-2 py-0.5 text-[9px] font-bold"
+                >
                   {tag}
                 </span>
               ))}

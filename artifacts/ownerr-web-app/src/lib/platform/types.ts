@@ -4,7 +4,11 @@ import type { AuthRole, DeskUser } from "@/lib/auth/types";
 export type PlatformLayer = "public" | "auth" | "protected";
 
 /** Product app boundary (not every marketing page). */
-export type ProductApp = "platform" | "marketplace" | "ownerr-os" | "ownerr-network";
+export type ProductApp =
+  | "platform"
+  | "marketplace"
+  | "ownerr-os"
+  | "ownerr-network";
 
 /** How Supabase credentials are applied after auth UI submit. */
 export type AuthCredentialProfile = "ownerr-network" | "desk";

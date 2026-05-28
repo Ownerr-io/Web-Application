@@ -1,9 +1,9 @@
-import { useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { useAuth } from '@/context/AuthContext';
-import { resolveMarketplaceDeskRoles } from '@/lib/marketplace/service';
-import { resolveMarketplaceAppEntry } from '@/lib/marketplace/roleGate';
-import { MARKETPLACE_ROUTES } from '@/routing/routeRegistry';
+import { useEffect } from "react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
+import { resolveMarketplaceDeskRoles } from "@/lib/marketplace/service";
+import { resolveMarketplaceAppEntry } from "@/lib/marketplace/roleGate";
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
 
 export default function MarketplaceAppEntryPage() {
   const [, navigate] = useLocation();
@@ -14,14 +14,16 @@ export default function MarketplaceAppEntryPage() {
       navigate(MARKETPLACE_ROUTES.root, { replace: true });
       return;
     }
-    void resolveMarketplaceDeskRoles(session.user.id).then(({ hasBuyer, hasSeller }) => {
-      const dest = resolveMarketplaceAppEntry({
-        hasBuyer,
-        hasSeller,
-        metadataRole: currentUser?.role ?? null,
-      });
-      navigate(dest, { replace: true });
-    });
+    void resolveMarketplaceDeskRoles(session.user.id).then(
+      ({ hasBuyer, hasSeller }) => {
+        const dest = resolveMarketplaceAppEntry({
+          hasBuyer,
+          hasSeller,
+          metadataRole: currentUser?.role ?? null,
+        });
+        navigate(dest, { replace: true });
+      },
+    );
   }, [session, currentUser, navigate]);
 
   return (

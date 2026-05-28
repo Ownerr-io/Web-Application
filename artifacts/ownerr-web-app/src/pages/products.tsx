@@ -7,6 +7,9 @@ import { authRegisterHref } from "@/lib/auth/routes";
 import { PRODUCT_ITEMS } from "@/routes/publicNavConfig";
 import { cn } from "@/lib/utils";
 
+/** Product apps shown on /products (marketplace has its own entry in top nav). */
+const PRODUCTS_HUB_ITEMS = PRODUCT_ITEMS.filter((p) => p.id !== "marketplace");
+
 const PRODUCT_CARD_META: Record<
   string,
   { icon: typeof Sparkles; tags: string[]; accent: "lime" | "orange" }
@@ -33,11 +36,17 @@ export default function ProductsPage() {
           <div className="pointer-events-none absolute inset-0" aria-hidden>
             <div
               className="saas-hero-orb left-[-10%] top-0 h-[min(380px,50vw)] w-[min(380px,50vw)] opacity-40"
-              style={{ background: "color-mix(in srgb, var(--brand-lime) 18%, transparent)" }}
+              style={{
+                background:
+                  "color-mix(in srgb, var(--brand-lime) 18%, transparent)",
+              }}
             />
             <div
               className="saas-hero-orb right-[-8%] bottom-0 h-[min(320px,42vw)] w-[min(320px,42vw)] opacity-30"
-              style={{ background: "color-mix(in srgb, var(--brand-orange) 16%, transparent)" }}
+              style={{
+                background:
+                  "color-mix(in srgb, var(--brand-orange) 16%, transparent)",
+              }}
             />
           </div>
 
@@ -48,16 +57,33 @@ export default function ProductsPage() {
               variants={{ visible: { transition: { staggerChildren: 0.08 } } }}
               className="max-w-2xl"
             >
-              <motion.span variants={fadeUp} custom={0} className="luxury-hero-kicker">
+              <motion.span
+                variants={fadeUp}
+                custom={0}
+                className="luxury-hero-kicker"
+              >
                 Products
               </motion.span>
-              <motion.h1 variants={fadeUp} custom={1} className="marketing-hero-title">
-                <span className="text-[color:var(--terminal-display)]">Two products.</span>
-                <span className="mt-1 block platform-gradient-text">One OWNERR account.</span>
+              <motion.h1
+                variants={fadeUp}
+                custom={1}
+                className="marketing-hero-title"
+              >
+                <span className="text-[color:var(--terminal-display)]">
+                  Two products.
+                </span>
+                <span className="mt-1 block platform-gradient-text">
+                  One OWNERR account.
+                </span>
               </motion.h1>
-              <motion.p variants={fadeUp} custom={2} className="marketing-lead max-w-lg">
-                Sign in once to access founder growth and workforce network products. Each product has its own landing
-                page and guided onboarding.
+              <motion.p
+                variants={fadeUp}
+                custom={2}
+                className="marketing-lead max-w-lg"
+              >
+                Sign in once to access founder growth and workforce network
+                products. Each product has its own landing page and guided
+                onboarding.
               </motion.p>
             </motion.div>
           </div>
@@ -72,12 +98,13 @@ export default function ProductsPage() {
               </h2>
             </div>
             <p className="marketing-body-sm max-w-xs">
-              Open a product overview, then sign in when you&apos;re ready for the full experience.
+              Open a product overview, then sign in when you&apos;re ready for
+              the full experience.
             </p>
           </div>
 
           <ul className="mt-8 grid gap-5 md:grid-cols-2">
-            {PRODUCT_ITEMS.map((product, i) => {
+            {PRODUCTS_HUB_ITEMS.map((product, i) => {
               const meta = PRODUCT_CARD_META[product.id];
               const Icon = meta?.icon ?? Sparkles;
               return (
@@ -95,7 +122,9 @@ export default function ProductsPage() {
                       <div
                         className={cn(
                           "flex h-11 w-11 items-center justify-center rounded-[11px] border border-[color:var(--terminal-border)]/80 bg-[color:var(--terminal-surface)]/80",
-                          meta?.accent === "lime" ? "text-brand-lime" : "text-brand-orange",
+                          meta?.accent === "lime"
+                            ? "text-brand-lime"
+                            : "text-brand-orange",
                         )}
                       >
                         <Icon className="h-5 w-5" aria-hidden />
@@ -105,7 +134,9 @@ export default function ProductsPage() {
                       </span>
                     </div>
 
-                    <h3 className="mt-5 text-lg font-bold text-[color:var(--terminal-fg)]">{product.label}</h3>
+                    <h3 className="mt-5 text-lg font-bold text-[color:var(--terminal-fg)]">
+                      {product.label}
+                    </h3>
                     <p className="marketing-body-sm mt-2 flex-1">
                       {product.description}
                     </p>
@@ -140,9 +171,12 @@ export default function ProductsPage() {
         <section className="saas-section-shell border-t border-[color:var(--terminal-border)]/60 py-12 md:py-14">
           <div className="saas-glass-card flex flex-col items-start justify-between gap-6 rounded-[14px] border border-[color:var(--terminal-border)]/80 p-6 sm:flex-row sm:items-center sm:p-8">
             <div>
-              <p className="text-sm font-bold text-[color:var(--terminal-fg)]">New to OWNERR?</p>
+              <p className="text-sm font-bold text-[color:var(--terminal-fg)]">
+                New to OWNERR?
+              </p>
               <p className="mt-1 max-w-md text-sm text-[color:var(--terminal-muted)]">
-                Create one account to access every product app. You can add more products as we ship them.
+                Create one account to access every product app. You can add more
+                products as we ship them.
               </p>
             </div>
             <Link

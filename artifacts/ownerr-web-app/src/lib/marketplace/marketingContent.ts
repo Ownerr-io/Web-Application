@@ -5,7 +5,7 @@ export type WhatsHappeningPost = {
   startupSlug: string;
   timestamp: string;
   text: string;
-  action?: 'added' | 'on';
+  action?: "added" | "on";
   hasImage?: boolean;
   imageGradient?: string;
   imageCaption?: string;
@@ -15,12 +15,12 @@ export type WhatsHappeningPost = {
 
 export const whatsHappeningPosts: WhatsHappeningPost[] = [
   {
-    id: 'p12',
-    founderHandle: 'alicew',
-    startupName: 'Sorio AI',
-    startupSlug: 'sorio-ai',
-    timestamp: '7h',
-    text: 'Hit $12.5k MRR this month. Slow but steady. Going to focus on B2B SEO next.',
+    id: "p12",
+    founderHandle: "alicew",
+    startupName: "Sorio AI",
+    startupSlug: "sorio-ai",
+    timestamp: "7h",
+    text: "Hit $12.5k MRR this month. Slow but steady. Going to focus on B2B SEO next.",
     likes: 8,
     comments: 2,
   },
@@ -41,10 +41,10 @@ export interface Visitor {
   countryFlag: string;
   countryName: string;
   city: string;
-  os: 'Mac OS' | 'Windows' | 'Linux' | 'iOS' | 'Android';
-  device: 'Desktop' | 'Mobile';
-  browser: 'Chrome' | 'Safari' | 'Firefox' | 'Edge';
-  referrer: 'Google' | 'Direct' | 'Twitter' | 'android.gms';
+  os: "Mac OS" | "Windows" | "Linux" | "iOS" | "Android";
+  device: "Desktop" | "Mobile";
+  browser: "Chrome" | "Safari" | "Firefox" | "Edge";
+  referrer: "Google" | "Direct" | "Twitter" | "android.gms";
   currentUrl: string;
   sessionTime: string;
   totalVisits: number;
@@ -56,9 +56,9 @@ export interface Visitor {
 }
 
 export const browseCategories = [
-  { label: 'Artificial Intelligence', icon: 'Brain' },
-  { label: 'SaaS', icon: 'Package' },
-  { label: 'Developer Tools', icon: 'Terminal' },
-  { label: 'Marketing', icon: 'Megaphone' },
-  { label: 'Content Creation', icon: 'PenLine' },
+  { label: "Artificial Intelligence", icon: "Brain" },
+  { label: "SaaS", icon: "Package" },
+  { label: "Developer Tools", icon: "Terminal" },
+  { label: "Marketing", icon: "Megaphone" },
+  { label: "Content Creation", icon: "PenLine" },
 ] as const;

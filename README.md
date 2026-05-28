@@ -21,6 +21,7 @@ It models discovery, trust evaluation, interest threads, mock bidding, and role-
 ---
 
 ## 1) System Architecture (Full)
+
 Shows the implemented layers and end-to-end data movement.
 
 ```mermaid
@@ -70,6 +71,7 @@ flowchart TD
 ---
 
 ## 2) Component Architecture
+
 High-level relationships between pages, layouts, and shared/domain components.
 
 ```mermaid
@@ -123,6 +125,7 @@ graph TD
 ---
 
 ## 3) Routing Flow
+
 Separates public vs protected routes and captures implemented redirect behavior.
 
 ```mermaid
@@ -150,6 +153,7 @@ flowchart TD
 ```
 
 Implemented route groups:
+
 - Public: `/`, `/feed`, `/stats`, `/cofounders`, `/claim`, `/startup/:slug`, `/founder/:handle`, `/acquire`
 - Buyer: `/buyer`, `/buyer/interests`, `/buyer/acquire`, `/buyer/bids`, `/buyer/profile`
 - Seller: `/seller`, `/seller/listings`, `/seller/inbox`, `/seller/verification`, `/seller/profile`
@@ -157,6 +161,7 @@ Implemented route groups:
 ---
 
 ## 4) Authentication Flow (Mock)
+
 Shows guest entry, auth dialog behavior, persistence, and guarded routing effects.
 
 ```mermaid
@@ -179,12 +184,14 @@ sequenceDiagram
 ```
 
 Notes:
+
 - There are no standalone `/login` or `/register` routes; auth is modal-based.
 - On app load, session is rehydrated from LocalStorage and user record is loaded from IndexedDB.
 
 ---
 
 ## 5) Buyer User Flow
+
 Implemented buyer path from exploration to conversation/bid tracking.
 
 ```mermaid
@@ -203,6 +210,7 @@ flowchart LR
 ---
 
 ## 6) Seller (Founder) User Flow
+
 Implemented founder journey across dashboard, listing control, verification, and thread handling.
 
 ```mermaid
@@ -222,6 +230,7 @@ Note: a strict `Draft -> Publish` state machine is not fully implemented as a de
 ---
 
 ## 7) Listing Lifecycle Flow
+
 Represents lifecycle states that are actually implemented today.
 
 ```mermaid
@@ -234,12 +243,14 @@ flowchart TD
 ```
 
 Notes:
+
 - `forSale` controls market behavior; no dedicated publish-state enum.
 - Interest stages and bidding pipeline are separate but related lifecycle tracks.
 
 ---
 
 ## 8) Verification Flow
+
 Covers revenue, domain, and traffic verification logic with implemented transitions.
 
 ```mermaid
@@ -267,6 +278,7 @@ flowchart TD
 ---
 
 ## 9) Data Flow Diagram
+
 Shows how each core entity moves through UI, services, persistence, and back.
 
 ```mermaid
@@ -290,6 +302,7 @@ flowchart LR
 ```
 
 Entity mapping:
+
 - Listings: `MarketplaceListing` via `mockMarketplaceService`
 - Bids: `MockListingBidRecord` via `MockBiddingContext`
 - Interest threads/messages: `MarketplaceInterestRecord`
@@ -298,6 +311,7 @@ Entity mapping:
 ---
 
 ## 10) Trust Score Computation
+
 Exact implemented weighting logic used to derive `trustScore` and labels.
 
 ```mermaid
@@ -321,6 +335,7 @@ flowchart TD
 ---
 
 ## 11) Dashboard Flows
+
 Shows current buyer and seller dashboard navigation and intent.
 
 ```mermaid
@@ -343,6 +358,7 @@ flowchart LR
 ---
 
 ## 12) Error / Edge Flow (Lightweight)
+
 Summarizes implemented guardrails and common edge conditions.
 
 ```mermaid

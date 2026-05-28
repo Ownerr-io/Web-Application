@@ -1,13 +1,13 @@
-import { useEffect } from 'react';
-import { useLocation } from 'wouter';
-import { useAuth } from '@/context/AuthContext';
-import { useActiveProduct } from '@/context/ActiveProductContext';
+import { useEffect } from "react";
+import { useLocation } from "wouter";
+import { useAuth } from "@/context/AuthContext";
+import { useActiveProduct } from "@/context/ActiveProductContext";
 import {
   applyDemoMarketplaceProductLock,
   demoMarketplaceHomeHref,
   isDemoMarketplaceLockedSession,
   isPathAllowedForDemoMarketplaceLock,
-} from '@/lib/marketplace/demoSessionLock';
+} from "@/lib/marketplace/demoSessionLock";
 
 /**
  * Keeps demo buyer/seller sessions inside `/marketplace/*` until they click Log out.
@@ -23,13 +23,22 @@ export function DemoMarketplaceShellGuard() {
     if (!isDemoMarketplaceLockedSession(email)) return;
 
     applyDemoMarketplaceProductLock();
-    setActiveProduct('marketplace');
+    setActiveProduct("marketplace");
 
-    const pathname = location.split('?')[0] ?? location;
+    const pathname = location.split("?")[0] ?? location;
     if (!isPathAllowedForDemoMarketplaceLock(pathname)) {
-      navigate(demoMarketplaceHomeHref(currentUser?.role ?? null), { replace: true });
+      navigate(demoMarketplaceHomeHref(currentUser?.role ?? null), {
+        replace: true,
+      });
     }
-  }, [loading, session, currentUser?.role, location, navigate, setActiveProduct]);
+  }, [
+    loading,
+    session,
+    currentUser?.role,
+    location,
+    navigate,
+    setActiveProduct,
+  ]);
 
   return null;
 }

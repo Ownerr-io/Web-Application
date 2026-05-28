@@ -7,20 +7,23 @@ import {
   useRef,
   useState,
   type ReactNode,
-} from 'react';
-import { useAuth } from '@/context/AuthContext';
-import type { AuthRole } from '@/lib/auth/types';
-import { useActiveProduct } from '@/context/ActiveProductContext';
+} from "react";
+import { useAuth } from "@/context/AuthContext";
+import type { AuthRole } from "@/lib/auth/types";
+import { useActiveProduct } from "@/context/ActiveProductContext";
 import {
   fetchMarketplaceProfileForUser,
   type MarketplaceProfileRow,
-} from '@/lib/platform/fetchMarketplaceProfile';
+} from "@/lib/platform/fetchMarketplaceProfile";
 import {
   isDuplicateDbError,
   logProductIssue,
   toUserFacingProductError,
-} from '@/lib/observability/productErrors';
-import { provisionMarketplaceProduct, touchProductSession } from '@/lib/products/provision';
+} from "@/lib/observability/productErrors";
+import {
+  provisionMarketplaceProduct,
+  touchProductSession,
+} from "@/lib/products/provision";
 
 type MarketplaceContextValue = {
   loading: boolean;
@@ -52,9 +55,9 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
     setLoading(true);
     setError(null);
     try {
-      setActiveProduct('marketplace');
+      setActiveProduct("marketplace");
       await provisionMarketplaceProduct(session!.user);
-      await touchProductSession(userId, 'marketplace');
+      await touchProductSession(userId, "marketplace");
       const row = await fetchMarketplaceProfileForUser(
         userId,
         (currentUser?.role ?? null) as AuthRole | null,
@@ -62,9 +65,9 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
       setProfile(row);
     } catch (err) {
       if (!isDuplicateDbError(err)) {
-        logProductIssue('provider.marketplace', err, { userId });
+        logProductIssue("provider.marketplace", err, { userId });
       }
-      setError(toUserFacingProductError(err, 'Failed to load Marketplace'));
+      setError(toUserFacingProductError(err, "Failed to load Marketplace"));
       setProfile(null);
     } finally {
       inFlightRef.current = false;
@@ -81,11 +84,16 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
     [loading, error, profile, reload],
   );
 
-  return <MarketplaceContext.Provider value={value}>{children}</MarketplaceContext.Provider>;
+  return (
+    <MarketplaceContext.Provider value={value}>
+      {children}
+    </MarketplaceContext.Provider>
+  );
 }
 
 export function useMarketplace(): MarketplaceContextValue {
   const ctx = useContext(MarketplaceContext);
-  if (!ctx) throw new Error('useMarketplace must be used within MarketplaceProvider');
+  if (!ctx)
+    throw new Error("useMarketplace must be used within MarketplaceProvider");
   return ctx;
 }

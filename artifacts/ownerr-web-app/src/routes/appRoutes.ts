@@ -1,4 +1,4 @@
-import { MARKETPLACE_ROUTES } from '@/routing/routeRegistry';
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
 
 /** Marketplace authenticated workspace (canonical). */
 export const marketplaceAppRoutes = {

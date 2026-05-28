@@ -1,9 +1,17 @@
 import { z } from "zod";
 
-export const AppSlugSchema = z.enum(["ownerr_os", "marketplace", "ownerr_network"]);
+export const AppSlugSchema = z.enum([
+  "ownerr_os",
+  "marketplace",
+  "ownerr_network",
+]);
 export type AppSlug = z.infer<typeof AppSlugSchema>;
 
-export const MembershipStatusSchema = z.enum(["active", "invited", "suspended"]);
+export const MembershipStatusSchema = z.enum([
+  "active",
+  "invited",
+  "suspended",
+]);
 export type MembershipStatus = z.infer<typeof MembershipStatusSchema>;
 
 export const UserAppMembershipSchema = z.object({
@@ -62,4 +70,6 @@ export type AppsMeResponse = z.infer<typeof AppsMeResponseSchema>;
 export type AppLauncherResponse = z.infer<typeof AppLauncherResponseSchema>;
 export type UserAppMembership = z.infer<typeof UserAppMembershipSchema>;
 export type SelectAppResponse = z.infer<typeof SelectAppResponseSchema>;
-export type CreateMembershipResponse = z.infer<typeof CreateMembershipResponseSchema>;
+export type CreateMembershipResponse = z.infer<
+  typeof CreateMembershipResponseSchema
+>;

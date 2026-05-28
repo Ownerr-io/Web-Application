@@ -38,13 +38,17 @@ export const founderSubmissionsTable = pgTable(
     visitCount: integer("visit_count").notNull().default(0),
     referralSignupCount: integer("referral_signup_count").notNull().default(0),
     authUserId: uuid("auth_user_id"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => ({
     referralCodeIdx: uniqueIndex("founder_submissions_referral_code_idx").on(
       table.referralCode,
     ),
-    createdAtIdx: index("founder_submissions_created_at_idx").on(table.createdAt),
+    createdAtIdx: index("founder_submissions_created_at_idx").on(
+      table.createdAt,
+    ),
     authUserCreatedIdx: index("founder_submissions_auth_user_created_idx").on(
       table.authUserId,
       table.createdAt,
@@ -61,11 +65,17 @@ export const founderReferralEventsTable = pgTable(
       .references(() => founderSubmissionsTable.id, { onDelete: "cascade" }),
     eventType: text("event_type").notNull(),
     sourcePlatform: text("source_platform"),
-    createdAt: timestamp("created_at", { withTimezone: true }).notNull().defaultNow(),
+    createdAt: timestamp("created_at", { withTimezone: true })
+      .notNull()
+      .defaultNow(),
   },
   (table) => ({
-    founderIdIdx: index("founder_referral_events_founder_id_idx").on(table.founderId),
-    eventTypeIdx: index("founder_referral_events_event_type_idx").on(table.eventType),
+    founderIdIdx: index("founder_referral_events_founder_id_idx").on(
+      table.founderId,
+    ),
+    eventTypeIdx: index("founder_referral_events_event_type_idx").on(
+      table.eventType,
+    ),
   }),
 );
 
@@ -85,4 +95,5 @@ export type InsertFounderSubmission = {
   authUserId?: string | null;
 };
 export type FounderSubmission = typeof founderSubmissionsTable.$inferSelect;
-export type FounderReferralEvent = typeof founderReferralEventsTable.$inferSelect;
+export type FounderReferralEvent =
+  typeof founderReferralEventsTable.$inferSelect;

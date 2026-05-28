@@ -1,8 +1,8 @@
-import { ValuationLottieAnimation } from './ValuationLottieAnimation';
-import { VALUATION_HERO_LOTTIE_CLASS } from './valuationHeroLottieSize';
+import { ValuationLottieAnimation } from "./ValuationLottieAnimation";
+import { VALUATION_HERO_LOTTIE_CLASS } from "./valuationHeroLottieSize";
 
 /** Public asset — filename contains a space */
-const LOTTIE_SRC = '/loading%20animation.lottie';
+const LOTTIE_SRC = "/loading%20animation.lottie";
 
 type Props = {
   onFinished: () => void;

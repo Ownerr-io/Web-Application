@@ -1,6 +1,5 @@
 import { Link } from "wouter";
 import { useOwnerrNetworkAuth } from "@/hooks/useOwnerrNetworkAuth";
-import { MARKETING_SHELL_CLASS } from "@/lib/marketingShell";
 import { PRODUCT_ROUTES } from "@/routing/routeRegistry";
 import { computeNetworkScore } from "@/lib/ownerr-network/score";
 
@@ -18,7 +17,7 @@ export default function OwnerrNetworkDashboardPage() {
   });
 
   return (
-    <div className={MARKETING_SHELL_CLASS + " desk-app-theme mx-auto max-w-3xl space-y-8"}>
+    <div className="w-full max-w-none min-w-0 space-y-6 sm:space-y-8">
       <header>
         <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[color:var(--terminal-lime)]">
           Dashboard
@@ -26,7 +25,9 @@ export default function OwnerrNetworkDashboardPage() {
         <h1 className="mt-1 text-2xl font-bold text-[color:var(--terminal-display)]">
           @{profile.username}
         </h1>
-        <p className="text-sm text-[color:var(--terminal-muted)]">{profile.name}</p>
+        <p className="text-sm text-[color:var(--terminal-muted)]">
+          {profile.name}
+        </p>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2">
@@ -34,7 +35,9 @@ export default function OwnerrNetworkDashboardPage() {
           <p className="text-xs font-bold uppercase tracking-widest text-[color:var(--terminal-muted)]">
             Profile completion
           </p>
-          <p className="mt-1 text-3xl font-bold text-[color:var(--terminal-lime)]">{completion}%</p>
+          <p className="mt-1 text-3xl font-bold text-[color:var(--terminal-lime)]">
+            {completion}%
+          </p>
           <Link
             href={PRODUCT_ROUTES.ownerrNetworkProfile}
             className="mt-2 inline-block text-sm font-bold text-[color:var(--terminal-ochre)]"
@@ -61,7 +64,9 @@ export default function OwnerrNetworkDashboardPage() {
           <p className="text-xs font-bold uppercase tracking-widest text-[color:var(--terminal-muted)]">
             Discover
           </p>
-          <p className="mt-2 text-sm font-bold text-[color:var(--terminal-ochre)]">Find people →</p>
+          <p className="mt-2 text-sm font-bold text-[color:var(--terminal-ochre)]">
+            Find people →
+          </p>
         </Link>
         <Link
           href={PRODUCT_ROUTES.ownerrNetworkReferrals}
@@ -79,18 +84,23 @@ export default function OwnerrNetworkDashboardPage() {
           <p className="text-xs font-bold uppercase tracking-widest text-[color:var(--terminal-muted)]">
             Credits
           </p>
-          <p className="mt-1 text-2xl font-bold text-[color:var(--terminal-lime)]">{profile.points}</p>
+          <p className="mt-1 text-2xl font-bold text-[color:var(--terminal-lime)]">
+            {profile.points}
+          </p>
         </Link>
       </section>
 
       <div className="flex flex-wrap gap-3">
         <Link
-          href={PRODUCT_ROUTES.ownerrNetworkShare(profile.username)}
+          href={PRODUCT_ROUTES.ownerrNetworkReferrals}
           className="text-sm font-bold text-[color:var(--terminal-ochre)]"
         >
           Share profile
         </Link>
-        <Link href={PRODUCT_ROUTES.ownerrNetworkLeaderboard} className="text-sm font-bold text-[color:var(--terminal-muted)]">
+        <Link
+          href={PRODUCT_ROUTES.ownerrNetworkLeaderboard}
+          className="text-sm font-bold text-[color:var(--terminal-muted)]"
+        >
           Leaderboard
         </Link>
       </div>

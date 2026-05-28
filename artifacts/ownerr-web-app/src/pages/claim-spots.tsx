@@ -1,15 +1,19 @@
-import { useEffect, useMemo, useState } from 'react';
-import { useLocation } from 'wouter';
-import { Users, Sparkles } from 'lucide-react';
+import { useEffect, useMemo, useState } from "react";
+import { useLocation } from "wouter";
+import { Users, Sparkles } from "lucide-react";
 
-import { CLAIM_SPOTS_TOTAL } from '@/lib/marketplace/claimService';
-import type { ClaimSpotRole } from '@/lib/marketplace/types';
-import { useClaimStats, usePublicClaims, useSubmitClaim } from '@/hooks/marketplace/useClaims';
-import { useRequireAuth } from '@/lib/platform/requireAuth';
-import { cn, founderAvatarUrl } from '@/lib/utils';
-import { marketplacePath } from '@/lib/appPaths';
-import { useToast } from '@/hooks/use-toast';
-import { Button } from '@/components/ui/button';
+import { CLAIM_SPOTS_TOTAL } from "@/lib/marketplace/claimService";
+import type { ClaimSpotRole } from "@/lib/marketplace/types";
+import {
+  useClaimStats,
+  usePublicClaims,
+  useSubmitClaim,
+} from "@/hooks/marketplace/useClaims";
+import { useRequireAuth } from "@/lib/platform/requireAuth";
+import { cn, founderAvatarUrl } from "@/lib/utils";
+import { marketplacePath } from "@/lib/appPaths";
+import { useToast } from "@/hooks/use-toast";
+import { Button } from "@/components/ui/button";
 import {
   Dialog,
   DialogContent,
@@ -17,16 +21,16 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-} from '@/components/ui/dialog';
-import { Input } from '@/components/ui/input';
-import { Label } from '@/components/ui/label';
+} from "@/components/ui/dialog";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
 import {
   Select,
   SelectContent,
   SelectItem,
   SelectTrigger,
   SelectValue,
-} from '@/components/ui/select';
+} from "@/components/ui/select";
 import {
   Table,
   TableBody,
@@ -34,20 +38,20 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
+} from "@/components/ui/table";
 
 const CLAIM_TABLE_PAGE_SIZE = 50;
 
 function roleLabel(role: ClaimSpotRole) {
-  return role === 'founder' ? 'Founder' : 'Investor';
+  return role === "founder" ? "Founder" : "Investor";
 }
 
 function formatClaimedAt(iso: string) {
   const d = new Date(iso);
-  return d.toLocaleDateString('en-US', {
-    month: 'short',
-    day: 'numeric',
-    year: 'numeric',
+  return d.toLocaleDateString("en-US", {
+    month: "short",
+    day: "numeric",
+    year: "numeric",
   });
 }
 
@@ -60,14 +64,17 @@ export default function ClaimSpotsPage() {
   const { requireSession } = useRequireAuth();
 
   const [claimOpen, setClaimOpen] = useState(false);
-  const [name, setName] = useState('');
-  const [handle, setHandle] = useState('');
-  const [email, setEmail] = useState('');
-  const [role, setRole] = useState<ClaimSpotRole>('founder');
-  const [tagline, setTagline] = useState('');
+  const [name, setName] = useState("");
+  const [handle, setHandle] = useState("");
+  const [email, setEmail] = useState("");
+  const [role, setRole] = useState<ClaimSpotRole>("founder");
+  const [tagline, setTagline] = useState("");
   const [tablePage, setTablePage] = useState(1);
 
-  const tableTotalPages = Math.max(1, Math.ceil(tableRows.length / CLAIM_TABLE_PAGE_SIZE));
+  const tableTotalPages = Math.max(
+    1,
+    Math.ceil(tableRows.length / CLAIM_TABLE_PAGE_SIZE),
+  );
 
   useEffect(() => {
     setTablePage((p) => Math.min(p, tableTotalPages));
@@ -78,22 +85,29 @@ export default function ClaimSpotsPage() {
     return tableRows.slice(start, start + CLAIM_TABLE_PAGE_SIZE);
   }, [tableRows, tablePage]);
 
-  const tableRangeStart = tableRows.length === 0 ? 0 : (tablePage - 1) * CLAIM_TABLE_PAGE_SIZE + 1;
-  const tableRangeEnd = Math.min(tablePage * CLAIM_TABLE_PAGE_SIZE, tableRows.length);
+  const tableRangeStart =
+    tableRows.length === 0 ? 0 : (tablePage - 1) * CLAIM_TABLE_PAGE_SIZE + 1;
+  const tableRangeEnd = Math.min(
+    tablePage * CLAIM_TABLE_PAGE_SIZE,
+    tableRows.length,
+  );
 
   const totalClaimedShown = claimStats?.claimed ?? tableRows.length;
-  const pct = Math.min(100, Math.round((totalClaimedShown / CLAIM_SPOTS_TOTAL) * 100));
+  const pct = Math.min(
+    100,
+    Math.round((totalClaimedShown / CLAIM_SPOTS_TOTAL) * 100),
+  );
 
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     const trimmedName = name.trim();
-    const rawHandle = handle.trim().replace(/^@+/, '');
+    const rawHandle = handle.trim().replace(/^@+/, "");
     const trimmedEmail = email.trim();
     if (!trimmedName || !rawHandle || !trimmedEmail) {
       toast({
-        variant: 'destructive',
-        title: 'Missing fields',
-        description: 'Add your name, a handle (e.g. janedoe), and an email.',
+        variant: "destructive",
+        title: "Missing fields",
+        description: "Add your name, a handle (e.g. janedoe), and an email.",
       });
       return;
     }
@@ -108,11 +122,11 @@ export default function ClaimSpotsPage() {
           tagline: tagline.trim() || undefined,
         })
         .then(() => {
-          setName('');
-          setHandle('');
-          setEmail('');
-          setTagline('');
-          setRole('founder');
+          setName("");
+          setHandle("");
+          setEmail("");
+          setTagline("");
+          setRole("founder");
           setClaimOpen(false);
         });
     });
@@ -130,9 +144,9 @@ export default function ClaimSpotsPage() {
               First {CLAIM_SPOTS_TOTAL} founders &amp; investors
             </h1>
             <p className="mp-body mt-2 text-pretty text-sm leading-relaxed">
-              Roster of who claimed a free listing spot. Use{' '}
-              <span className="mp-link font-semibold">Claim your spot</span> to add yourself;
-              claims are stored securely in your Ownerr account.
+              Roster of who claimed a free listing spot. Use{" "}
+              <span className="mp-link font-semibold">Claim your spot</span> to
+              add yourself; claims are stored securely in your Ownerr account.
             </p>
             <div className="mt-4 flex flex-col gap-4 sm:max-w-2xl sm:flex-row sm:items-end sm:justify-between">
               <div className="flex min-w-0 flex-1 flex-col gap-2">
@@ -157,14 +171,16 @@ export default function ClaimSpotsPage() {
       <Dialog open={claimOpen} onOpenChange={setClaimOpen}>
         <DialogContent
           className={cn(
-            'max-h-[min(88dvh,calc(100dvh-1rem))] w-[calc(100vw-1.25rem)] max-w-lg overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-xl p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-5 sm:max-h-[min(90vh,640px)] sm:w-full sm:p-6',
+            "max-h-[min(88dvh,calc(100dvh-1rem))] w-[calc(100vw-1.25rem)] max-w-lg overflow-x-hidden overflow-y-auto overscroll-y-contain rounded-xl p-4 pb-[max(1rem,env(safe-area-inset-bottom,0px))] pt-5 sm:max-h-[min(90vh,640px)] sm:w-full sm:p-6",
           )}
         >
           <DialogHeader className="space-y-2 pr-10 text-left sm:pr-12">
-            <DialogTitle className="text-base leading-snug sm:text-lg">Claim your spot</DialogTitle>
+            <DialogTitle className="text-base leading-snug sm:text-lg">
+              Claim your spot
+            </DialogTitle>
             <DialogDescription className="text-pretty text-left text-xs leading-relaxed sm:text-sm">
-              Choose founder or investor. Your row appears at the top of the roster after you submit (stored in this
-              browser).
+              Choose founder or investor. Your row appears at the top of the
+              roster after you submit (stored in this browser).
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={onSubmit} className="grid min-w-0 gap-4">
@@ -204,8 +220,14 @@ export default function ClaimSpotsPage() {
               </div>
               <div className="min-w-0 space-y-2 sm:col-span-2">
                 <Label htmlFor="claim-role">Role</Label>
-                <Select value={role} onValueChange={(v) => setRole(v as ClaimSpotRole)}>
-                  <SelectTrigger id="claim-role" className="h-11 min-h-11 sm:h-9 sm:min-h-9">
+                <Select
+                  value={role}
+                  onValueChange={(v) => setRole(v as ClaimSpotRole)}
+                >
+                  <SelectTrigger
+                    id="claim-role"
+                    className="h-11 min-h-11 sm:h-9 sm:min-h-9"
+                  >
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent sideOffset={6}>
@@ -226,11 +248,20 @@ export default function ClaimSpotsPage() {
               </div>
             </div>
             <DialogFooter className="mt-1 flex w-full min-w-0 flex-row flex-wrap justify-end gap-2 sm:mt-0 sm:justify-end">
-              <Button type="button" variant="outline" className="min-h-10 shrink-0" onClick={() => setClaimOpen(false)}>
+              <Button
+                type="button"
+                variant="outline"
+                className="min-h-10 shrink-0"
+                onClick={() => setClaimOpen(false)}
+              >
                 Cancel
               </Button>
-              <Button type="submit" className="min-h-10 shrink-0" disabled={submitClaim.isPending}>
-                {submitClaim.isPending ? 'Saving…' : 'Submit claim'}
+              <Button
+                type="submit"
+                className="min-h-10 shrink-0"
+                disabled={submitClaim.isPending}
+              >
+                {submitClaim.isPending ? "Saving…" : "Submit claim"}
               </Button>
             </DialogFooter>
           </form>
@@ -244,12 +275,15 @@ export default function ClaimSpotsPage() {
               id="claim-roster-heading"
               className="flex flex-wrap items-center gap-2 text-lg font-bold sm:text-xl"
             >
-              <Users className="h-5 w-5 shrink-0 text-muted-foreground" aria-hidden />
+              <Users
+                className="h-5 w-5 shrink-0 text-muted-foreground"
+                aria-hidden
+              />
               Who claimed a spot
             </h2>
             <p className="mt-1 break-words text-sm text-muted-foreground">
               {loading
-                ? 'Loading roster…'
+                ? "Loading roster…"
                 : `${tableRows.length} claims on record.`}
             </p>
           </div>
@@ -273,11 +307,21 @@ export default function ClaimSpotsPage() {
                 role="link"
                 tabIndex={0}
                 className="cursor-pointer px-3 py-3.5 transition-colors hover:bg-muted/60 active:bg-muted/80 dark:hover:bg-zinc-800/50"
-                onClick={() => setLocation(marketplacePath(`/founder/${encodeURIComponent(entry.handle)}`))}
+                onClick={() =>
+                  setLocation(
+                    marketplacePath(
+                      `/founder/${encodeURIComponent(entry.handle)}`,
+                    ),
+                  )
+                }
                 onKeyDown={(e) => {
-                  if (e.key === 'Enter' || e.key === ' ') {
+                  if (e.key === "Enter" || e.key === " ") {
                     e.preventDefault();
-                    setLocation(marketplacePath(`/founder/${encodeURIComponent(entry.handle)}`));
+                    setLocation(
+                      marketplacePath(
+                        `/founder/${encodeURIComponent(entry.handle)}`,
+                      ),
+                    );
                   }
                 }}
               >
@@ -296,26 +340,34 @@ export default function ClaimSpotsPage() {
                       <span className="mp-link font-semibold underline-offset-2">
                         {entry.name}
                       </span>
-                      <span className="font-mono text-xs text-muted-foreground">@{entry.handle}</span>
+                      <span className="font-mono text-xs text-muted-foreground">
+                        @{entry.handle}
+                      </span>
                     </div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-2">
-                      <span className="text-xs text-muted-foreground">{entry.email}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {entry.email}
+                      </span>
                     </div>
                     <div className="mt-1.5 flex flex-wrap items-center gap-2">
                       <span
                         className={cn(
-                          'inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
-                          entry.role === 'founder'
-                            ? 'mp-badge-lime'
-                            : 'mp-badge-orange',
+                          "inline-flex shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                          entry.role === "founder"
+                            ? "mp-badge-lime"
+                            : "mp-badge-orange",
                         )}
                       >
                         {roleLabel(entry.role)}
                       </span>
-                      <span className="text-xs text-muted-foreground">{formatClaimedAt(entry.claimedAt)}</span>
+                      <span className="text-xs text-muted-foreground">
+                        {formatClaimedAt(entry.claimedAt)}
+                      </span>
                     </div>
                     {entry.tagline ? (
-                      <p className="mt-2 line-clamp-2 text-xs leading-snug text-muted-foreground">{entry.tagline}</p>
+                      <p className="mt-2 line-clamp-2 text-xs leading-snug text-muted-foreground">
+                        {entry.tagline}
+                      </p>
                     ) : null}
                   </div>
                 </div>
@@ -344,11 +396,21 @@ export default function ClaimSpotsPage() {
                   role="link"
                   tabIndex={0}
                   className="cursor-pointer hover:bg-muted/60 dark:hover:bg-zinc-800/50"
-                  onClick={() => setLocation(marketplacePath(`/founder/${encodeURIComponent(entry.handle)}`))}
+                  onClick={() =>
+                    setLocation(
+                      marketplacePath(
+                        `/founder/${encodeURIComponent(entry.handle)}`,
+                      ),
+                    )
+                  }
                   onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') {
+                    if (e.key === "Enter" || e.key === " ") {
                       e.preventDefault();
-                      setLocation(marketplacePath(`/founder/${encodeURIComponent(entry.handle)}`));
+                      setLocation(
+                        marketplacePath(
+                          `/founder/${encodeURIComponent(entry.handle)}`,
+                        ),
+                      );
                     }
                   }}
                 >
@@ -377,10 +439,10 @@ export default function ClaimSpotsPage() {
                   <TableCell>
                     <span
                       className={cn(
-                        'inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide',
-                        entry.role === 'founder'
-                          ? 'mp-badge-lime'
-                          : 'mp-badge-orange',
+                        "inline-flex rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide",
+                        entry.role === "founder"
+                          ? "mp-badge-lime"
+                          : "mp-badge-orange",
                       )}
                     >
                       {roleLabel(entry.role)}
@@ -390,7 +452,7 @@ export default function ClaimSpotsPage() {
                     {formatClaimedAt(entry.claimedAt)}
                   </TableCell>
                   <TableCell className="hidden max-w-[240px] truncate text-sm text-muted-foreground lg:table-cell">
-                    {entry.tagline ?? '—'}
+                    {entry.tagline ?? "—"}
                   </TableCell>
                 </TableRow>
               ))}
@@ -400,7 +462,7 @@ export default function ClaimSpotsPage() {
         <div className="flex flex-col gap-3 border-t border-border px-3 py-3 sm:flex-row sm:items-center sm:justify-between">
           <p className="min-w-0 break-words text-sm text-muted-foreground sm:pr-4">
             {tableRows.length === 0
-              ? 'No rows'
+              ? "No rows"
               : `Showing ${tableRangeStart}–${tableRangeEnd} of ${tableRows.length} · Page ${tablePage} of ${tableTotalPages}`}
           </p>
           <div className="flex w-full flex-wrap items-center justify-end gap-2 sm:w-auto sm:shrink-0">
@@ -418,7 +480,9 @@ export default function ClaimSpotsPage() {
               variant="outline"
               size="sm"
               disabled={tablePage >= tableTotalPages}
-              onClick={() => setTablePage((p) => Math.min(tableTotalPages, p + 1))}
+              onClick={() =>
+                setTablePage((p) => Math.min(tableTotalPages, p + 1))
+              }
             >
               Next
             </Button>

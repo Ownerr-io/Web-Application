@@ -7,8 +7,12 @@ export type ReferralAttribution = {
   sourcePlatform?: string;
 };
 
-export function captureReferralFromSearch(search: string): ReferralAttribution | null {
-  const params = new URLSearchParams(search.startsWith("?") ? search : `?${search}`);
+export function captureReferralFromSearch(
+  search: string,
+): ReferralAttribution | null {
+  const params = new URLSearchParams(
+    search.startsWith("?") ? search : `?${search}`,
+  );
   const ref = params.get("ref")?.trim();
   if (!ref) return null;
   const sourcePlatform =
