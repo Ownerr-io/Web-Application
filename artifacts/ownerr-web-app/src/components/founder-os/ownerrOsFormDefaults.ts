@@ -1,4 +1,5 @@
 import type { FounderFormDraft } from "./founderOsQuestions";
+import { COMPANY_WEBSITE_URL } from "@/lib/company";
 
 /** Ownerr OS listing used as editable defaults so founders see the expected format. */
 export const OWNERR_OS_REFERENCE_DRAFT: Omit<
@@ -9,7 +10,7 @@ export const OWNERR_OS_REFERENCE_DRAFT: Omit<
   tagline: "The infrastructure for startup ownership.",
   description:
     "Ownerr.live helps founders exit at fair valuations and gives buyers verified acquisition opportunities—business scoring, revenue and traffic verification, legal documentation, and secure deal management.",
-  website: "https://ownerr.live",
+  website: COMPANY_WEBSITE_URL,
   linkedin: "https://www.linkedin.com/company/ownerr/",
   twitter: "https://x.com/OwnerrOS",
   instagram: "https://www.instagram.com/ownerr_os/",

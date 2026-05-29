@@ -11,6 +11,7 @@ import {
   getFounderSubmissionDB,
   putFounderSubmissionDB,
 } from "./db";
+import { COMPANY_WEBSITE_URL } from "@/lib/company";
 import { getSupabase, isSupabaseConfigured } from "./supabase/client";
 
 type FounderSubmissionDbRow = {
@@ -99,7 +100,7 @@ function siteOrigin(): string {
   if (typeof window !== "undefined") return window.location.origin;
   return (
     (import.meta.env.VITE_PUBLIC_SITE_URL as string | undefined) ??
-    "https://ownerros.com"
+    COMPANY_WEBSITE_URL
   );
 }
 

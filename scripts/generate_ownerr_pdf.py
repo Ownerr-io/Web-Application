@@ -878,7 +878,7 @@ add(rule(INDIGO, 1))
 add(Spacer(1,6))
 add(Paragraph(
     "This document reflects the implemented state of ownerr.live as of April 2026. "
-    "For technical enquiries: <b>hello@ownerr.live</b>",
+    "For technical enquiries: <b>Intelligence@ownerr.live</b>",
     PS("foot", fontSize=8, fontName="Helvetica", textColor=SLATE_500,
        leading=12, alignment=TA_CENTER)
 ))

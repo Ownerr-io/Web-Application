@@ -1,3 +1,5 @@
+import { COMPANY_EMAIL, COMPANY_WEBSITE_URL } from "@/lib/company";
+
 export type ValuationPhase = "intro" | "questions" | "analyzing" | "results";
 
 export type OnboardingMeta = {
@@ -34,8 +36,8 @@ export const DEFAULT_OWNERR_ONBOARDING_META: OnboardingMeta = {
   customerCount: "1240",
   marketCategory: "Marketplace",
   founderName: "Ownerr Team",
-  workEmail: "hello@ownerr.com",
-  companyWebsite: "https://ownerr.com",
+  workEmail: COMPANY_EMAIL,
+  companyWebsite: COMPANY_WEBSITE_URL,
   linkedIn: "https://www.linkedin.com/company/ownerr",
   phone: "",
 };

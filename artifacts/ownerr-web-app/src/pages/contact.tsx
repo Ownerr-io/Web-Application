@@ -6,14 +6,15 @@ import { fadeUp } from "@/components/landing/saas/motion";
 import { marketingRoutes } from "@/routes/marketingRoutes";
 import { marketplaceRoutes } from "@/routes/marketplaceRoutes";
 import { authRegisterHref } from "@/lib/auth/routes";
+import { COMPANY_EMAIL, companyMailto } from "@/lib/company";
 
 const CHANNELS = [
   {
     icon: Mail,
     title: "Email",
     description: "Partnerships, support, and general inquiries.",
-    href: "mailto:hello@ownerr.com",
-    action: "hello@ownerr.com",
+    href: companyMailto,
+    action: COMPANY_EMAIL,
     external: true,
     accent: "orange" as const,
   },
