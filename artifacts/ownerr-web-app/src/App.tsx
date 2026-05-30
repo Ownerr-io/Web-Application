@@ -20,6 +20,18 @@ import { RouteLoadingFallback } from "@/components/routing/RouteLoadingFallback"
 import {
   LazyAcquirePage,
   LazyAdminFounderStatsPage,
+  LazyAdminHubPage,
+  LazyOwnerrNetworkAdminDashboard,
+  LazyAdminProfilesPage,
+  LazyAdminUsersPage,
+  LazyAdminLedgerPage,
+  LazyAdminReferralsPage,
+  LazyMarketplaceAdminDashboard,
+  LazyMarketplaceAdminListingsPage,
+  LazyMarketplaceAdminSubmissionsPage,
+  LazyOwnerrOsAdminDashboard,
+  LazyOwnerrOsAdminListingsPage,
+  LazyOwnerrOsAdminAnalyticsPage,
   LazyFounderOsFlowDialog,
   LazyMarketIntelligencePage,
   LazyStartupDetailPage,
@@ -84,11 +96,13 @@ import { ActiveProductProvider } from "@/context/ActiveProductContext";
 import MarketplaceAppEntryPage from "@/pages/marketplace/app/index";
 import AuthStartPage from "@/pages/auth/start";
 import ForbiddenPage from "@/pages/forbidden";
+import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import {
   AUTH_ROUTES,
   MARKETPLACE_ROUTES,
   PRODUCT_ROUTES,
   PUBLIC_ROUTES,
+  ADMIN_ROUTES,
 } from "@/routing/routeRegistry";
 
 if (typeof document !== "undefined") {
@@ -138,6 +152,111 @@ function Router() {
             </Suspense>
           </RouteGuard>
         </MarketingLayout>
+      </Route>
+
+      <Route path={ADMIN_ROUTES.hub}>
+        <RouteGuard pathname={ADMIN_ROUTES.hub}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading admin…" />}>
+            <LazyAdminHubPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+
+      <Route path={ADMIN_ROUTES.ownerrNetworkDashboard}>
+        <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkDashboard}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading dashboard…" />}>
+            <LazyOwnerrNetworkAdminDashboard />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.ownerrNetworkUsers}>
+        <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkUsers}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading users…" />}>
+            <LazyAdminUsersPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.ownerrNetworkProfiles}>
+        <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkProfiles}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading profiles…" />}>
+            <LazyAdminProfilesPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.ownerrNetworkLedger}>
+        <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkLedger}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading ledger…" />}>
+            <LazyAdminLedgerPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.ownerrNetworkReferrals}>
+        <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkReferrals}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading referrals…" />}>
+            <LazyAdminReferralsPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+
+      <Route path={ADMIN_ROUTES.marketplaceDashboard}>
+        <RouteGuard pathname={ADMIN_ROUTES.marketplaceDashboard}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading dashboard…" />}>
+            <LazyMarketplaceAdminDashboard />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.marketplaceListings}>
+        <RouteGuard pathname={ADMIN_ROUTES.marketplaceListings}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading listings…" />}>
+            <LazyMarketplaceAdminListingsPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.marketplaceSubmissions}>
+        <RouteGuard pathname={ADMIN_ROUTES.marketplaceSubmissions}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading submissions…" />}>
+            <LazyMarketplaceAdminSubmissionsPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+
+      <Route path={ADMIN_ROUTES.ownerrOsDashboard}>
+        <RouteGuard pathname={ADMIN_ROUTES.ownerrOsDashboard}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading dashboard…" />}>
+            <LazyOwnerrOsAdminDashboard />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.ownerrOsListings}>
+        <RouteGuard pathname={ADMIN_ROUTES.ownerrOsListings}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading listings…" />}>
+            <LazyOwnerrOsAdminListingsPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.ownerrOsAnalytics}>
+        <RouteGuard pathname={ADMIN_ROUTES.ownerrOsAnalytics}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading analytics…" />}>
+            <LazyOwnerrOsAdminAnalyticsPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+
+      {/* Legacy admin paths → new app-scoped routes */}
+      <Route path={ADMIN_ROUTES.adminDashboard}>
+        <Redirect to={ADMIN_ROUTES.ownerrNetworkDashboard} replace />
+      </Route>
+      <Route path={ADMIN_ROUTES.adminUsers}>
+        <Redirect to={ADMIN_ROUTES.ownerrNetworkUsers} replace />
+      </Route>
+      <Route path={ADMIN_ROUTES.adminProfiles}>
+        <Redirect to={ADMIN_ROUTES.ownerrNetworkProfiles} replace />
+      </Route>
+      <Route path={ADMIN_ROUTES.adminLedger}>
+        <Redirect to={ADMIN_ROUTES.ownerrNetworkLedger} replace />
+      </Route>
+      <Route path={ADMIN_ROUTES.adminReferrals}>
+        <Redirect to={ADMIN_ROUTES.ownerrNetworkReferrals} replace />
       </Route>
 
       <Route path={PRODUCT_ROUTES.ownerrOsJoin}>
@@ -679,6 +798,7 @@ function App() {
         <TooltipProvider>
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <AuthProvider>
+              <PostHogProvider>
               <ActiveProductProvider>
                 <FounderOsProvider>
                   <DemoMarketplaceShellGuard />
@@ -691,6 +811,7 @@ function App() {
                   <Toaster />
                 </FounderOsProvider>
               </ActiveProductProvider>
+              </PostHogProvider>
             </AuthProvider>
           </WouterRouter>
         </TooltipProvider>
