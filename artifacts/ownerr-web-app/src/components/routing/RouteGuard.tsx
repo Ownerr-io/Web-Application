@@ -33,6 +33,20 @@ export function RouteGuard({ children, pathname }: Props) {
     );
   }
 
+  const isAdmin = isPlatformAdminUser(authUser);
+
+  // STEP 1: Force admin redirect after login
+  if (session && isAdmin && !path.startsWith("/admin")) {
+    return <Redirect to="/admin" />;
+  }
+
+  // STEP 2: Allow admin routes directly
+  if (isAdmin && path.startsWith("/admin")) {
+    return <>{children}</>;
+  }
+
+  // BELOW THIS → normal users only
+
   const routeApp = resolveMembershipAppForPath(path);
 
   if (routeApp && !session) {
@@ -43,6 +57,7 @@ export function RouteGuard({ children, pathname }: Props) {
   if (routeApp && session) {
     const demoLocked = isDemoMarketplaceLockedSession(session.user.email);
     const locked = activeProduct ?? readActiveProduct();
+
     if (demoLocked && routeApp === "marketplace") {
       if (locked !== "marketplace") setActiveProduct("marketplace");
     } else if (locked && locked !== routeApp) {
@@ -56,7 +71,7 @@ export function RouteGuard({ children, pathname }: Props) {
     session: Boolean(session),
     deskUser: currentUser,
     networkProfile: Boolean(ownerrNetwork?.profile?.id),
-    platformAdmin: isPlatformAdminUser(authUser),
+    platformAdmin: isAdmin,
   });
 
   if (!access.allowed) {
