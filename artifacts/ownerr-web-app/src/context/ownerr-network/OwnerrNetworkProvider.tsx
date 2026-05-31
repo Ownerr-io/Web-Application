@@ -23,6 +23,7 @@ import {
   logProductIssue,
   toUserFacingProductError,
 } from "@/lib/observability/productErrors";
+import { devLog } from "@/lib/observability/devLog";
 import {
   provisionOwnerrNetworkProduct,
   touchProductSession,
@@ -88,7 +89,7 @@ export function OwnerrNetworkProvider({ children }: { children: ReactNode }) {
       ) {
         const supabase = getSupabase();
         const isNewSchema = isUsersTableActive();
-        console.log(
+        devLog(
           `[Provider] User requires verification. Attempting update. isNewSchema: ${isNewSchema}`,
         );
         const { error: verifyErr } = isNewSchema
@@ -101,12 +102,11 @@ export function OwnerrNetworkProvider({ children }: { children: ReactNode }) {
               .update({ profile_verified: true })
               .eq("auth_user_id", userId);
         if (verifyErr) {
-          console.error(
-            "[Provider] Failed to verify profile in DB:",
-            verifyErr,
-          );
+          logProductIssue("provider.ownerr_network", verifyErr, {
+            userId,
+          });
         } else {
-          console.log("[Provider] Profile verification updated successfully.");
+          devLog("[Provider] Profile verification updated successfully.");
           row = (await fetchCurrentOwnerrNetworkUser()) ?? row;
         }
       }

@@ -4,6 +4,7 @@ import {
   networkTables,
   isUsersTableActive,
 } from "@/lib/ownerr-network/dbTables";
+import { devLog } from "@/lib/observability/devLog";
 
 const SESSION_KEY = "ownerr_network_analytics_session";
 
@@ -39,7 +40,7 @@ export async function trackOwnerrNetworkEvent(
     const supabase = getSupabase();
     await ensureNetworkTablesDetected(supabase);
     const isNewSchema = isUsersTableActive();
-    console.log(
+    devLog(
       `[Analytics] Tracking event: ${eventType} (isNewSchema: ${isNewSchema})`,
     );
     if (isNewSchema) {

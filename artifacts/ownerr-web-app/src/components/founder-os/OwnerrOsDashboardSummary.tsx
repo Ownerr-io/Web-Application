@@ -30,16 +30,16 @@ export function OwnerrOsDashboardSummary() {
       description="Workspace summary across all of your OWNERR OS startup listings."
     >
       <dl className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-xl border border-border bg-muted/20 p-5">
-          <dt className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="brand-kpi-card rounded-xl p-5 shadow-none">
+          <dt className="text-xs font-bold uppercase tracking-widest text-brand-orange/90">
             Startups listed
           </dt>
           <dd className="mt-2 text-3xl font-bold tabular-nums">
             {records.length}
           </dd>
         </div>
-        <div className="rounded-xl border border-border bg-muted/20 p-5">
-          <dt className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="brand-kpi-card rounded-xl p-5 shadow-none">
+          <dt className="text-xs font-bold uppercase tracking-widest text-brand-orange/90">
             Total profile visits
           </dt>
           <dd className="mt-2 text-3xl font-bold tabular-nums">
@@ -64,7 +64,7 @@ export function OwnerrOsDashboardSummary() {
       </div>
 
       <div className="space-y-3">
-        <h2 className="text-sm font-bold uppercase tracking-widest text-muted-foreground">
+        <h2 className="text-sm font-bold uppercase tracking-widest text-brand-lime">
           Your startups
         </h2>
         <OwnerrOsStartupsTable records={records} />

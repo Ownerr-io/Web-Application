@@ -1,7 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { fetchMarketplaceListings } from "@/lib/marketplace/service";
 import { useInbox } from "@/hooks/marketplace/useInbox";
+import {
+  MarketplaceDeskListItem,
+  MarketplaceDeskPanel,
+  MarketplaceDeskStat,
+  MarketplaceDeskStatGrid,
+  marketplaceDeskKpiValueClass,
+} from "@/components/marketplace/MarketplaceDeskUi";
 
 export default function SellerInboxPage() {
   const { data: inboxThreads = [], isLoading } = useInbox();
@@ -15,68 +21,51 @@ export default function SellerInboxPage() {
   const safeThreads = inboxThreads;
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Inbox</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-border bg-muted/20 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Open Threads
-            </p>
-            <p className="mt-1 text-xl font-bold">{safeThreads.length}</p>
-          </div>
-          <div className="rounded-lg border border-border bg-muted/20 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Negotiating
-            </p>
-            <p className="mt-1 text-xl font-bold">
-              {safeThreads.filter((x) => x.unreadCount > 0).length}
-            </p>
-          </div>
-          <div className="rounded-lg border border-border bg-muted/20 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Contacted
-            </p>
-            <p className="mt-1 text-xl font-bold">
-              {safeThreads.reduce((n, t) => n + t.unreadCount, 0)}
-            </p>
-          </div>
-        </div>
-        <div className="space-y-3">
-          {isLoading ? (
-            <p className="text-sm text-muted-foreground">Loading inbox…</p>
-          ) : safeThreads.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No conversations yet.
-            </p>
-          ) : (
-            safeThreads.map((thread) => (
-              <div
-                key={thread.conversationId}
-                className="rounded-lg border border-border p-3"
-              >
-                <div className="flex flex-wrap items-center justify-between gap-2">
-                  <p className="font-semibold">{thread.buyerName}</p>
-                  {thread.unreadCount > 0 ? (
-                    <span className="text-xs font-medium text-primary">
-                      {thread.unreadCount} unread
-                    </span>
-                  ) : null}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  {listingBySlug.get(thread.startupSlug)?.name ??
-                    thread.startupTitle}
-                </p>
-                <p className="mt-1 text-sm text-foreground/90">
-                  {thread.lastMessage || "No messages"}
-                </p>
+    <MarketplaceDeskPanel title="Inbox">
+      <MarketplaceDeskStatGrid>
+        <MarketplaceDeskStat
+          label="Open threads"
+          value={safeThreads.length}
+          valueClassName={marketplaceDeskKpiValueClass(0)}
+        />
+        <MarketplaceDeskStat
+          label="With unread"
+          value={safeThreads.filter((x) => x.unreadCount > 0).length}
+          valueClassName={marketplaceDeskKpiValueClass(1)}
+        />
+        <MarketplaceDeskStat
+          label="Unread total"
+          value={safeThreads.reduce((n, t) => n + t.unreadCount, 0)}
+          valueClassName={marketplaceDeskKpiValueClass(2)}
+        />
+      </MarketplaceDeskStatGrid>
+      <div className="space-y-3">
+        {isLoading ? (
+          <p className="text-sm text-muted-foreground">Loading inbox…</p>
+        ) : safeThreads.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No conversations yet.</p>
+        ) : (
+          safeThreads.map((thread) => (
+            <MarketplaceDeskListItem key={thread.conversationId}>
+              <div className="flex flex-wrap items-center justify-between gap-2">
+                <p className="font-semibold">{thread.buyerName}</p>
+                {thread.unreadCount > 0 ? (
+                  <span className="text-xs font-medium text-brand-orange">
+                    {thread.unreadCount} unread
+                  </span>
+                ) : null}
               </div>
-            ))
-          )}
-        </div>
-      </CardContent>
-    </Card>
+              <p className="text-xs text-muted-foreground">
+                {listingBySlug.get(thread.startupSlug)?.name ??
+                  thread.startupTitle}
+              </p>
+              <p className="mt-1 text-sm text-foreground/90">
+                {thread.lastMessage || "No messages"}
+              </p>
+            </MarketplaceDeskListItem>
+          ))
+        )}
+      </div>
+    </MarketplaceDeskPanel>
   );
 }

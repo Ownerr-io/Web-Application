@@ -1,13 +1,11 @@
 import { openDB, type DBSchema, type IDBPDatabase } from "idb";
 import type { Startup } from "./mockData";
-import type { AuthUser } from "@/lib/auth/types";
 import type { FounderSubmissionRecord } from "./founderTypes";
 
 const DB_NAME = "ownerr-web-app";
-const DB_VERSION = 10;
+const DB_VERSION = 11;
 const VALUATION_SESSION_STORE = "valuation-session";
 const USER_STARTUP_STORE = "user-startups";
-const AUTH_USERS_STORE = "auth-users";
 const FOUNDER_SUBMISSIONS_STORE = "founder-submissions";
 
 interface OwnerrDB extends DBSchema {
@@ -15,11 +13,6 @@ interface OwnerrDB extends DBSchema {
     key: string;
     value: Startup;
     indexes: { "by-slug": string };
-  };
-  "auth-users": {
-    key: string;
-    value: AuthUser;
-    indexes: { "by-email": string };
   };
   "valuation-session": {
     key: string;
@@ -51,12 +44,6 @@ export function getDB(): Promise<IDBPDatabase<OwnerrDB>> {
           });
           store.createIndex("by-slug", "slug", { unique: true });
         }
-        if (!db.objectStoreNames.contains(AUTH_USERS_STORE)) {
-          const store = db.createObjectStore(AUTH_USERS_STORE, {
-            keyPath: "id",
-          });
-          store.createIndex("by-email", "email", { unique: true });
-        }
         if (!db.objectStoreNames.contains(VALUATION_SESSION_STORE)) {
           db.createObjectStore(VALUATION_SESSION_STORE, { keyPath: "id" });
         }
@@ -82,6 +69,17 @@ export function getDB(): Promise<IDBPDatabase<OwnerrDB>> {
             }
           }
         }
+        if (oldVersion < 11) {
+          const names = db.objectStoreNames;
+          for (let i = 0; i < names.length; i++) {
+            const name = names[i] as string;
+            if (name === "auth-users") {
+              (
+                db as unknown as { deleteObjectStore(n: string): void }
+              ).deleteObjectStore(name);
+            }
+          }
+        }
       },
     });
   }
@@ -96,30 +94,6 @@ export async function addUserStartupDB(startup: Startup): Promise<void> {
 export async function getUserStartupsDB(): Promise<Startup[]> {
   const db = await getDB();
   return db.getAll(USER_STARTUP_STORE);
-}
-
-export async function getAuthUsersDB(): Promise<AuthUser[]> {
-  const db = await getDB();
-  return db.getAll(AUTH_USERS_STORE);
-}
-
-export async function getAuthUserByIdDB(
-  id: string,
-): Promise<AuthUser | undefined> {
-  const db = await getDB();
-  return db.get(AUTH_USERS_STORE, id);
-}
-
-export async function getAuthUserByEmailDB(
-  email: string,
-): Promise<AuthUser | undefined> {
-  const db = await getDB();
-  return db.getFromIndex(AUTH_USERS_STORE, "by-email", email);
-}
-
-export async function putAuthUserDB(user: AuthUser): Promise<void> {
-  const db = await getDB();
-  await db.put(AUTH_USERS_STORE, user);
 }
 
 export async function putFounderSubmissionDB(

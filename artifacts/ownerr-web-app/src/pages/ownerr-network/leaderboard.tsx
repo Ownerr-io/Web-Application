@@ -75,15 +75,16 @@ export default function OwnerrNetworkLeaderboardPage() {
               <button
                 key={p}
                 type="button"
+                aria-pressed={period === p}
                 onClick={() => setPeriod(p)}
                 className={cn(
-                  "rounded-[10px] px-4 py-2 text-xs font-black uppercase tracking-widest transition-colors",
-                  period === p
-                    ? "bg-[color:var(--terminal-ochre)] text-[color:var(--brand-accent-ink)]"
-                    : "border border-[color:var(--terminal-border)] text-[color:var(--terminal-muted)] hover:text-[color:var(--terminal-display)]",
+                  "brand-segment-btn px-4 py-2 tracking-widest",
+                  period === p && "brand-segment-btn--active",
                 )}
               >
-                {p === "week" ? "This week" : "All time"}
+                <span className="brand-segment-btn-label">
+                  {p === "week" ? "This week" : "All time"}
+                </span>
               </button>
             ))}
           </div>

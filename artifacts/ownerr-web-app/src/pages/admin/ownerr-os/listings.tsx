@@ -38,7 +38,11 @@ export default function OwnerrOsListingsAdminPage() {
   const [editing, setEditing] = useState<AdminOsListingRow | null>(null);
   const [form, setForm] = useState<Partial<AdminOsListingRow>>({});
 
-  const { data = [], isLoading, error } = useQuery({
+  const {
+    data = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["admin", "ownerr-os", "listings"],
     queryFn: fetchAllOsListings,
   });
@@ -103,8 +107,9 @@ export default function OwnerrOsListingsAdminPage() {
       <div className="space-y-6">
         <div>
           <h2 className="text-2xl font-bold tracking-tight">OS Listings</h2>
-          <p className="text-sm text-muted-foreground">
-            Manage Ownerr OS founder listings
+          <p className="text-sm text-muted-foreground max-w-2xl">
+            In-app startup catalog (<code className="text-xs">listings</code>).
+            For viral join submissions and referral analytics, use Founders.
           </p>
         </div>
 

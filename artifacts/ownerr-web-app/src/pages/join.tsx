@@ -17,14 +17,31 @@ import {
   mergeOwnerrOsDraftAfterAuth,
   resolvePostOwnerrAuthPath,
 } from "@/lib/auth/mergeOwnerrOsDraft";
+import { resolvePlatformAdminPostAuthDestination } from "@/routing/authResolver";
+import { shouldHoldPostAuthForPlatformAdmin } from "@/hooks/useRedirectPlatformAdminWhenReady";
 import { productDashboardPath } from "@/lib/auth/productLock";
 
 export default function JoinReferralPage() {
   const [location, navigate] = useLocation();
-  const { session } = useAuth();
+  const { session, loading, platformAdminReady, isPlatformAdmin } = useAuth();
 
   useEffect(() => {
+    if (
+      shouldHoldPostAuthForPlatformAdmin({
+        loading,
+        session,
+        platformAdminReady,
+      })
+    ) {
+      return;
+    }
     if (!session?.user?.id) return;
+    if (isPlatformAdmin) {
+      navigate(resolvePlatformAdminPostAuthDestination(null), {
+        replace: true,
+      });
+      return;
+    }
     void (async () => {
       try {
         const { record, merged } = await mergeOwnerrOsDraftAfterAuth(
@@ -35,7 +52,7 @@ export default function JoinReferralPage() {
         navigate(productDashboardPath("ownerr_os"), { replace: true });
       }
     })();
-  }, [session, navigate]);
+  }, [session, navigate, loading, platformAdminReady, isPlatformAdmin]);
 
   useEffect(() => {
     persistGetStartedProduct("ownerr_os");

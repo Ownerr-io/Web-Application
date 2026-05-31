@@ -210,7 +210,7 @@ function AuthenticatedAppHeader({ className }: { className?: string }) {
   return (
     <header
       className={cn(
-        "flex min-h-14 shrink-0 items-center border-b border-border bg-background",
+        "brand-header-bar flex h-14 shrink-0 items-center",
         className,
       )}
     >
@@ -263,14 +263,14 @@ export function DashboardLayout({
     <div className="desk-app-shell flex min-h-screen w-full flex-col">
       {showDemoBanner ? <DemoAccountBanner /> : null}
       {mobileChrome ? (
-        <header className="sticky top-0 z-40 flex min-h-14 shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-3 pt-[env(safe-area-inset-top,0px)] sm:px-4 lg:hidden">
+        <header className="brand-header-bar sticky top-0 z-40 flex min-h-14 shrink-0 items-center justify-between gap-2 px-3 pt-[env(safe-area-inset-top,0px)] sm:px-4 lg:hidden">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <img
-              src="/Ownerr Logo.svg"
+              src="/Ownerr%20Logo.svg"
               alt=""
-              className="h-7 w-7 shrink-0"
+              className="h-7 w-7 shrink-0 object-contain"
               width={28}
-              height={35}
+              height={28}
             />
             <div className="min-w-0 flex-1">
               <AppWorkspaceHeader workspace={workspace} />
@@ -286,7 +286,7 @@ export function DashboardLayout({
         )}
       >
         {!fullBleedMain && (
-          <aside className="hidden border-r border-border bg-background lg:sticky lg:top-0 lg:block lg:h-[100dvh] lg:max-h-[100dvh] lg:self-start">
+          <aside className="brand-sidebar hidden border-r lg:sticky lg:top-0 lg:block lg:h-[100dvh] lg:max-h-[100dvh] lg:self-start">
             <DashboardSidebar />
           </aside>
         )}
@@ -300,7 +300,7 @@ export function DashboardLayout({
           >
             <div
               className={cn(
-                "flex-1",
+                "brand-app-page flex-1",
                 mainPaddingClass,
                 mobileChrome && DASHBOARD_MOBILE_BOTTOM_NAV_SPACER_CLASS,
               )}

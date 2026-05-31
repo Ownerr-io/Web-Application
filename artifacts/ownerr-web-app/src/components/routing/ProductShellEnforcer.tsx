@@ -7,6 +7,8 @@ import {
   isProductAuthPath,
   parseProductSlugFromAuthPath,
 } from "@/lib/auth/productAuthRoutes";
+import { resolvePlatformAdminPostAuthDestination } from "@/routing/authResolver";
+import { shouldHoldPostAuthForPlatformAdmin } from "@/hooks/useRedirectPlatformAdminWhenReady";
 import { productDashboardPath } from "@/lib/auth/productLock";
 import { resolveMembershipAppForPath } from "@/lib/platform/appMembership";
 import {
@@ -51,14 +53,39 @@ function shouldLockOwnerrOsShell(
 /** Keeps users inside the correct product app shell; does not block public website routes. */
 export function ProductShellEnforcer() {
   const [location, navigate] = useLocation();
-  const { loading, session, currentUser } = useAuth();
+  const { loading, session, currentUser, platformAdminReady, isPlatformAdmin } =
+    useAuth();
   const { activeProduct, setActiveProduct } = useActiveProduct();
 
   useEffect(() => {
-    if (loading) return;
+    if (
+      shouldHoldPostAuthForPlatformAdmin({
+        loading,
+        session,
+        platformAdminReady,
+      })
+    ) {
+      return;
+    }
     if (!session) return;
 
-    const pathname = location.split("?")[0] ?? location;
+    const pathname = normalizePathname(location.split("?")[0] ?? location);
+
+    if (isPlatformAdmin) {
+      if (pathname.startsWith("/admin")) return;
+      if (
+        isProductAuthPath(pathname) ||
+        isProductAppInternalPath(pathname) ||
+        pathname.startsWith("/marketplace/app")
+      ) {
+        const params = new URLSearchParams(location.split("?")[1] ?? "");
+        const returnTo = params.get("returnTo");
+        navigate(resolvePlatformAdminPostAuthDestination(returnTo), {
+          replace: true,
+        });
+      }
+      return;
+    }
 
     if (isDemoMarketplaceLockedSession(session.user.email)) {
       applyDemoMarketplaceProductLock();
@@ -119,6 +146,8 @@ export function ProductShellEnforcer() {
     location,
     navigate,
     setActiveProduct,
+    platformAdminReady,
+    isPlatformAdmin,
   ]);
 
   return null;

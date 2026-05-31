@@ -1,10 +1,14 @@
+import type { ReactNode } from "react";
 import { Link } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import { useMarketplace } from "@/context/marketplace/MarketplaceProvider";
+import { MarketplaceAppPageShell } from "@/components/marketplace/MarketplaceAppPageShell";
+import { marketplaceDeskCardClass } from "@/components/marketplace/MarketplaceDeskUi";
 import { marketplaceAppRoutes } from "@/routes/appRoutes";
 import { MARKETPLACE_ROUTES, PRODUCT_ROUTES } from "@/routing/routeRegistry";
 import { marketplaceWorkspaceForRole } from "@/routing/navigationRegistry";
 import type { AuthRole } from "@/lib/auth/types";
+import { cn } from "@/lib/utils";
 
 /**
  * Authenticated hub at `/marketplace/app`.
@@ -19,98 +23,51 @@ export default function DashboardHubPage() {
     null;
 
   return (
-    <div className="mx-auto max-w-4xl space-y-8">
-      <header className="space-y-2">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          Operations
+    <MarketplaceAppPageShell
+      kicker="Marketplace"
+      title="Desk overview"
+      description="Profile and shortcuts for your marketplace desk (loaded from your database record)."
+    >
+      {loading ? (
+        <p className="text-xs text-muted-foreground">
+          Refreshing desk profile…
         </p>
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
-          Desk overview
-        </h1>
+      ) : null}
+      {error ? <p className="text-xs text-destructive">{error}</p> : null}
+      {deskRole ? (
+        <p className="text-sm font-medium">
+          Active desk:{" "}
+          <span className="capitalize text-brand-lime">{deskRole}</span>
+        </p>
+      ) : (
         <p className="text-sm text-muted-foreground">
-          Profile and shortcuts for your marketplace desk (loaded from your
-          database record).
+          No desk role on file yet. Use buyer or founder flows to create your
+          marketplace profile.
         </p>
-        {loading ? (
-          <p className="text-xs text-muted-foreground">
-            Refreshing desk profile…
-          </p>
-        ) : null}
-        {error ? <p className="text-xs text-destructive">{error}</p> : null}
-        {deskRole ? (
-          <p className="text-sm font-medium">
-            Active desk: <span className="capitalize">{deskRole}</span>
-          </p>
-        ) : (
-          <p className="text-sm text-muted-foreground">
-            No desk role on file yet. Use buyer or founder flows to create your
-            marketplace profile.
-          </p>
-        )}
-      </header>
+      )}
 
       {deskRole === "buyer" ? (
-        <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-5">
-          <h2 className="text-sm font-bold">Buyer</h2>
-          <ul className="flex flex-col gap-2 text-sm font-medium">
-            <li>
-              <Link
-                className="text-primary underline-offset-4 hover:underline"
-                href={marketplaceAppRoutes.buyerBids}
-              >
-                My bids
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="text-primary underline-offset-4 hover:underline"
-                href={marketplaceAppRoutes.buyerInterests}
-              >
-                Saved startups
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="text-primary underline-offset-4 hover:underline"
-                href={marketplaceAppRoutes.buyerAcquire}
-              >
-                Browse startups
-              </Link>
-            </li>
-          </ul>
-        </div>
+        <DeskShortcutPanel title="Buyer">
+          <DeskLink href={marketplaceAppRoutes.buyerBids}>My bids</DeskLink>
+          <DeskLink href={marketplaceAppRoutes.buyerInterests}>
+            Saved startups
+          </DeskLink>
+          <DeskLink href={marketplaceAppRoutes.buyerAcquire}>
+            Browse startups
+          </DeskLink>
+        </DeskShortcutPanel>
       ) : null}
 
       {deskRole === "founder" ? (
-        <div className="space-y-3 rounded-xl border border-border bg-muted/20 p-5">
-          <h2 className="text-sm font-bold">Seller</h2>
-          <ul className="flex flex-col gap-2 text-sm font-medium">
-            <li>
-              <Link
-                className="text-primary underline-offset-4 hover:underline"
-                href={marketplaceAppRoutes.founderListings}
-              >
-                My listings
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="text-primary underline-offset-4 hover:underline"
-                href={marketplaceAppRoutes.founderInbox}
-              >
-                Inbox
-              </Link>
-            </li>
-            <li>
-              <Link
-                className="text-primary underline-offset-4 hover:underline"
-                href={marketplaceAppRoutes.founderVerification}
-              >
-                Verification
-              </Link>
-            </li>
-          </ul>
-        </div>
+        <DeskShortcutPanel title="Seller">
+          <DeskLink href={marketplaceAppRoutes.founderListings}>
+            My listings
+          </DeskLink>
+          <DeskLink href={marketplaceAppRoutes.founderInbox}>Inbox</DeskLink>
+          <DeskLink href={marketplaceAppRoutes.founderVerification}>
+            Verification
+          </DeskLink>
+        </DeskShortcutPanel>
       ) : null}
 
       {deskRole ? <ButtonRow deskRole={deskRole} /> : null}
@@ -118,12 +75,40 @@ export default function DashboardHubPage() {
       <p className="text-center text-xs text-muted-foreground">
         <Link
           href={MARKETPLACE_ROUTES.sellerProfile}
-          className="font-bold hover:text-foreground"
+          className="font-bold text-brand-orange hover:text-brand-lime"
         >
           Marketplace profile
         </Link>
       </p>
+    </MarketplaceAppPageShell>
+  );
+}
+
+function DeskShortcutPanel({
+  title,
+  children,
+}: {
+  title: string;
+  children: ReactNode;
+}) {
+  return (
+    <div className={cn(marketplaceDeskCardClass, "space-y-3 rounded-xl p-5")}>
+      <h2 className="brand-eyebrow text-xs font-bold">{title}</h2>
+      <ul className="flex flex-col gap-2 text-sm font-medium">{children}</ul>
     </div>
+  );
+}
+
+function DeskLink({ href, children }: { href: string; children: ReactNode }) {
+  return (
+    <li>
+      <Link
+        className="font-bold text-brand-orange underline-offset-4 hover:text-brand-lime hover:underline"
+        href={href}
+      >
+        {children}
+      </Link>
+    </li>
   );
 }
 
@@ -133,13 +118,13 @@ function ButtonRow({ deskRole }: { deskRole: AuthRole }) {
     <div className="flex flex-wrap gap-2">
       <Link
         href={deskHref}
-        className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-bold text-primary-foreground"
+        className="btn-platform-gradient inline-flex h-9 items-center rounded-[10px] px-4 text-sm font-bold"
       >
         Open {deskRole} workspace
       </Link>
       <Link
         href={PRODUCT_ROUTES.ownerrOsProfile}
-        className="text-sm font-bold text-muted-foreground hover:text-foreground"
+        className="text-sm font-bold text-muted-foreground hover:text-brand-lime"
       >
         OWNERR OS profile
       </Link>

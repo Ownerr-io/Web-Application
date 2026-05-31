@@ -1,15 +1,16 @@
+import { MarketplaceAppPageShell } from "@/components/marketplace/MarketplaceAppPageShell";
 import { MarketplaceProfileAccountSection } from "@/components/marketplace/MarketplaceProfileAccountSection";
+import { AccountChangePasswordSection } from "@/components/auth/AccountChangePasswordSection";
 
 export default function BuyerProfilePage() {
   return (
-    <div className="grid gap-4">
-      <header>
-        <h1 className="text-2xl font-bold">Profile</h1>
-        <p className="mt-1 text-sm text-muted-foreground">
-          Your buyer desk account and preferences
-        </p>
-      </header>
+    <MarketplaceAppPageShell
+      kicker="Buyer desk"
+      title="Profile"
+      description="Your buyer desk account and preferences"
+    >
       <MarketplaceProfileAccountSection />
-    </div>
+      <AccountChangePasswordSection className="mt-6" />
+    </MarketplaceAppPageShell>
   );
 }

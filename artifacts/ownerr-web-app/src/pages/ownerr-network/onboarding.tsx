@@ -17,6 +17,8 @@ import { useOwnerrNetworkAuth } from "@/hooks/useOwnerrNetworkAuth";
 import { trackOwnerrNetworkEvent } from "@/lib/ownerr-network/analytics";
 import { cn } from "@/lib/utils";
 import { PRODUCT_ROUTES } from "@/routing/routeRegistry";
+import { devLog } from "@/lib/observability/devLog";
+import { logProductIssue } from "@/lib/observability/productErrors";
 
 type Step =
   | { kind: "name" }
@@ -100,23 +102,35 @@ function OnboardingExperience() {
 
     if (stepIndex >= STEPS.length - 1) {
       setSubmitting(true);
-      console.log("[Onboarding] Submitting onboarding survey responses…");
+      devLog("[Onboarding] Submitting onboarding survey responses…");
       void completeOnboarding(
         name.trim() || profile?.name || "",
         username.trim() || profile?.username || "",
         nextAnswers,
       )
-        .then(async () => {
-          console.log("[Onboarding] Onboarding completed. Refreshing profile…");
+        .then(async (updatedUser) => {
           await refreshProfile();
-          await trackOwnerrNetworkEvent("survey_complete", {}, profile?.id);
+          const userId = updatedUser?.id ?? profile?.id;
+          if (userId) {
+            const done = await hasCompletedOnboarding(userId);
+            if (!done) {
+              setError(
+                "We saved your answers but could not confirm setup. Please try Continue again or refresh the page.",
+              );
+              return;
+            }
+          }
+          await trackOwnerrNetworkEvent(
+            "survey_complete",
+            {},
+            updatedUser?.id ?? profile?.id,
+          );
           setLocation(PRODUCT_ROUTES.ownerrNetworkDashboard);
         })
         .catch((err: unknown) => {
-          console.error(
-            "[Onboarding] Error submitting onboarding survey:",
-            err,
-          );
+          logProductIssue("provider.ownerr_network", err, {
+            phase: "onboarding_survey",
+          });
           setError(
             err instanceof Error
               ? err.message

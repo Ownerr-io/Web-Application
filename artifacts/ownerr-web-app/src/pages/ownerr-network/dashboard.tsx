@@ -2,6 +2,7 @@ import { Link } from "wouter";
 import { useOwnerrNetworkAuth } from "@/hooks/useOwnerrNetworkAuth";
 import { PRODUCT_ROUTES } from "@/routing/routeRegistry";
 import { computeNetworkScore } from "@/lib/ownerr-network/score";
+import { cn } from "@/lib/utils";
 
 export default function OwnerrNetworkDashboardPage() {
   const { profile, networkProfile } = useOwnerrNetworkAuth();
@@ -17,40 +18,36 @@ export default function OwnerrNetworkDashboardPage() {
   });
 
   return (
-    <div className="w-full max-w-none min-w-0 space-y-6 sm:space-y-8">
-      <header>
-        <p className="text-[11px] font-black uppercase tracking-[0.22em] text-[color:var(--terminal-lime)]">
-          Dashboard
-        </p>
-        <h1 className="mt-1 text-2xl font-bold text-[color:var(--terminal-display)]">
+    <div className="w-full max-w-none min-w-0 space-y-8">
+      <header className="brand-page-header space-y-2">
+        <p className="brand-eyebrow">Dashboard</p>
+        <h1 className="brand-page-title text-2xl font-bold">
           @{profile.username}
         </h1>
-        <p className="text-sm text-[color:var(--terminal-muted)]">
-          {profile.name}
-        </p>
+        <p className="text-sm text-muted-foreground">{profile.name}</p>
       </header>
 
       <section className="grid gap-4 sm:grid-cols-2">
-        <div className="rounded-[12px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/80 p-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-[color:var(--terminal-muted)]">
+        <div className="brand-kpi-card rounded-xl p-5 shadow-none">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-orange/90">
             Profile completion
           </p>
-          <p className="mt-1 text-3xl font-bold text-[color:var(--terminal-lime)]">
+          <p className="mt-1 text-3xl font-bold brand-kpi-value--success">
             {completion}%
           </p>
           <Link
             href={PRODUCT_ROUTES.ownerrNetworkProfile}
-            className="mt-2 inline-block text-sm font-bold text-[color:var(--terminal-ochre)]"
+            className="mt-2 inline-block text-sm font-bold text-brand-orange hover:text-brand-lime"
           >
             {completion >= 100 ? "View profile →" : "Complete profile →"}
           </Link>
         </div>
-        <div className="rounded-[12px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/80 p-5">
-          <p className="text-xs font-bold uppercase tracking-widest text-[color:var(--terminal-muted)]">
+        <div className="brand-kpi-card rounded-xl p-5 shadow-none">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-orange/90">
             Reputation
           </p>
-          <p className="mt-1 text-3xl font-bold">{reputation}</p>
-          <p className="mt-2 text-xs text-[color:var(--terminal-muted)]">
+          <p className="mt-1 text-3xl font-bold tabular-nums">{reputation}</p>
+          <p className="mt-2 text-xs text-muted-foreground">
             Points, referrals, profile & verification
           </p>
         </div>
@@ -59,32 +56,43 @@ export default function OwnerrNetworkDashboardPage() {
       <section className="grid gap-4 sm:grid-cols-3">
         <Link
           href={PRODUCT_ROUTES.ownerrNetworkDiscover}
-          className="rounded-[12px] border border-[color:var(--terminal-border)] p-4 transition-colors hover:border-[color:var(--terminal-ochre)]/50"
+          className={cn(
+            "brand-panel-card rounded-xl p-4 shadow-none transition-colors",
+            "hover:border-[color:color-mix(in_srgb,var(--brand-orange)_45%,var(--terminal-border))]",
+          )}
         >
-          <p className="text-xs font-bold uppercase tracking-widest text-[color:var(--terminal-muted)]">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-orange/90">
             Discover
           </p>
-          <p className="mt-2 text-sm font-bold text-[color:var(--terminal-ochre)]">
+          <p className="mt-2 text-sm font-bold text-brand-lime">
             Find people →
           </p>
         </Link>
         <Link
           href={PRODUCT_ROUTES.ownerrNetworkReferrals}
-          className="rounded-[12px] border border-[color:var(--terminal-border)] p-4 transition-colors hover:border-[color:var(--terminal-ochre)]/50"
+          className={cn(
+            "brand-panel-card rounded-xl p-4 shadow-none transition-colors",
+            "hover:border-[color:color-mix(in_srgb,var(--brand-orange)_45%,var(--terminal-border))]",
+          )}
         >
-          <p className="text-xs font-bold uppercase tracking-widest text-[color:var(--terminal-muted)]">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-orange/90">
             Referrals
           </p>
-          <p className="mt-1 text-2xl font-bold">{profile.total_referrals}</p>
+          <p className="mt-1 text-2xl font-bold tabular-nums">
+            {profile.total_referrals}
+          </p>
         </Link>
         <Link
           href={PRODUCT_ROUTES.ownerrNetworkWallet}
-          className="rounded-[12px] border border-[color:var(--terminal-border)] p-4 transition-colors hover:border-[color:var(--terminal-ochre)]/50"
+          className={cn(
+            "brand-panel-card rounded-xl p-4 shadow-none transition-colors",
+            "hover:border-[color:color-mix(in_srgb,var(--brand-orange)_45%,var(--terminal-border))]",
+          )}
         >
-          <p className="text-xs font-bold uppercase tracking-widest text-[color:var(--terminal-muted)]">
+          <p className="text-xs font-bold uppercase tracking-widest text-brand-orange/90">
             Credits
           </p>
-          <p className="mt-1 text-2xl font-bold text-[color:var(--terminal-lime)]">
+          <p className="mt-1 text-2xl font-bold tabular-nums brand-kpi-value--success">
             {profile.points}
           </p>
         </Link>
@@ -93,13 +101,13 @@ export default function OwnerrNetworkDashboardPage() {
       <div className="flex flex-wrap gap-3">
         <Link
           href={PRODUCT_ROUTES.ownerrNetworkReferrals}
-          className="text-sm font-bold text-[color:var(--terminal-ochre)]"
+          className="text-sm font-bold text-brand-orange hover:text-brand-lime"
         >
           Share profile
         </Link>
         <Link
           href={PRODUCT_ROUTES.ownerrNetworkLeaderboard}
-          className="text-sm font-bold text-[color:var(--terminal-muted)]"
+          className="text-sm font-bold text-muted-foreground hover:text-brand-orange"
         >
           Leaderboard
         </Link>

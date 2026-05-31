@@ -20,8 +20,10 @@ function DeskNavLinks({
 }) {
   const linkClass = (active: boolean) =>
     cn(
-      "flex min-h-11 items-center gap-3 rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground transition-all hover:text-primary sm:min-h-0 sm:py-2 outline-none focus:outline-none focus-visible:outline-none",
-      active && "bg-muted text-primary",
+      "brand-nav-item flex min-h-11 items-center gap-3 px-3 py-2.5 text-sm font-medium transition sm:min-h-0 sm:py-2 outline-none focus:outline-none focus-visible:outline-none",
+      active
+        ? "brand-nav-item--active"
+        : "text-muted-foreground hover:text-brand-lime",
     );
 
   const group = links[0]?.group;
@@ -65,7 +67,7 @@ function DeskNavSections({
     <div className="space-y-6">
       {sections.map((section) => (
         <div key={section.title}>
-          <p className="mb-2 px-3 text-[10px] font-black uppercase tracking-[0.18em] text-muted-foreground">
+          <p className="mb-2 px-3 text-[10px] font-black uppercase tracking-[0.18em] text-brand-orange">
             {section.title}
           </p>
           <DeskNavLinks
@@ -89,11 +91,15 @@ export function DashboardSidebar() {
   } = useAuthenticatedNav();
 
   return (
-    <div className="flex h-full min-h-0 flex-col bg-background">
-      <div className="shrink-0 p-4">
-        <div className="flex items-center gap-2 text-lg font-bold text-foreground">
-          <img src="/Ownerr Logo.svg" alt="" className="h-6 w-6" />
-          <span className="truncate">
+    <div className="flex h-full min-h-0 flex-col">
+      <div className="brand-sidebar-brand shrink-0">
+        <div className="flex items-center gap-3 text-lg font-bold">
+          <img
+            src="/Ownerr%20Logo.svg"
+            alt=""
+            className="h-8 w-8 shrink-0 object-contain"
+          />
+          <span className="brand-shell-title truncate text-base">
             {navGroup ? getSidebarNavGroupLabel(navGroup) : "OWNERR"}
           </span>
         </div>

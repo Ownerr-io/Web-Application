@@ -15,9 +15,8 @@ export const LazyAdminHubPage = lazy(() => import("@/pages/admin/hub"));
 export const LazyOwnerrNetworkAdminDashboard = lazy(
   () => import("@/pages/admin/ownerr-network/dashboard"),
 );
-export const LazyAdminUsersPage = lazy(() => import("@/pages/admin/users"));
-export const LazyAdminProfilesPage = lazy(
-  () => import("@/pages/admin/profiles"),
+export const LazyOwnerrNetworkMembersPage = lazy(
+  () => import("@/pages/admin/ownerr-network/members"),
 );
 export const LazyAdminLedgerPage = lazy(() => import("@/pages/admin/ledger"));
 export const LazyAdminReferralsPage = lazy(
@@ -26,6 +25,12 @@ export const LazyAdminReferralsPage = lazy(
 
 export const LazyMarketplaceAdminDashboard = lazy(
   () => import("@/pages/admin/marketplace/dashboard"),
+);
+export const LazyMarketplaceAdminBuyersPage = lazy(
+  () => import("@/pages/admin/marketplace/buyers"),
+);
+export const LazyMarketplaceAdminSellersPage = lazy(
+  () => import("@/pages/admin/marketplace/sellers"),
 );
 export const LazyMarketplaceAdminListingsPage = lazy(
   () => import("@/pages/admin/marketplace/listings"),
@@ -37,6 +42,9 @@ export const LazyMarketplaceAdminSubmissionsPage = lazy(
 export const LazyOwnerrOsAdminDashboard = lazy(
   () => import("@/pages/admin/ownerr-os/dashboard"),
 );
+export const LazyOwnerrOsAdminFoundersPage = lazy(
+  () => import("@/pages/admin/ownerr-os/founders"),
+);
 export const LazyOwnerrOsAdminListingsPage = lazy(
   () => import("@/pages/admin/ownerr-os/listings"),
 );
@@ -44,8 +52,10 @@ export const LazyOwnerrOsAdminAnalyticsPage = lazy(
   () => import("@/pages/admin/ownerr-os/analytics"),
 );
 
-/** @deprecated — use LazyOwnerrNetworkAdminDashboard */
-export const LazyAdminDashboardPage = LazyOwnerrNetworkAdminDashboard;
+export const LazyAdminOperationsPage = lazy(
+  () => import("@/pages/admin/operations"),
+);
+export const LazyAdminSystemPage = lazy(() => import("@/pages/admin/system"));
 
 /** Marketplace — recharts / heavy panels */
 export const LazyStatsPage = lazy(() => import("@/pages/stats"));

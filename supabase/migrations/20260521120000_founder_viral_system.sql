@@ -46,22 +46,27 @@ create index if not exists founder_referral_events_event_type_idx
 alter table public.founder_submissions enable row level security;
 alter table public.founder_referral_events enable row level security;
 
+drop policy if exists "Public read founder submissions" on public.founder_submissions;
 create policy "Public read founder submissions"
   on public.founder_submissions for select
   using (true);
 
+drop policy if exists "Service insert founder submissions" on public.founder_submissions;
 create policy "Service insert founder submissions"
   on public.founder_submissions for insert
   with check (true);
 
+drop policy if exists "Service update founder analytics" on public.founder_submissions;
 create policy "Service update founder analytics"
   on public.founder_submissions for update
   using (true);
 
+drop policy if exists "Public insert referral events" on public.founder_referral_events;
 create policy "Public insert referral events"
   on public.founder_referral_events for insert
   with check (true);
 
+drop policy if exists "Public read referral events" on public.founder_referral_events;
 create policy "Public read referral events"
   on public.founder_referral_events for select
   using (true);

@@ -1,5 +1,6 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { getSupabase } from "@/lib/supabase/client";
+import { devLog, devWarn } from "@/lib/observability/devLog";
 
 export type NetworkTableSet = {
   users: string;
@@ -71,13 +72,13 @@ export async function detectNetworkTables(
         msg.includes("does not exist")
       ) {
         usersTableActive = false;
-        console.log(
+        devLog(
           "[Schema Detection] Canonical 'users' table NOT active (legacy/intermediate schema detected).",
         );
       } else {
         // Any other database error (like unauthorized or empty results) means the table exists but probe had an RLS/auth constraint
         usersTableActive = true;
-        console.log(
+        devLog(
           "[Schema Detection] Canonical 'users' table is active (probe returned non-404 error code:",
           code,
           ").",
@@ -85,32 +86,29 @@ export async function detectNetworkTables(
       }
     } else {
       usersTableActive = true;
-      console.log(
+      devLog(
         "[Schema Detection] Canonical 'users' table is active (probe succeeded).",
       );
     }
   } catch (err) {
     usersTableActive = false;
-    console.warn(
-      "[Schema Detection] Failed to probe canonical 'users' table:",
-      err,
-    );
+    devWarn("[Schema Detection] Failed to probe canonical 'users' table:", err);
   }
 
   const { error } = await supabase.from(NEW.users).select("id").limit(1);
   if (!error || !isMissingResource(error)) {
     tables = NEW;
-    console.log("[Schema Detection] Network table set: NEW (ownerr_network_*)");
+    devLog("[Schema Detection] Network table set: NEW (ownerr_network_*)");
     return NEW;
   }
   const legacyProbe = await supabase.from(LEGACY.users).select("id").limit(1);
   if (!legacyProbe.error || !isMissingResource(legacyProbe.error)) {
     tables = LEGACY;
-    console.log("[Schema Detection] Network table set: LEGACY (unemployed_*)");
+    devLog("[Schema Detection] Network table set: LEGACY (unemployed_*)");
     return LEGACY;
   }
   tables = NEW;
-  console.log(
+  devLog(
     "[Schema Detection] Fallback network table set: NEW (ownerr_network_*)",
   );
   return NEW;

@@ -37,6 +37,7 @@ type DataTableProps<T> = {
   searchKeys?: (keyof T)[];
   emptyMessage?: string;
   isLoading?: boolean;
+  onRowClick?: (row: T) => void;
 };
 
 export function DataTable<T extends { id?: string }>({
@@ -47,6 +48,7 @@ export function DataTable<T extends { id?: string }>({
   searchKeys = [],
   emptyMessage = "No data available",
   isLoading = false,
+  onRowClick,
 }: DataTableProps<T>) {
   const [sortKey, setSortKey] = useState<string | null>(null);
   const [sortDirection, setSortDirection] = useState<SortDirection>(null);
@@ -188,19 +190,31 @@ export function DataTable<T extends { id?: string }>({
           <TableBody>
             {isLoading ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center py-8">
+                <TableCell
+                  colSpan={columns.length}
+                  className="text-center py-8"
+                >
                   Loading...
                 </TableCell>
               </TableRow>
             ) : paginatedData.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={columns.length} className="text-center py-8">
+                <TableCell
+                  colSpan={columns.length}
+                  className="text-center py-8"
+                >
                   {emptyMessage}
                 </TableCell>
               </TableRow>
             ) : (
               paginatedData.map((row, rowIndex) => (
-                <TableRow key={String(row.id ?? rowIndex)}>
+                <TableRow
+                  key={String(row.id ?? rowIndex)}
+                  className={
+                    onRowClick ? "cursor-pointer hover:bg-muted/50" : undefined
+                  }
+                  onClick={onRowClick ? () => onRowClick(row) : undefined}
+                >
                   {columns.map((column) => {
                     const value = (row as any)[column.key];
                     const content =
@@ -226,10 +240,8 @@ export function DataTable<T extends { id?: string }>({
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div className="text-sm text-muted-foreground">
           Showing{" "}
-          {paginatedData.length > 0
-            ? (currentPage - 1) * rowsPerPage + 1
-            : 0}{" "}
-          - {Math.min(currentPage * rowsPerPage, sortedData.length)} of{" "}
+          {paginatedData.length > 0 ? (currentPage - 1) * rowsPerPage + 1 : 0} -{" "}
+          {Math.min(currentPage * rowsPerPage, sortedData.length)} of{" "}
           {sortedData.length}
         </div>
 
@@ -250,9 +262,7 @@ export function DataTable<T extends { id?: string }>({
           <Button
             variant="outline"
             size="sm"
-            onClick={() =>
-              setCurrentPage((p) => Math.min(totalPages, p + 1))
-            }
+            onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
             disabled={currentPage === totalPages}
           >
             Next

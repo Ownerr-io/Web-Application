@@ -1,9 +1,14 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { useInbox } from "@/hooks/marketplace/useInbox";
 import { getUserListings } from "@/lib/marketplace/service";
 import { Skeleton } from "@/components/ui/skeleton";
+import {
+  MarketplaceDeskKpiCard,
+  MarketplaceDeskListItem,
+  MarketplaceDeskPanel,
+  marketplaceDeskKpiValueClass,
+} from "@/components/marketplace/MarketplaceDeskUi";
 
 export default function SellerDashboard() {
   const { session } = useAuth();
@@ -29,128 +34,111 @@ export default function SellerDashboard() {
   return (
     <div className="grid gap-4">
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total listings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {listingsLoading ? (
-              <Skeleton className="h-8 w-1/2" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{listings.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Linked to your seller desk
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Verified listings</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {listingsLoading ? (
-              <Skeleton className="h-8 w-1/2" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{verifiedCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  Revenue + domain verified
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Inbox threads</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {inboxLoading ? (
-              <Skeleton className="h-8 w-1/2" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{inbox.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Buyer conversations
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
+        <MarketplaceDeskKpiCard title="Total listings">
+          {listingsLoading ? (
+            <Skeleton className="h-8 w-1/2" />
+          ) : (
+            <>
+              <div
+                className={`text-2xl font-bold tabular-nums ${marketplaceDeskKpiValueClass(0)}`}
+              >
+                {listings.length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Linked to your seller desk
+              </p>
+            </>
+          )}
+        </MarketplaceDeskKpiCard>
+        <MarketplaceDeskKpiCard title="Verified listings">
+          {listingsLoading ? (
+            <Skeleton className="h-8 w-1/2" />
+          ) : (
+            <>
+              <div
+                className={`text-2xl font-bold tabular-nums ${marketplaceDeskKpiValueClass(1)}`}
+              >
+                {verifiedCount}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Revenue + domain verified
+              </p>
+            </>
+          )}
+        </MarketplaceDeskKpiCard>
+        <MarketplaceDeskKpiCard title="Inbox threads">
+          {inboxLoading ? (
+            <Skeleton className="h-8 w-1/2" />
+          ) : (
+            <>
+              <div
+                className={`text-2xl font-bold tabular-nums ${marketplaceDeskKpiValueClass(2)}`}
+              >
+                {inbox.length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Buyer conversations
+              </p>
+            </>
+          )}
+        </MarketplaceDeskKpiCard>
       </div>
       <div className="grid gap-4 md:grid-cols-2">
-        <Card>
-          <CardHeader>
-            <CardTitle>Unread messages</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {inboxLoading ? (
-              <Skeleton className="h-8 w-1/2" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{unreadTotal}</div>
-                <p className="text-xs text-muted-foreground">
-                  Across all threads
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Listings with buyers</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {inboxLoading ? (
-              <Skeleton className="h-8 w-1/2" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">
-                  {new Set(inbox.map((t) => t.startupSlug)).size}
-                </div>
-                <p className="text-xs text-muted-foreground">
-                  Startups in active conversations
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent inbox</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <MarketplaceDeskKpiCard title="Unread messages">
           {inboxLoading ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No conversations yet.
-            </p>
+            <Skeleton className="h-8 w-1/2" />
           ) : (
-            <div className="space-y-2">
-              {recent.map((thread) => (
-                <div
-                  key={thread.conversationId}
-                  className="rounded-md border border-border px-3 py-2 text-sm"
-                >
-                  <p className="font-medium">{thread.startupTitle}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {thread.buyerName} ·{" "}
-                    {new Date(thread.updatedAt).toLocaleDateString()}
-                    {thread.unreadCount > 0
-                      ? ` · ${thread.unreadCount} unread`
-                      : ""}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <>
+              <div
+                className={`text-2xl font-bold tabular-nums ${marketplaceDeskKpiValueClass(0)}`}
+              >
+                {unreadTotal}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Across all threads
+              </p>
+            </>
           )}
-        </CardContent>
-      </Card>
+        </MarketplaceDeskKpiCard>
+        <MarketplaceDeskKpiCard title="Listings with buyers">
+          {inboxLoading ? (
+            <Skeleton className="h-8 w-1/2" />
+          ) : (
+            <>
+              <div
+                className={`text-2xl font-bold tabular-nums ${marketplaceDeskKpiValueClass(1)}`}
+              >
+                {new Set(inbox.map((t) => t.startupSlug)).size}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Startups in active conversations
+              </p>
+            </>
+          )}
+        </MarketplaceDeskKpiCard>
+      </div>
+      <MarketplaceDeskPanel title="Recent inbox">
+        {inboxLoading ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : recent.length === 0 ? (
+          <p className="text-sm text-muted-foreground">No conversations yet.</p>
+        ) : (
+          <div className="space-y-2">
+            {recent.map((thread) => (
+              <MarketplaceDeskListItem key={thread.conversationId}>
+                <p className="font-medium">{thread.startupTitle}</p>
+                <p className="text-xs text-muted-foreground">
+                  {thread.buyerName} ·{" "}
+                  {new Date(thread.updatedAt).toLocaleDateString()}
+                  {thread.unreadCount > 0
+                    ? ` · ${thread.unreadCount} unread`
+                    : ""}
+                </p>
+              </MarketplaceDeskListItem>
+            ))}
+          </div>
+        )}
+      </MarketplaceDeskPanel>
     </div>
   );
 }

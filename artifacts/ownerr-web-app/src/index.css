@@ -147,11 +147,6 @@
   --destructive-foreground: 0 0% 98%;
   --input: 0 0% 15%;
   --ring: 0 0% 40%;
-  --chart-1: 250 80% 70%;
-  --chart-2: 173 58% 49%;
-  --chart-3: 43 74% 66%;
-  --chart-4: 27 87% 67%;
-  --chart-5: 197 60% 60%;
 
   --primary-border: rgba(255, 255, 255, 0.15);
   --secondary-border: rgba(255, 255, 255, 0.08);
@@ -183,7 +178,30 @@
   --platform-red: var(--brand-red);
   --terminal-glow: color-mix(in srgb, var(--brand-lime) 12%, transparent);
 
-  /** Valuation / marketing / marketplace display type */
+  /** Logo tri-color gradient — available in every app shell (marketing, desk, admin) */
+  --platform-gradient: linear-gradient(
+    105deg,
+    var(--brand-lime) 0%,
+    var(--brand-orange) 48%,
+    var(--brand-red) 100%
+  );
+  --platform-gradient-soft: linear-gradient(
+    135deg,
+    color-mix(in srgb, var(--brand-lime) 16%, transparent) 0%,
+    color-mix(in srgb, var(--brand-orange) 14%, transparent) 45%,
+    color-mix(in srgb, var(--brand-red) 12%, transparent) 100%
+  );
+  --platform-glow:
+    0 0 48px color-mix(in srgb, var(--brand-lime) 14%, transparent),
+    0 0 64px color-mix(in srgb, var(--brand-red) 10%, transparent);
+
+  /** Recharts / shadcn charts — logo palette first, then softer mixes */
+  --chart-1: 84 87% 71%;
+  --chart-2: 35 97% 67%;
+  --chart-3: 1 97% 66%;
+  --chart-4: 84 45% 58%;
+  --chart-5: 35 70% 55%;
+
   --terminal-display: color-mix(in srgb, var(--brand-lime) 85%, white);
   --terminal-display-size-lg: clamp(1.875rem, 3.5vw, 3rem);
   --terminal-display-size-xl: clamp(2.25rem, 4.2vw, 3rem);
@@ -556,21 +574,6 @@
     transparent
   );
   --terminal-ochre-hover: color-mix(in srgb, var(--brand-orange) 88%, white);
-  --platform-gradient: linear-gradient(
-    105deg,
-    var(--brand-lime) 0%,
-    var(--brand-orange) 48%,
-    var(--brand-red) 100%
-  );
-  --platform-gradient-soft: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--brand-lime) 16%, transparent) 0%,
-    color-mix(in srgb, var(--brand-orange) 14%, transparent) 45%,
-    color-mix(in srgb, var(--brand-red) 12%, transparent) 100%
-  );
-  --platform-glow:
-    0 0 48px color-mix(in srgb, var(--brand-lime) 14%, transparent),
-    0 0 64px color-mix(in srgb, var(--brand-red) 10%, transparent);
 }
 
 .platform-gradient-text {
@@ -879,9 +882,12 @@
 .desk-app-shell .ownerr-os-app-page-title {
   font-weight: 700;
   letter-spacing: -0.025em;
-  color: hsl(var(--foreground));
   line-height: 1.2;
   font-size: 1.5rem;
+}
+
+.desk-app-shell .ownerr-os-app-page-title.brand-page-title {
+  color: transparent;
 }
 
 @media (min-width: 640px) {
@@ -1008,7 +1014,7 @@
   font-weight: 700;
   letter-spacing: var(--terminal-eyebrow-tracking);
   text-transform: uppercase;
-  color: var(--terminal-muted);
+  color: var(--brand-orange);
 }
 
 /* Valuation executive report — calmer type than global marketing h1/h2 */
@@ -1092,21 +1098,27 @@
 .landing-terminal-palette .text-muted-foreground,
 .acquire-terminal-palette .text-muted-foreground,
 .desk-app-shell .text-muted-foreground,
-.desk-app-theme .text-muted-foreground {
+.desk-app-theme .text-muted-foreground,
+.admin-app-shell .text-muted-foreground,
+.admin-app-theme .text-muted-foreground {
   color: var(--terminal-muted) !important;
 }
 
 .landing-terminal-palette .text-foreground,
 .acquire-terminal-palette .text-foreground,
 .desk-app-shell .text-foreground,
-.desk-app-theme .text-foreground {
+.desk-app-theme .text-foreground,
+.admin-app-shell .text-foreground,
+.admin-app-theme .text-foreground {
   color: var(--terminal-fg) !important;
 }
 
 .landing-terminal-palette .border-border,
 .acquire-terminal-palette .border-border,
 .desk-app-shell .border-border,
-.desk-app-theme.border-border {
+.desk-app-theme.border-border,
+.admin-app-shell .border-border,
+.admin-app-theme .border-border {
   border-color: var(--terminal-border) !important;
 }
 
@@ -1115,7 +1127,9 @@
 .acquire-terminal-palette .bg-card,
 .acquire-terminal-palette .bg-background,
 .desk-app-shell .bg-card,
-.desk-app-shell .bg-background {
+.desk-app-shell .bg-background,
+.admin-app-shell .bg-card,
+.admin-app-shell .bg-background {
   background-color: var(--terminal-surface) !important;
 }
 
@@ -1127,7 +1141,10 @@
 .acquire-terminal-palette .bg-muted\/40,
 .desk-app-shell .bg-muted,
 .desk-app-shell .bg-muted\/20,
-.desk-app-shell .bg-muted\/40 {
+.desk-app-shell .bg-muted\/40,
+.admin-app-shell .bg-muted,
+.admin-app-shell .bg-muted\/20,
+.admin-app-shell .bg-muted\/40 {
   background-color: var(--terminal-surface-2) !important;
 }
 
@@ -1474,10 +1491,13 @@
  * Mobile nav sheet uses `.desk-app-theme` (portaled) so tokens match.
  */
 .desk-app-shell,
-.desk-app-theme {
+.desk-app-theme,
+.admin-app-shell,
+.admin-app-theme {
   --primary: var(--desk-primary);
   --primary-foreground: var(--desk-primary-foreground);
   --ring: var(--desk-ring);
+  --desk-chrome-header-height: 3.5rem;
 }
 
 .desk-app-shell {
@@ -1488,12 +1508,610 @@
   line-height: 1.55;
 }
 
-.desk-app-shell ::selection {
+.admin-app-shell {
+  min-height: 100vh;
+  background-color: var(--terminal-bg);
+  color: var(--terminal-fg);
+  font-size: var(--terminal-body-size);
+  line-height: 1.55;
+}
+
+.desk-app-shell ::selection,
+.admin-app-shell ::selection {
   background-color: var(--brand-accent-muted);
   color: var(--brand-accent-ink);
 }
 
-/* Product desks (marketplace / OWNERR OS / network): match website CTA buttons */
+.desk-app-shell .brand-nav-item,
+.admin-app-shell .brand-nav-item {
+  border: 1px solid transparent;
+  border-radius: 10px;
+}
+
+.desk-app-shell .brand-nav-item--active,
+.admin-app-shell .brand-nav-item--active {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(var(--terminal-surface-2), var(--terminal-surface-2))
+      padding-box,
+    var(--platform-gradient) border-box;
+  color: var(--brand-lime);
+  font-weight: 600;
+}
+
+.desk-app-shell .brand-nav-item:not(.brand-nav-item--active):hover,
+.admin-app-shell .brand-nav-item:not(.brand-nav-item--active):hover {
+  background-color: var(--terminal-surface-2);
+  border-color: color-mix(
+    in srgb,
+    var(--brand-orange) 35%,
+    var(--terminal-border)
+  );
+}
+
+.desk-app-shell .brand-shell-title,
+.admin-app-shell .brand-shell-title {
+  background: var(--platform-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.desk-app-shell .brand-eyebrow,
+.admin-app-shell .brand-eyebrow {
+  font-size: var(--terminal-eyebrow-size);
+  font-weight: 700;
+  letter-spacing: var(--terminal-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--brand-orange);
+}
+
+.desk-app-shell .brand-page-title,
+.admin-app-shell .brand-page-title,
+.acquire-terminal-palette .brand-page-title {
+  background: var(--platform-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.desk-app-shell .brand-block-accent--lime,
+.admin-app-shell .brand-block-accent--lime {
+  background: var(--brand-lime);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--brand-lime) 45%, transparent);
+}
+
+.desk-app-shell .brand-block-accent--orange,
+.admin-app-shell .brand-block-accent--orange {
+  background: var(--brand-orange);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--brand-orange) 40%, transparent);
+}
+
+.desk-app-shell .brand-block-accent--red,
+.admin-app-shell .brand-block-accent--red {
+  background: var(--brand-red);
+  box-shadow: 0 0 12px color-mix(in srgb, var(--brand-red) 35%, transparent);
+}
+
+.desk-app-shell .brand-panel-card,
+.admin-app-shell .brand-panel-card,
+.acquire-terminal-palette .brand-panel-card {
+  border: 1px solid var(--terminal-border);
+  background: color-mix(in srgb, var(--terminal-surface) 92%, transparent);
+  box-shadow: var(--platform-glow);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.desk-app-shell .brand-panel-card.brand-chart-card,
+.admin-app-shell .brand-panel-card.brand-chart-card,
+.acquire-terminal-palette .brand-panel-card.brand-chart-card {
+  overflow: visible;
+}
+
+.desk-app-shell .brand-panel-card.brand-chart-card [data-chart],
+.admin-app-shell .brand-panel-card.brand-chart-card [data-chart],
+.acquire-terminal-palette .brand-panel-card.brand-chart-card [data-chart] {
+  overflow: visible;
+}
+
+.desk-app-shell .brand-panel-card.brand-chart-card .recharts-tooltip-wrapper,
+.admin-app-shell .brand-panel-card.brand-chart-card .recharts-tooltip-wrapper {
+  z-index: 20;
+  pointer-events: none;
+}
+
+.desk-app-shell .brand-panel-card--top-gradient,
+.admin-app-shell .brand-panel-card--top-gradient,
+.acquire-terminal-palette .brand-panel-card--top-gradient {
+  position: relative;
+}
+
+.desk-app-shell .brand-panel-card--top-gradient::before,
+.admin-app-shell .brand-panel-card--top-gradient::before,
+.acquire-terminal-palette .brand-panel-card--top-gradient::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  z-index: 1;
+  height: 2px;
+  width: 100%;
+  background: var(--platform-gradient);
+  opacity: 0.9;
+  pointer-events: none;
+}
+
+.desk-app-shell .brand-kpi-card,
+.admin-app-shell .brand-kpi-card {
+  border: 1px solid var(--terminal-border);
+  background: color-mix(in srgb, var(--terminal-surface) 90%, transparent);
+  position: relative;
+  overflow: hidden;
+  border-radius: 12px;
+}
+
+.desk-app-shell .brand-kpi-card::before,
+.admin-app-shell .brand-kpi-card::before {
+  content: "";
+  position: absolute;
+  inset: 0 auto auto 0;
+  height: 2px;
+  width: 100%;
+  background: var(--platform-gradient);
+  opacity: 0.85;
+}
+
+.desk-app-shell .brand-kpi-card:hover,
+.admin-app-shell .brand-kpi-card:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--brand-orange) 40%,
+    var(--terminal-border)
+  );
+}
+
+.desk-app-shell .brand-kpi-value--success,
+.admin-app-shell .brand-kpi-value--success {
+  color: var(--brand-lime);
+}
+
+.desk-app-shell .brand-kpi-value--warning,
+.admin-app-shell .brand-kpi-value--warning {
+  color: var(--brand-orange);
+}
+
+.desk-app-shell .brand-breakdown-list,
+.admin-app-shell .brand-breakdown-list {
+  border: 1px solid var(--terminal-border);
+  background: color-mix(in srgb, var(--terminal-surface) 88%, transparent);
+}
+
+.desk-app-shell
+  .brand-breakdown-list
+  li:nth-child(3n + 1)
+  .brand-breakdown-value,
+.admin-app-shell
+  .brand-breakdown-list
+  li:nth-child(3n + 1)
+  .brand-breakdown-value {
+  color: var(--brand-lime);
+}
+
+.desk-app-shell
+  .brand-breakdown-list
+  li:nth-child(3n + 2)
+  .brand-breakdown-value,
+.admin-app-shell
+  .brand-breakdown-list
+  li:nth-child(3n + 2)
+  .brand-breakdown-value {
+  color: var(--brand-orange);
+}
+
+.desk-app-shell .brand-breakdown-list li:nth-child(3n) .brand-breakdown-value,
+.admin-app-shell .brand-breakdown-list li:nth-child(3n) .brand-breakdown-value {
+  color: var(--brand-red);
+}
+
+.desk-app-shell .brand-funnel-step,
+.admin-app-shell .brand-funnel-step {
+  border: 1px solid var(--terminal-border);
+  background: color-mix(in srgb, var(--terminal-surface-2) 80%, transparent);
+  border-left-width: 3px;
+}
+
+.desk-app-shell .brand-funnel-step--0,
+.admin-app-shell .brand-funnel-step--0 {
+  border-left-color: var(--brand-lime);
+}
+
+.desk-app-shell .brand-funnel-step--1,
+.admin-app-shell .brand-funnel-step--1 {
+  border-left-color: var(--brand-orange);
+}
+
+.desk-app-shell .brand-funnel-step--2,
+.admin-app-shell .brand-funnel-step--2 {
+  border-left-color: var(--brand-red);
+}
+
+.desk-app-shell .brand-funnel-step--n,
+.admin-app-shell .brand-funnel-step--n {
+  border-left-color: color-mix(
+    in srgb,
+    var(--brand-lime) 50%,
+    var(--brand-red)
+  );
+}
+
+.desk-app-shell .brand-sidebar-brand,
+.admin-app-shell .brand-sidebar-brand {
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  border-bottom: 1px solid var(--terminal-border);
+  margin-bottom: 0;
+  height: var(--desk-chrome-header-height);
+  min-height: var(--desk-chrome-header-height);
+  max-height: var(--desk-chrome-header-height);
+  padding: 0 1rem;
+}
+
+.desk-app-shell .brand-header-bar,
+.admin-app-shell .brand-header-bar {
+  box-sizing: border-box;
+  height: var(--desk-chrome-header-height);
+  min-height: var(--desk-chrome-header-height);
+  max-height: var(--desk-chrome-header-height);
+  border-bottom: 1px solid var(--terminal-border);
+  background: color-mix(in srgb, var(--terminal-surface) 85%, transparent);
+}
+
+.desk-app-shell .brand-hub-card,
+.admin-app-shell .brand-hub-card {
+  border: 1px solid var(--terminal-border);
+  background: color-mix(in srgb, var(--terminal-surface) 88%, transparent);
+}
+
+.desk-app-shell .brand-hub-card:hover,
+.admin-app-shell .brand-hub-card:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--brand-lime) 35%,
+    var(--terminal-border)
+  );
+}
+
+.desk-app-shell .brand-hub-card h3,
+.admin-app-shell .brand-hub-card h3 {
+  color: var(--brand-lime);
+}
+
+.desk-app-shell .brand-todo-panel,
+.admin-app-shell .brand-todo-panel {
+  border: 1px solid
+    color-mix(in srgb, var(--brand-orange) 35%, var(--terminal-border));
+  background: color-mix(
+    in srgb,
+    var(--brand-orange) 6%,
+    var(--terminal-surface)
+  );
+}
+
+.desk-app-shell .brand-leaderboard-value,
+.admin-app-shell .brand-leaderboard-value {
+  color: var(--brand-orange);
+}
+
+.desk-app-shell .brand-table-head,
+.admin-app-shell .brand-table-head {
+  background: color-mix(
+    in srgb,
+    var(--brand-lime) 8%,
+    var(--terminal-surface-2)
+  );
+  color: var(--brand-lime);
+}
+
+.desk-app-shell aside.brand-sidebar,
+.admin-app-shell aside.brand-sidebar {
+  border-color: var(--terminal-border);
+  background: color-mix(
+    in srgb,
+    var(--terminal-surface) 70%,
+    var(--terminal-bg)
+  );
+}
+
+.desk-app-shell .brand-segment-btn,
+.admin-app-shell .brand-segment-btn,
+.acquire-terminal-palette .brand-segment-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--terminal-border);
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--terminal-surface) 92%, transparent);
+  color: var(--terminal-muted);
+  font-size: 0.75rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.desk-app-shell .brand-segment-btn:hover:not(.brand-segment-btn--active),
+.admin-app-shell .brand-segment-btn:hover:not(.brand-segment-btn--active),
+.acquire-terminal-palette
+  .brand-segment-btn:hover:not(.brand-segment-btn--active) {
+  border-color: color-mix(
+    in srgb,
+    var(--brand-orange) 45%,
+    var(--terminal-border)
+  );
+  color: var(--terminal-fg);
+}
+
+.desk-app-shell .brand-segment-btn--active,
+.admin-app-shell .brand-segment-btn--active,
+.acquire-terminal-palette .brand-segment-btn--active {
+  border: 1px solid transparent;
+  background:
+    linear-gradient(
+        color-mix(in srgb, var(--terminal-surface) 96%, transparent),
+        color-mix(in srgb, var(--terminal-surface) 96%, transparent)
+      )
+      padding-box,
+    var(--platform-gradient) border-box;
+  box-shadow: var(--platform-glow);
+  color: var(--terminal-fg);
+  -webkit-text-fill-color: unset;
+}
+
+.desk-app-shell .brand-segment-btn--active .brand-segment-btn-label,
+.admin-app-shell .brand-segment-btn--active .brand-segment-btn-label,
+.acquire-terminal-palette .brand-segment-btn--active .brand-segment-btn-label {
+  background: var(--platform-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+}
+
+.desk-app-shell
+  .marketplace-desk-acquire
+  [class*="uppercase"][class*="tracking-wide"],
+.desk-app-shell .marketplace-desk-acquire .brand-eyebrow {
+  color: var(--brand-orange);
+}
+
+.desk-app-shell .marketplace-desk-acquire .btn-platform-gradient,
+.desk-app-shell .marketplace-desk-acquire .startup-listing-card {
+  box-shadow: var(--platform-glow);
+}
+
+.desk-app-shell main .rounded-xl.border.bg-card {
+  border-color: var(--terminal-border);
+  background: color-mix(in srgb, var(--terminal-surface) 90%, transparent);
+  box-shadow: var(--platform-glow);
+  border-radius: 12px;
+  overflow: hidden;
+}
+
+.desk-app-shell .brand-page-header,
+.admin-app-shell .brand-page-header,
+.acquire-terminal-palette .brand-page-header {
+  border-bottom: 1px solid var(--terminal-border);
+  padding-bottom: 1.5rem;
+}
+
+/**
+ * All authenticated desk pages — normalize legacy headers, panels, forms, and links
+ * to logo palette (lime · orange · red) without per-page refactors.
+ */
+.desk-app-shell .brand-app-page header:not(.brand-page-header),
+.acquire-terminal-palette .brand-app-page header:not(.brand-page-header) {
+  padding-bottom: 1.25rem;
+  margin-bottom: 0.25rem;
+  border-bottom: 1px solid var(--terminal-border);
+}
+
+.desk-app-shell
+  .brand-app-page
+  header:not(.brand-page-header)
+  > p:first-of-type,
+.acquire-terminal-palette
+  .brand-app-page
+  header:not(.brand-page-header)
+  > p:first-of-type {
+  font-size: var(--terminal-eyebrow-size);
+  font-weight: 700;
+  letter-spacing: var(--terminal-eyebrow-tracking);
+  text-transform: uppercase;
+  color: var(--brand-orange);
+}
+
+.desk-app-shell .brand-app-page header:not(.brand-page-header) > h1,
+.acquire-terminal-palette .brand-app-page header:not(.brand-page-header) > h1 {
+  background: var(--platform-gradient);
+  -webkit-background-clip: text;
+  background-clip: text;
+  -webkit-text-fill-color: transparent;
+  color: transparent;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+}
+
+.desk-app-shell .brand-app-page section[class*="rounded"][class*="border"],
+.desk-app-shell .brand-app-page article[class*="rounded"][class*="border"],
+.desk-app-shell .brand-app-page div[class*="rounded-[12px]"][class*="border"],
+.acquire-terminal-palette
+  .brand-app-page
+  section[class*="rounded"][class*="border"],
+.acquire-terminal-palette
+  .brand-app-page
+  article[class*="rounded"][class*="border"],
+.acquire-terminal-palette
+  .brand-app-page
+  div[class*="rounded-[12px]"][class*="border"] {
+  border-color: var(--terminal-border) !important;
+  background: color-mix(
+    in srgb,
+    var(--terminal-surface) 88%,
+    transparent
+  ) !important;
+  box-shadow: var(--platform-glow);
+}
+
+.desk-app-shell
+  .brand-app-page
+  section[class*="rounded"][class*="border"]:hover,
+.desk-app-shell .brand-app-page a[class*="rounded"][class*="border"]:hover,
+.acquire-terminal-palette
+  .brand-app-page
+  section[class*="rounded"][class*="border"]:hover,
+.acquire-terminal-palette
+  .brand-app-page
+  a[class*="rounded"][class*="border"]:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--brand-orange) 40%,
+    var(--terminal-border)
+  ) !important;
+}
+
+.desk-app-shell .brand-app-page [class*="uppercase"][class*="tracking-widest"],
+.desk-app-shell .brand-app-page [class*="tracking-[0.22em]"],
+.desk-app-shell .brand-app-page [class*="tracking-[0.18em]"],
+.acquire-terminal-palette
+  .brand-app-page
+  [class*="uppercase"][class*="tracking-widest"],
+.acquire-terminal-palette .brand-app-page [class*="tracking-[0.22em]"],
+.acquire-terminal-palette .brand-app-page [class*="tracking-[0.18em]"] {
+  color: var(--brand-orange);
+}
+
+.desk-app-shell
+  .brand-app-page
+  a[class*="font-bold"]:not([class*="bg-"]):not(.brand-back-link),
+.acquire-terminal-palette
+  .brand-app-page
+  a[class*="font-bold"]:not([class*="bg-"]):not(.brand-back-link) {
+  color: var(--brand-orange);
+}
+
+.desk-app-shell .brand-app-page a[class*="font-bold"]:not([class*="bg-"]):hover,
+.acquire-terminal-palette
+  .brand-app-page
+  a[class*="font-bold"]:not([class*="bg-"]):hover {
+  color: var(--brand-lime);
+}
+
+.desk-app-shell .brand-app-page .text-[color\:var\(--terminal-lime\)],
+.acquire-terminal-palette
+  .brand-app-page
+  .text-[color\:var\(--terminal-lime\)] {
+  color: var(--brand-lime) !important;
+}
+
+.desk-app-shell .brand-app-page .text-[color\:var\(--terminal-ochre\)],
+.acquire-terminal-palette
+  .brand-app-page
+  .text-[color\:var\(--terminal-ochre\)] {
+  color: var(--brand-orange) !important;
+}
+
+.desk-app-shell .brand-app-page .text-[color\:var\(--terminal-display\)],
+.acquire-terminal-palette
+  .brand-app-page
+  .text-[color\:var\(--terminal-display\)] {
+  color: var(--terminal-fg);
+}
+
+.desk-app-shell .brand-app-page select,
+.desk-app-shell
+  .brand-app-page
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.desk-app-shell .brand-app-page textarea,
+.acquire-terminal-palette .brand-app-page select,
+.acquire-terminal-palette
+  .brand-app-page
+  input:not([type="checkbox"]):not([type="radio"]):not([type="hidden"]),
+.acquire-terminal-palette .brand-app-page textarea {
+  border-color: var(--terminal-border);
+  background: color-mix(in srgb, var(--terminal-surface) 92%, transparent);
+  color: var(--terminal-fg);
+}
+
+.desk-app-shell .brand-app-page select:focus-visible,
+.desk-app-shell .brand-app-page input:focus-visible,
+.desk-app-shell .brand-app-page textarea:focus-visible,
+.acquire-terminal-palette .brand-app-page select:focus-visible,
+.acquire-terminal-palette .brand-app-page input:focus-visible,
+.acquire-terminal-palette .brand-app-page textarea:focus-visible {
+  outline: none;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--brand-lime) 35%, transparent);
+  border-color: color-mix(
+    in srgb,
+    var(--brand-orange) 55%,
+    var(--terminal-border)
+  );
+}
+
+.desk-app-shell .brand-back-link,
+.acquire-terminal-palette .brand-back-link {
+  border: 1px solid var(--terminal-border);
+  background: color-mix(in srgb, var(--terminal-surface-2) 88%, transparent);
+  color: var(--terminal-fg);
+  transition:
+    border-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.desk-app-shell .brand-back-link:hover,
+.acquire-terminal-palette .brand-back-link:hover {
+  border-color: color-mix(
+    in srgb,
+    var(--brand-orange) 45%,
+    var(--terminal-border)
+  );
+  color: var(--brand-lime);
+}
+
+.desk-app-shell .brand-app-page table thead tr,
+.acquire-terminal-palette .brand-app-page table thead tr {
+  background: color-mix(
+    in srgb,
+    var(--brand-lime) 8%,
+    var(--terminal-surface-2)
+  );
+}
+
+.desk-app-shell .brand-app-page table thead th,
+.acquire-terminal-palette .brand-app-page table thead th {
+  color: var(--brand-lime);
+  font-weight: 700;
+}
+
+.desk-app-shell .brand-app-page [role="tablist"] [data-state="active"],
+.acquire-terminal-palette
+  .brand-app-page
+  [role="tablist"]
+  [data-state="active"] {
+  color: var(--brand-lime);
+  border-color: color-mix(
+    in srgb,
+    var(--brand-orange) 45%,
+    var(--terminal-border)
+  );
+}
+
+/* Product desks + admin: match website CTA buttons */
 .desk-app-shell
   button[data-button-variant="default"]:not(.btn-platform-gradient):not(
     .btn-marketplace-primary
@@ -1507,6 +2125,22 @@
     .btn-marketplace-primary
   ):not([data-button-size="icon"]),
 .desk-app-theme
+  a[data-button-variant="default"]:not(.btn-platform-gradient):not(
+    .btn-marketplace-primary
+  ):not([data-button-size="icon"]),
+.admin-app-shell
+  button[data-button-variant="default"]:not(.btn-platform-gradient):not(
+    .btn-marketplace-primary
+  ):not([data-button-size="icon"]),
+.admin-app-shell
+  a[data-button-variant="default"]:not(.btn-platform-gradient):not(
+    .btn-marketplace-primary
+  ):not([data-button-size="icon"]),
+.admin-app-theme
+  button[data-button-variant="default"]:not(.btn-platform-gradient):not(
+    .btn-marketplace-primary
+  ):not([data-button-size="icon"]),
+.admin-app-theme
   a[data-button-variant="default"]:not(.btn-platform-gradient):not(
     .btn-marketplace-primary
   ):not([data-button-size="icon"]) {
@@ -1533,6 +2167,18 @@
     :disabled
   ),
 .desk-app-theme
+  a[data-button-variant="default"]:not(.btn-platform-gradient):hover,
+.admin-app-shell
+  button[data-button-variant="default"]:not(.btn-platform-gradient):hover:not(
+    :disabled
+  ),
+.admin-app-shell
+  a[data-button-variant="default"]:not(.btn-platform-gradient):hover,
+.admin-app-theme
+  button[data-button-variant="default"]:not(.btn-platform-gradient):hover:not(
+    :disabled
+  ),
+.admin-app-theme
   a[data-button-variant="default"]:not(.btn-platform-gradient):hover {
   background:
     var(--platform-gradient-soft) padding-box,
@@ -1547,7 +2193,14 @@
 .desk-app-shell a[data-button-variant="outline"]:not([data-button-size="icon"]),
 .desk-app-theme
   button[data-button-variant="outline"]:not([data-button-size="icon"]),
-.desk-app-theme
+.desk-app-theme a[data-button-variant="outline"]:not([data-button-size="icon"]),
+.admin-app-shell
+  button[data-button-variant="outline"]:not([data-button-size="icon"]),
+.admin-app-shell
+  a[data-button-variant="outline"]:not([data-button-size="icon"]),
+.admin-app-theme
+  button[data-button-variant="outline"]:not([data-button-size="icon"]),
+.admin-app-theme
   a[data-button-variant="outline"]:not([data-button-size="icon"]) {
   min-height: 2.5rem;
   border-radius: 10px !important;
@@ -1564,7 +2217,11 @@
 .desk-app-shell button[data-button-variant="outline"]:hover:not(:disabled),
 .desk-app-shell a[data-button-variant="outline"]:hover,
 .desk-app-theme button[data-button-variant="outline"]:hover:not(:disabled),
-.desk-app-theme a[data-button-variant="outline"]:hover {
+.desk-app-theme a[data-button-variant="outline"]:hover,
+.admin-app-shell button[data-button-variant="outline"]:hover:not(:disabled),
+.admin-app-shell a[data-button-variant="outline"]:hover,
+.admin-app-theme button[data-button-variant="outline"]:hover:not(:disabled),
+.admin-app-theme a[data-button-variant="outline"]:hover {
   border-color: color-mix(
     in srgb,
     var(--terminal-ochre) 45%,

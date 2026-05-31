@@ -11,11 +11,14 @@ import {
   productLandingPath,
   resolveProductAuthPath,
 } from "@/lib/auth/productAuthRoutes";
+import { authAbsoluteUrl } from "@/lib/auth/routes";
+import { validateAuthEmail, normalizeAuthEmail } from "@/lib/auth/validation";
+import { sanitizePostAuthRedirectParam } from "@/routing/authResolver";
 
 type Props = { appSlug: AppSlug };
 
 export function ProductForgotPasswordPage({ appSlug }: Props) {
-  const { configured, resetPasswordForEmail } = useAuth();
+  const { configured, resetPasswordForEmail, formatAuthError } = useAuth();
   const { toast } = useToast();
   const [email, setEmail] = useState("");
   const [busy, setBusy] = useState(false);
@@ -24,14 +27,22 @@ export function ProductForgotPasswordPage({ appSlug }: Props) {
   async function onSubmit(e: React.FormEvent) {
     e.preventDefault();
     if (!configured) return;
-    const trimmed = email.trim();
-    if (!trimmed.includes("@")) {
-      toast({ title: "Enter a valid email", variant: "destructive" });
+    const trimmed = normalizeAuthEmail(email);
+    const check = validateAuthEmail(trimmed);
+    if (!check.ok) {
+      toast({ title: check.message, variant: "destructive" });
       return;
     }
     setBusy(true);
     try {
-      await resetPasswordForEmail(trimmed);
+      const returnTo = sanitizePostAuthRedirectParam(
+        new URLSearchParams(window.location.search).get("returnTo"),
+      );
+      const qs = returnTo ? `?returnTo=${encodeURIComponent(returnTo)}` : "";
+      await resetPasswordForEmail(
+        trimmed,
+        authAbsoluteUrl(`/auth/reset-password${qs}`),
+      );
       setSent(true);
       toast({
         title: "Check your email",
@@ -40,7 +51,7 @@ export function ProductForgotPasswordPage({ appSlug }: Props) {
     } catch (err) {
       toast({
         title: "Could not send reset email",
-        description: err instanceof Error ? err.message : "Try again.",
+        description: formatAuthError(err),
         variant: "destructive",
       });
     } finally {

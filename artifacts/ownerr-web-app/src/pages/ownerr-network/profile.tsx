@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { PUBLIC_ROUTES } from "@/routing/routeRegistry";
+import { AccountChangePasswordSection } from "@/components/auth/AccountChangePasswordSection";
 
 function ProfileFactCard({
   label,
@@ -234,6 +235,8 @@ export default function OwnerrNetworkProfilePage() {
           Leaderboard
         </Link>
       </div>
+
+      <AccountChangePasswordSection variant="terminal" />
 
       <section className="rounded-[12px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/80 p-5 space-y-4">
         <h2 className="text-sm font-bold uppercase tracking-widest text-[color:var(--terminal-muted)]">

@@ -9,6 +9,3 @@ export type DeskUser = {
   avatarSeed?: string;
   createdAt: string;
 };
-
-/** @deprecated Use DeskUser — kept for IndexedDB legacy rows */
-export type AuthUser = DeskUser & { password?: string };

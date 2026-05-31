@@ -61,6 +61,10 @@ export type RouteDefinition = {
 export const AUTH_ROUTES = {
   start: "/auth/start",
   forbidden: "/forbidden",
+  resetPassword: "/auth/reset-password",
+  verifyEmail: "/auth/verify-email",
+  confirm: "/auth/confirm",
+  reauthenticate: "/auth/reauthenticate",
 } as const;
 
 export const PUBLIC_ROUTES = {
@@ -70,22 +74,31 @@ export const PUBLIC_ROUTES = {
   contact: "/contact",
   valuation: "/valuation",
   marketIntelligence: "/market-intelligence",
-  adminFounderStats: "/admin/founder-stats"
+  adminFounderStats: "/admin/founder-stats",
 } as const;
 
 export const ADMIN_ROUTES = {
   hub: "/admin",
   ownerrNetworkDashboard: "/admin/ownerr-network/dashboard",
+  ownerrNetworkMembers: "/admin/ownerr-network/members",
+  /** @deprecated — use ownerrNetworkMembers */
   ownerrNetworkUsers: "/admin/ownerr-network/users",
+  /** @deprecated — use ownerrNetworkMembers */
   ownerrNetworkProfiles: "/admin/ownerr-network/profiles",
   ownerrNetworkLedger: "/admin/ownerr-network/ledger",
   ownerrNetworkReferrals: "/admin/ownerr-network/referrals",
   marketplaceDashboard: "/admin/marketplace/dashboard",
+  marketplaceBuyers: "/admin/marketplace/buyers",
+  marketplaceSellers: "/admin/marketplace/sellers",
   marketplaceListings: "/admin/marketplace/listings",
   marketplaceSubmissions: "/admin/marketplace/submissions",
   ownerrOsDashboard: "/admin/ownerr-os/dashboard",
+  ownerrOsFounders: "/admin/ownerr-os/founders",
   ownerrOsListings: "/admin/ownerr-os/listings",
+  /** @deprecated — use ownerrOsFounders */
   ownerrOsAnalytics: "/admin/ownerr-os/analytics",
+  operations: "/admin/operations",
+  system: "/admin/system",
   /** @deprecated use ownerrNetworkDashboard */
   adminDashboard: "/admin/dashboard",
   /** @deprecated use ownerrNetworkUsers */
@@ -341,6 +354,18 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     fallbackRoute: PUBLIC_ROUTES.home,
   }),
   def({
+    id: "admin.ownerr-network.members",
+    pathname: ADMIN_ROUTES.ownerrNetworkMembers,
+    layer: "platform",
+    product: null,
+    authRequired: true,
+    requiredRoles: ["admin"],
+    allowWhenAuthenticated: true,
+    layoutShell: "marketing",
+    postLoginDefault: ADMIN_ROUTES.ownerrNetworkMembers,
+    fallbackRoute: PUBLIC_ROUTES.home,
+  }),
+  def({
     id: "admin.marketplace.dashboard",
     pathname: ADMIN_ROUTES.marketplaceDashboard,
     layer: "platform",
@@ -353,6 +378,30 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     fallbackRoute: PUBLIC_ROUTES.home,
   }),
   def({
+    id: "admin.marketplace.buyers",
+    pathname: ADMIN_ROUTES.marketplaceBuyers,
+    layer: "platform",
+    product: null,
+    authRequired: true,
+    requiredRoles: ["admin"],
+    allowWhenAuthenticated: true,
+    layoutShell: "marketing",
+    postLoginDefault: ADMIN_ROUTES.marketplaceBuyers,
+    fallbackRoute: PUBLIC_ROUTES.home,
+  }),
+  def({
+    id: "admin.marketplace.sellers",
+    pathname: ADMIN_ROUTES.marketplaceSellers,
+    layer: "platform",
+    product: null,
+    authRequired: true,
+    requiredRoles: ["admin"],
+    allowWhenAuthenticated: true,
+    layoutShell: "marketing",
+    postLoginDefault: ADMIN_ROUTES.marketplaceSellers,
+    fallbackRoute: PUBLIC_ROUTES.home,
+  }),
+  def({
     id: "admin.ownerr-os.dashboard",
     pathname: ADMIN_ROUTES.ownerrOsDashboard,
     layer: "platform",
@@ -362,6 +411,30 @@ export const ROUTE_REGISTRY: readonly RouteDefinition[] = [
     allowWhenAuthenticated: true,
     layoutShell: "marketing",
     postLoginDefault: ADMIN_ROUTES.ownerrOsDashboard,
+    fallbackRoute: PUBLIC_ROUTES.home,
+  }),
+  def({
+    id: "admin.operations",
+    pathname: ADMIN_ROUTES.operations,
+    layer: "platform",
+    product: null,
+    authRequired: true,
+    requiredRoles: ["admin"],
+    allowWhenAuthenticated: true,
+    layoutShell: "marketing",
+    postLoginDefault: ADMIN_ROUTES.operations,
+    fallbackRoute: PUBLIC_ROUTES.home,
+  }),
+  def({
+    id: "admin.system",
+    pathname: ADMIN_ROUTES.system,
+    layer: "platform",
+    product: null,
+    authRequired: true,
+    requiredRoles: ["admin"],
+    allowWhenAuthenticated: true,
+    layoutShell: "marketing",
+    postLoginDefault: ADMIN_ROUTES.system,
     fallbackRoute: PUBLIC_ROUTES.home,
   }),
   def({

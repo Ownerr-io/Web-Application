@@ -119,7 +119,10 @@ export async function updateMarketplaceSubmission(
   input: UpdateSubmissionInput,
 ): Promise<void> {
   const supabase = getSupabase();
-  const { error } = await supabase.from("submissions").update(input).eq("id", id);
+  const { error } = await supabase
+    .from("submissions")
+    .update(input)
+    .eq("id", id);
   if (error) throw new Error(`updateMarketplaceSubmission: ${error.message}`);
 }
 

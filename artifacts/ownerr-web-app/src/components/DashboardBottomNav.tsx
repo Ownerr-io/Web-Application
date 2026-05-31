@@ -60,12 +60,14 @@ function BottomNavTab({
       className={cn(
         "flex min-w-0 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg px-1 py-1.5 outline-none transition-colors",
         "focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
-        active ? "text-primary" : "text-muted-foreground hover:text-foreground",
+        active
+          ? "text-brand-lime"
+          : "text-muted-foreground hover:text-brand-orange",
       )}
       aria-current={active ? "page" : undefined}
     >
       <Icon
-        className={cn("h-5 w-5 shrink-0", active && "text-primary")}
+        className={cn("h-5 w-5 shrink-0", active && "text-brand-lime")}
         strokeWidth={active ? 2.25 : 2}
         aria-hidden
       />

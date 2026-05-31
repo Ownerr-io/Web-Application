@@ -39,9 +39,15 @@ export default function MarketplaceListingsAdminPage() {
   const queryClient = useQueryClient();
   const [editing, setEditing] = useState<StartupRow | null>(null);
   const [creating, setCreating] = useState(false);
-  const [form, setForm] = useState<UpdateMarketplaceListingInput & { slug?: string }>({});
+  const [form, setForm] = useState<
+    UpdateMarketplaceListingInput & { slug?: string }
+  >({});
 
-  const { data: listings = [], isLoading, error } = useQuery({
+  const {
+    data: listings = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["admin", "marketplace", "listings"],
     queryFn: fetchAllMarketplaceListings,
   });
@@ -63,7 +69,9 @@ export default function MarketplaceListingsAdminPage() {
       }
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["admin", "marketplace"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["admin", "marketplace"],
+      });
       setEditing(null);
       setCreating(false);
       setForm({});
@@ -76,7 +84,9 @@ export default function MarketplaceListingsAdminPage() {
       trackAdminCrud("marketplace", "delete", "listing", { id });
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["admin", "marketplace"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["admin", "marketplace"],
+      });
     },
   });
 

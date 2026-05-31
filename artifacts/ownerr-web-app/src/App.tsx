@@ -22,16 +22,20 @@ import {
   LazyAdminFounderStatsPage,
   LazyAdminHubPage,
   LazyOwnerrNetworkAdminDashboard,
-  LazyAdminProfilesPage,
-  LazyAdminUsersPage,
+  LazyOwnerrNetworkMembersPage,
   LazyAdminLedgerPage,
   LazyAdminReferralsPage,
   LazyMarketplaceAdminDashboard,
+  LazyMarketplaceAdminBuyersPage,
+  LazyMarketplaceAdminSellersPage,
   LazyMarketplaceAdminListingsPage,
   LazyMarketplaceAdminSubmissionsPage,
   LazyOwnerrOsAdminDashboard,
+  LazyOwnerrOsAdminFoundersPage,
   LazyOwnerrOsAdminListingsPage,
   LazyOwnerrOsAdminAnalyticsPage,
+  LazyAdminOperationsPage,
+  LazyAdminSystemPage,
   LazyFounderOsFlowDialog,
   LazyMarketIntelligencePage,
   LazyStartupDetailPage,
@@ -95,6 +99,10 @@ import { AuthProvider } from "@/context/AuthContext";
 import { ActiveProductProvider } from "@/context/ActiveProductContext";
 import MarketplaceAppEntryPage from "@/pages/marketplace/app/index";
 import AuthStartPage from "@/pages/auth/start";
+import ResetPasswordPage from "@/pages/auth/reset-password";
+import VerifyEmailPage from "@/pages/auth/verify-email";
+import AuthConfirmPage from "@/pages/auth/confirm";
+import ReauthenticatePage from "@/pages/auth/reauthenticate";
 import ForbiddenPage from "@/pages/forbidden";
 import { PostHogProvider } from "@/components/analytics/PostHogProvider";
 import {
@@ -164,24 +172,27 @@ function Router() {
 
       <Route path={ADMIN_ROUTES.ownerrNetworkDashboard}>
         <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkDashboard}>
-          <Suspense fallback={<RouteLoadingFallback label="Loading dashboard…" />}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading dashboard…" />}
+          >
             <LazyOwnerrNetworkAdminDashboard />
           </Suspense>
         </RouteGuard>
       </Route>
-      <Route path={ADMIN_ROUTES.ownerrNetworkUsers}>
-        <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkUsers}>
-          <Suspense fallback={<RouteLoadingFallback label="Loading users…" />}>
-            <LazyAdminUsersPage />
+      <Route path={ADMIN_ROUTES.ownerrNetworkMembers}>
+        <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkMembers}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading members…" />}
+          >
+            <LazyOwnerrNetworkMembersPage />
           </Suspense>
         </RouteGuard>
       </Route>
+      <Route path={ADMIN_ROUTES.ownerrNetworkUsers}>
+        <Redirect to={ADMIN_ROUTES.ownerrNetworkMembers} replace />
+      </Route>
       <Route path={ADMIN_ROUTES.ownerrNetworkProfiles}>
-        <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkProfiles}>
-          <Suspense fallback={<RouteLoadingFallback label="Loading profiles…" />}>
-            <LazyAdminProfilesPage />
-          </Suspense>
-        </RouteGuard>
+        <Redirect to={ADMIN_ROUTES.ownerrNetworkMembers} replace />
       </Route>
       <Route path={ADMIN_ROUTES.ownerrNetworkLedger}>
         <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkLedger}>
@@ -192,7 +203,9 @@ function Router() {
       </Route>
       <Route path={ADMIN_ROUTES.ownerrNetworkReferrals}>
         <RouteGuard pathname={ADMIN_ROUTES.ownerrNetworkReferrals}>
-          <Suspense fallback={<RouteLoadingFallback label="Loading referrals…" />}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading referrals…" />}
+          >
             <LazyAdminReferralsPage />
           </Suspense>
         </RouteGuard>
@@ -200,21 +213,43 @@ function Router() {
 
       <Route path={ADMIN_ROUTES.marketplaceDashboard}>
         <RouteGuard pathname={ADMIN_ROUTES.marketplaceDashboard}>
-          <Suspense fallback={<RouteLoadingFallback label="Loading dashboard…" />}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading dashboard…" />}
+          >
             <LazyMarketplaceAdminDashboard />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.marketplaceBuyers}>
+        <RouteGuard pathname={ADMIN_ROUTES.marketplaceBuyers}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading buyers…" />}>
+            <LazyMarketplaceAdminBuyersPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.marketplaceSellers}>
+        <RouteGuard pathname={ADMIN_ROUTES.marketplaceSellers}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading sellers…" />}
+          >
+            <LazyMarketplaceAdminSellersPage />
           </Suspense>
         </RouteGuard>
       </Route>
       <Route path={ADMIN_ROUTES.marketplaceListings}>
         <RouteGuard pathname={ADMIN_ROUTES.marketplaceListings}>
-          <Suspense fallback={<RouteLoadingFallback label="Loading listings…" />}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading listings…" />}
+          >
             <LazyMarketplaceAdminListingsPage />
           </Suspense>
         </RouteGuard>
       </Route>
       <Route path={ADMIN_ROUTES.marketplaceSubmissions}>
         <RouteGuard pathname={ADMIN_ROUTES.marketplaceSubmissions}>
-          <Suspense fallback={<RouteLoadingFallback label="Loading submissions…" />}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading submissions…" />}
+          >
             <LazyMarketplaceAdminSubmissionsPage />
           </Suspense>
         </RouteGuard>
@@ -222,22 +257,54 @@ function Router() {
 
       <Route path={ADMIN_ROUTES.ownerrOsDashboard}>
         <RouteGuard pathname={ADMIN_ROUTES.ownerrOsDashboard}>
-          <Suspense fallback={<RouteLoadingFallback label="Loading dashboard…" />}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading dashboard…" />}
+          >
             <LazyOwnerrOsAdminDashboard />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.ownerrOsFounders}>
+        <RouteGuard pathname={ADMIN_ROUTES.ownerrOsFounders}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading founders…" />}
+          >
+            <LazyOwnerrOsAdminFoundersPage />
           </Suspense>
         </RouteGuard>
       </Route>
       <Route path={ADMIN_ROUTES.ownerrOsListings}>
         <RouteGuard pathname={ADMIN_ROUTES.ownerrOsListings}>
-          <Suspense fallback={<RouteLoadingFallback label="Loading listings…" />}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading listings…" />}
+          >
             <LazyOwnerrOsAdminListingsPage />
           </Suspense>
         </RouteGuard>
       </Route>
       <Route path={ADMIN_ROUTES.ownerrOsAnalytics}>
         <RouteGuard pathname={ADMIN_ROUTES.ownerrOsAnalytics}>
-          <Suspense fallback={<RouteLoadingFallback label="Loading analytics…" />}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading analytics…" />}
+          >
             <LazyOwnerrOsAdminAnalyticsPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+
+      <Route path={ADMIN_ROUTES.operations}>
+        <RouteGuard pathname={ADMIN_ROUTES.operations}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading operations…" />}
+          >
+            <LazyAdminOperationsPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.system}>
+        <RouteGuard pathname={ADMIN_ROUTES.system}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading system…" />}>
+            <LazyAdminSystemPage />
           </Suspense>
         </RouteGuard>
       </Route>
@@ -247,10 +314,10 @@ function Router() {
         <Redirect to={ADMIN_ROUTES.ownerrNetworkDashboard} replace />
       </Route>
       <Route path={ADMIN_ROUTES.adminUsers}>
-        <Redirect to={ADMIN_ROUTES.ownerrNetworkUsers} replace />
+        <Redirect to={ADMIN_ROUTES.ownerrNetworkMembers} replace />
       </Route>
       <Route path={ADMIN_ROUTES.adminProfiles}>
-        <Redirect to={ADMIN_ROUTES.ownerrNetworkProfiles} replace />
+        <Redirect to={ADMIN_ROUTES.ownerrNetworkMembers} replace />
       </Route>
       <Route path={ADMIN_ROUTES.adminLedger}>
         <Redirect to={ADMIN_ROUTES.ownerrNetworkLedger} replace />
@@ -327,6 +394,18 @@ function Router() {
 
       <Route path={AUTH_ROUTES.start}>
         <AuthStartPage />
+      </Route>
+      <Route path={AUTH_ROUTES.resetPassword}>
+        <ResetPasswordPage />
+      </Route>
+      <Route path={AUTH_ROUTES.verifyEmail}>
+        <VerifyEmailPage />
+      </Route>
+      <Route path={AUTH_ROUTES.confirm}>
+        <AuthConfirmPage />
+      </Route>
+      <Route path={AUTH_ROUTES.reauthenticate}>
+        <ReauthenticatePage />
       </Route>
       <Route path={AUTH_ROUTES.forbidden}>
         <ForbiddenPage />
@@ -799,18 +878,18 @@ function App() {
           <WouterRouter base={import.meta.env.BASE_URL.replace(/\/$/, "")}>
             <AuthProvider>
               <PostHogProvider>
-              <ActiveProductProvider>
-                <FounderOsProvider>
-                  <DemoMarketplaceShellGuard />
-                  <ProductShellEnforcer />
-                  <ScrollToTop />
-                  <Router />
-                  <Suspense fallback={null}>
-                    <LazyFounderOsFlowDialog />
-                  </Suspense>
-                  <Toaster />
-                </FounderOsProvider>
-              </ActiveProductProvider>
+                <ActiveProductProvider>
+                  <FounderOsProvider>
+                    <DemoMarketplaceShellGuard />
+                    <ProductShellEnforcer />
+                    <ScrollToTop />
+                    <Router />
+                    <Suspense fallback={null}>
+                      <LazyFounderOsFlowDialog />
+                    </Suspense>
+                    <Toaster />
+                  </FounderOsProvider>
+                </ActiveProductProvider>
               </PostHogProvider>
             </AuthProvider>
           </WouterRouter>

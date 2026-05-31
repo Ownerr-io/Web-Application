@@ -1,7 +1,13 @@
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useQuery } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { getUserListings } from "@/lib/marketplace/service";
+import {
+  MarketplaceDeskListItem,
+  MarketplaceDeskPanel,
+  MarketplaceDeskStat,
+  MarketplaceDeskStatGrid,
+  marketplaceDeskKpiValueClass,
+} from "@/components/marketplace/MarketplaceDeskUi";
 
 export default function SellerVerificationPage() {
   const { currentUser } = useAuth();
@@ -32,64 +38,73 @@ export default function SellerVerificationPage() {
         ];
 
   return (
-    <Card>
-      <CardHeader>
-        <CardTitle>Verification Center</CardTitle>
-      </CardHeader>
-      <CardContent>
-        <div className="mb-4 grid gap-3 sm:grid-cols-3">
-          <div className="rounded-lg border border-border bg-muted/20 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Fully Verified
-            </p>
-            <p className="mt-1 text-xl font-bold">
-              {
-                safeListings.filter(
-                  (x) =>
-                    x.revenueVerified && x.domainVerified && x.trafficVerified,
-                ).length
-              }
-            </p>
-          </div>
-          <div className="rounded-lg border border-border bg-muted/20 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Revenue Verified
-            </p>
-            <p className="mt-1 text-xl font-bold">
-              {safeListings.filter((x) => x.revenueVerified).length}
-            </p>
-          </div>
-          <div className="rounded-lg border border-border bg-muted/20 p-3">
-            <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-              Domain Verified
-            </p>
-            <p className="mt-1 text-xl font-bold">
-              {safeListings.filter((x) => x.domainVerified).length}
-            </p>
-          </div>
-        </div>
-        <div className="space-y-3">
-          {safeListings.map((listing) => (
-            <div
-              key={listing.slug}
-              className="rounded-lg border border-border p-3"
-            >
-              <p className="font-semibold">{listing.name}</p>
-              <div className="mt-2 grid grid-cols-1 gap-1 text-xs text-muted-foreground sm:grid-cols-3">
-                <span>
-                  Revenue: {listing.revenueVerified ? "Verified" : "Pending"}
+    <MarketplaceDeskPanel title="Verification center">
+      <MarketplaceDeskStatGrid>
+        <MarketplaceDeskStat
+          label="Fully verified"
+          value={
+            safeListings.filter(
+              (x) => x.revenueVerified && x.domainVerified && x.trafficVerified,
+            ).length
+          }
+          valueClassName={marketplaceDeskKpiValueClass(0)}
+        />
+        <MarketplaceDeskStat
+          label="Revenue verified"
+          value={safeListings.filter((x) => x.revenueVerified).length}
+          valueClassName={marketplaceDeskKpiValueClass(1)}
+        />
+        <MarketplaceDeskStat
+          label="Domain verified"
+          value={safeListings.filter((x) => x.domainVerified).length}
+          valueClassName={marketplaceDeskKpiValueClass(2)}
+        />
+      </MarketplaceDeskStatGrid>
+      <div className="space-y-3">
+        {safeListings.map((listing) => (
+          <MarketplaceDeskListItem key={listing.slug}>
+            <p className="font-semibold">{listing.name}</p>
+            <div className="mt-2 grid grid-cols-1 gap-1 text-xs text-muted-foreground sm:grid-cols-3">
+              <span>
+                Revenue:{" "}
+                <span
+                  className={
+                    listing.revenueVerified
+                      ? "text-brand-lime"
+                      : "text-brand-orange"
+                  }
+                >
+                  {listing.revenueVerified ? "Verified" : "Pending"}
                 </span>
-                <span>
-                  Domain: {listing.domainVerified ? "Verified" : "Pending"}
+              </span>
+              <span>
+                Domain:{" "}
+                <span
+                  className={
+                    listing.domainVerified
+                      ? "text-brand-lime"
+                      : "text-brand-orange"
+                  }
+                >
+                  {listing.domainVerified ? "Verified" : "Pending"}
                 </span>
-                <span>
-                  Traffic: {listing.trafficVerified ? "Verified" : "Pending"}
+              </span>
+              <span>
+                Traffic:{" "}
+                <span
+                  className={
+                    listing.trafficVerified
+                      ? "text-brand-lime"
+                      : "text-brand-orange"
+                  }
+                >
+                  {listing.trafficVerified ? "Verified" : "Pending"}
                 </span>
-              </div>
+              </span>
             </div>
-          ))}
-        </div>
-      </CardContent>
-    </Card>
+          </MarketplaceDeskListItem>
+        ))}
+      </div>
+    </MarketplaceDeskPanel>
   );
 }
