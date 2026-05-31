@@ -33,7 +33,14 @@ import { loadFounderSubmissionsForUser } from "@/lib/founderService";
 import { PRODUCT_ITEMS } from "@/routes/publicNavConfig";
 import { marketplaceWorkspaceForRole } from "@/routing/navigationRegistry";
 import { AUTH_ROUTES, PRODUCT_ROUTES } from "@/routing/routeRegistry";
-import { sanitizePostAuthRedirectParam } from "@/routing/authResolver";
+import {
+  sanitizePostAuthRedirectParam,
+  resolvePlatformAdminPostAuthDestination,
+} from "@/routing/authResolver";
+import {
+  shouldHoldPostAuthForPlatformAdmin,
+  useRedirectPlatformAdminWhenReady,
+} from "@/hooks/useRedirectPlatformAdminWhenReady";
 
 type Step = "product" | "marketplace-role";
 
@@ -57,7 +64,8 @@ async function setAuthDeskRole(role: AuthRole): Promise<void> {
 }
 
 export function GetStartedFlow() {
-  const { loading, session, authUser } = useAuth();
+  const { loading, session, authUser, platformAdminReady, isPlatformAdmin } =
+    useAuth();
   const { setActiveProduct } = useActiveProduct();
   const [, navigate] = useLocation();
   const [step, setStep] = useState<Step>("product");
@@ -71,9 +79,17 @@ export function GetStartedFlow() {
   const returnTo = sanitizePostAuthRedirectParam(params.get("returnTo"));
   const productParam = params.get("product");
 
+  useRedirectPlatformAdminWhenReady({ returnTo, enabled: Boolean(session) });
+
   const enterMarketplace = useCallback(
     async (role: AuthRole) => {
       if (!authUser) return;
+      if (platformAdminReady && isPlatformAdmin) {
+        navigate(resolvePlatformAdminPostAuthDestination(returnTo), {
+          replace: true,
+        });
+        return;
+      }
       setBusy(true);
       setError(null);
       try {
@@ -94,11 +110,24 @@ export function GetStartedFlow() {
         setBusy(false);
       }
     },
-    [authUser, navigate, setActiveProduct],
+    [
+      authUser,
+      navigate,
+      setActiveProduct,
+      platformAdminReady,
+      isPlatformAdmin,
+      returnTo,
+    ],
   );
 
   const enterOwnerrOs = useCallback(async () => {
     if (!authUser?.id) return;
+    if (platformAdminReady && isPlatformAdmin) {
+      navigate(resolvePlatformAdminPostAuthDestination(returnTo), {
+        replace: true,
+      });
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -124,10 +153,24 @@ export function GetStartedFlow() {
     } finally {
       setBusy(false);
     }
-  }, [authUser?.id, session, navigate, setActiveProduct]);
+  }, [
+    authUser?.id,
+    session,
+    navigate,
+    setActiveProduct,
+    platformAdminReady,
+    isPlatformAdmin,
+    returnTo,
+  ]);
 
   const enterOwnerrNetwork = useCallback(async () => {
     if (!authUser?.id) return;
+    if (platformAdminReady && isPlatformAdmin) {
+      navigate(resolvePlatformAdminPostAuthDestination(returnTo), {
+        replace: true,
+      });
+      return;
+    }
     setBusy(true);
     setError(null);
     try {
@@ -146,10 +189,27 @@ export function GetStartedFlow() {
     } finally {
       setBusy(false);
     }
-  }, [authUser?.id, navigate, setActiveProduct]);
+  }, [
+    authUser?.id,
+    navigate,
+    setActiveProduct,
+    platformAdminReady,
+    isPlatformAdmin,
+    returnTo,
+  ]);
 
   useEffect(() => {
-    if (loading) return;
+    if (
+      shouldHoldPostAuthForPlatformAdmin({
+        loading,
+        session,
+        platformAdminReady,
+      })
+    ) {
+      return;
+    }
+    if (session && isPlatformAdmin) return;
+
     const pendingRole = consumeMarketplaceRole();
     const pendingProduct = consumeGetStartedProduct();
     if (session && pendingRole) {
@@ -178,6 +238,8 @@ export function GetStartedFlow() {
     enterMarketplace,
     enterOwnerrOs,
     enterOwnerrNetwork,
+    platformAdminReady,
+    isPlatformAdmin,
   ]);
 
   function goToSignIn(slug: AppSlug, extra?: { marketplaceRole?: AuthRole }) {

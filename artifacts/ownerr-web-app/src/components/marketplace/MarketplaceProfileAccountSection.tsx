@@ -7,6 +7,8 @@ import { syncMarketplaceDeskRoleForPath } from "@/lib/auth/syncMarketplaceDeskRo
 import type { AuthRole } from "@/lib/auth/types";
 import { marketplaceWorkspaceForRole } from "@/routing/navigationRegistry";
 import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
+import { cn } from "@/lib/utils";
+import { marketplaceDeskCardClass } from "@/components/marketplace/MarketplaceDeskUi";
 
 type DeskView = "buyer" | "seller";
 
@@ -67,7 +69,12 @@ export function MarketplaceProfileAccountSection({
   return (
     <div className="space-y-6">
       {showIdentity ? (
-        <section className="flex flex-col gap-4 rounded-xl border border-border bg-card p-5 sm:flex-row sm:items-center">
+        <section
+          className={cn(
+            marketplaceDeskCardClass,
+            "flex flex-col gap-4 rounded-xl p-5 sm:flex-row sm:items-center",
+          )}
+        >
           <img
             src={avatarSrc}
             alt=""
@@ -78,18 +85,18 @@ export function MarketplaceProfileAccountSection({
             {email ? (
               <p className="text-sm text-muted-foreground">{email}</p>
             ) : null}
-            <p className="mt-1 text-xs font-semibold uppercase tracking-wide text-muted-foreground">
+            <p className="brand-eyebrow mt-1 text-[10px]">
               {activeDesk === "buyer" ? "Buyer" : "Seller"} desk
             </p>
           </div>
         </section>
       ) : null}
 
-      <section className="rounded-xl border border-border bg-card p-5 space-y-4">
+      <section
+        className={cn(marketplaceDeskCardClass, "space-y-4 rounded-xl p-5")}
+      >
         <div>
-          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-            This workspace
-          </p>
+          <p className="brand-eyebrow text-[10px] font-bold">This workspace</p>
           <div className="mt-2 flex flex-wrap gap-2">
             {workspaceLinks.map((item) => (
               <Button
@@ -97,6 +104,7 @@ export function MarketplaceProfileAccountSection({
                 type="button"
                 variant="secondary"
                 size="sm"
+                className="rounded-[10px]"
                 asChild
               >
                 <Link href={item.href}>{item.label}</Link>
@@ -105,10 +113,8 @@ export function MarketplaceProfileAccountSection({
           </div>
         </div>
 
-        <div className="rounded-lg border border-border bg-muted/20 p-4">
-          <p className="text-[11px] font-bold uppercase tracking-wide text-muted-foreground">
-            Switch desk
-          </p>
+        <div className="brand-kpi-card overflow-hidden rounded-xl p-4">
+          <p className="brand-eyebrow text-[10px] font-bold">Switch desk</p>
           <p className="mt-1 text-sm text-muted-foreground">
             Open the {otherDesk} app with the matching account when enabled.
           </p>

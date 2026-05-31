@@ -66,4 +66,6 @@ export type PostAuthResolveInput = {
   hasSession: boolean;
   hasOwnerrNetworkProfile?: boolean;
   pendingIntent: StoredAuthIntent | null;
+  /** When true, skip product desks and resolve to `/admin`. */
+  platformAdmin?: boolean;
 };

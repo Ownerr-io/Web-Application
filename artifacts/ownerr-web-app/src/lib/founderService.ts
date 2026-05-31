@@ -13,6 +13,7 @@ import {
 } from "./db";
 import { COMPANY_WEBSITE_URL } from "@/lib/company";
 import { getSupabase, isSupabaseConfigured } from "./supabase/client";
+import { devWarn } from "@/lib/observability/devLog";
 
 type FounderSubmissionDbRow = {
   id: string;
@@ -251,7 +252,7 @@ export async function updateFounderSubmission(
     await putFounderSubmissionDB(record);
     return { record, savedToDatabase: true };
   } catch (err) {
-    console.warn("[OWNERR OS] Supabase update failed:", err);
+    devWarn("[OWNERR OS] Supabase update failed:", err);
     if (!existing) throw err;
     const updated: FounderSubmissionRecord = {
       ...existing,
@@ -283,7 +284,7 @@ export async function submitFounder(
     await putFounderSubmissionDB(record);
     return { record, savedToDatabase: true };
   } catch (err) {
-    console.warn("[OWNERR OS] Supabase save failed, using local backup:", err);
+    devWarn("[OWNERR OS] Supabase save failed, using local backup:", err);
     const local = await createLocal(input);
     return { record: local, savedToDatabase: false };
   }
@@ -319,7 +320,7 @@ export async function saveFounderShareCard(
     await putFounderSubmissionDB(mapped);
     return { record: mapped, savedToDatabase: true };
   } catch (err) {
-    console.warn("[OWNERR OS] Share image Supabase save failed:", err);
+    devWarn("[OWNERR OS] Share image Supabase save failed:", err);
     await putFounderSubmissionDB(updatedLocal);
     return { record: updatedLocal, savedToDatabase: false };
   }
@@ -455,6 +456,19 @@ export async function loadFounderSubmissionForUser(
 export async function fetchFounderAnalytics(
   adminKey?: string,
 ): Promise<FounderAnalytics> {
+  if (isSupabaseConfigured()) {
+    try {
+      const { data: adminData, error: adminErr } = await getSupabase().rpc(
+        "admin_founder_analytics",
+      );
+      if (!adminErr && adminData && typeof adminData === "object") {
+        return adminData as FounderAnalytics;
+      }
+    } catch {
+      /* fall through */
+    }
+  }
+
   const key = adminKey?.trim() ?? "";
   if (isSupabaseConfigured() && key) {
     try {

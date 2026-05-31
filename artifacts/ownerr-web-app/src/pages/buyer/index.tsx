@@ -1,12 +1,19 @@
 import { useMemo } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { fetchMarketplaceListings } from "@/lib/marketplace/service";
 import type { DealRelationshipStage } from "@/lib/marketplace/types";
 import { useMyBids } from "@/hooks/marketplace/useBids";
 import { useMyInterests } from "@/hooks/marketplace/useInterests";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
+import {
+  MarketplaceDeskKpiCard,
+  MarketplaceDeskListItem,
+  MarketplaceDeskPanel,
+  MarketplaceDeskStat,
+  MarketplaceDeskStatGrid,
+  marketplaceDeskKpiValueClass,
+} from "@/components/marketplace/MarketplaceDeskUi";
 
 export default function BuyerDashboard() {
   const { data: interests, isLoading: isLoadingInterests } = useMyInterests();
@@ -46,121 +53,100 @@ export default function BuyerDashboard() {
   return (
     <div className="grid gap-4">
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Total interests</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoadingInterests ? (
-              <Skeleton className="h-8 w-1/2" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{safeInterests.length}</div>
-                <p className="text-xs text-muted-foreground">
-                  Across all listings
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Active bids</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoadingBids ? (
-              <Skeleton className="h-8 w-1/2" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{activeBidCount}</div>
-                <p className="text-xs text-muted-foreground">
-                  {safeBids.length} total · {formatCurrency(totalOfferValue)}{" "}
-                  offered
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Listings tracked</CardTitle>
-          </CardHeader>
-          <CardContent>
-            {isLoadingInterests ? (
-              <Skeleton className="h-8 w-1/2" />
-            ) : (
-              <>
-                <div className="text-2xl font-bold">{listingsTracked}</div>
-                <p className="text-xs text-muted-foreground">
-                  Unique startups in your pipeline
-                </p>
-              </>
-            )}
-          </CardContent>
-        </Card>
-      </div>
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent activity</CardTitle>
-        </CardHeader>
-        <CardContent>
+        <MarketplaceDeskKpiCard title="Total interests">
           {isLoadingInterests ? (
-            <p className="text-sm text-muted-foreground">Loading…</p>
-          ) : recent.length === 0 ? (
-            <p className="text-sm text-muted-foreground">
-              No interests yet. Browse listings to get started.
-            </p>
+            <Skeleton className="h-8 w-1/2" />
           ) : (
-            <div className="space-y-2">
-              {recent.map((item) => (
-                <div
-                  key={item.id}
-                  className="rounded-md border border-border px-3 py-2 text-sm"
-                >
-                  <p className="font-medium">
-                    {listingBySlug.get(item.listingId)?.name ?? item.listingId}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {item.offerAmount
-                      ? `Offer · ${formatCurrency(item.offerAmount)}`
-                      : "Interest expressed"}{" "}
-                    · {new Date(item.updatedAt).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
-            </div>
+            <>
+              <div
+                className={`text-2xl font-bold tabular-nums ${marketplaceDeskKpiValueClass(0)}`}
+              >
+                {safeInterests.length}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Across all listings
+              </p>
+            </>
           )}
-        </CardContent>
-      </Card>
-      <Card>
-        <CardHeader>
-          <CardTitle>Pipeline snapshot</CardTitle>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-3 sm:grid-cols-3">
-            <div className="rounded-lg border border-border px-3 py-2">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                Interested
+        </MarketplaceDeskKpiCard>
+        <MarketplaceDeskKpiCard title="Active bids">
+          {isLoadingBids ? (
+            <Skeleton className="h-8 w-1/2" />
+          ) : (
+            <>
+              <div
+                className={`text-2xl font-bold tabular-nums ${marketplaceDeskKpiValueClass(1)}`}
+              >
+                {activeBidCount}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {safeBids.length} total · {formatCurrency(totalOfferValue)}{" "}
+                offered
               </p>
-              <p className="mt-1 text-lg font-bold">{stageCounts.interested}</p>
-            </div>
-            <div className="rounded-lg border border-border px-3 py-2">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                Negotiating
+            </>
+          )}
+        </MarketplaceDeskKpiCard>
+        <MarketplaceDeskKpiCard title="Listings tracked">
+          {isLoadingInterests ? (
+            <Skeleton className="h-8 w-1/2" />
+          ) : (
+            <>
+              <div
+                className={`text-2xl font-bold tabular-nums ${marketplaceDeskKpiValueClass(2)}`}
+              >
+                {listingsTracked}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Unique startups in your pipeline
               </p>
-              <p className="mt-1 text-lg font-bold">
-                {stageCounts.negotiating}
-              </p>
-            </div>
-            <div className="rounded-lg border border-border px-3 py-2">
-              <p className="text-[11px] uppercase tracking-wide text-muted-foreground">
-                Contacted
-              </p>
-              <p className="mt-1 text-lg font-bold">{stageCounts.contacted}</p>
-            </div>
+            </>
+          )}
+        </MarketplaceDeskKpiCard>
+      </div>
+      <MarketplaceDeskPanel title="Recent activity">
+        {isLoadingInterests ? (
+          <p className="text-sm text-muted-foreground">Loading…</p>
+        ) : recent.length === 0 ? (
+          <p className="text-sm text-muted-foreground">
+            No interests yet. Browse listings to get started.
+          </p>
+        ) : (
+          <div className="space-y-2">
+            {recent.map((item) => (
+              <MarketplaceDeskListItem key={item.id}>
+                <p className="font-medium">
+                  {listingBySlug.get(item.listingId)?.name ?? item.listingId}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {item.offerAmount
+                    ? `Offer · ${formatCurrency(item.offerAmount)}`
+                    : "Interest expressed"}{" "}
+                  · {new Date(item.updatedAt).toLocaleDateString()}
+                </p>
+              </MarketplaceDeskListItem>
+            ))}
           </div>
-        </CardContent>
-      </Card>
+        )}
+      </MarketplaceDeskPanel>
+      <MarketplaceDeskPanel title="Pipeline snapshot">
+        <MarketplaceDeskStatGrid>
+          <MarketplaceDeskStat
+            label="Interested"
+            value={stageCounts.interested}
+            valueClassName={marketplaceDeskKpiValueClass(0)}
+          />
+          <MarketplaceDeskStat
+            label="Negotiating"
+            value={stageCounts.negotiating}
+            valueClassName={marketplaceDeskKpiValueClass(1)}
+          />
+          <MarketplaceDeskStat
+            label="Contacted"
+            value={stageCounts.contacted}
+            valueClassName={marketplaceDeskKpiValueClass(2)}
+          />
+        </MarketplaceDeskStatGrid>
+      </MarketplaceDeskPanel>
     </div>
   );
 }

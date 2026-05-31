@@ -9,6 +9,7 @@
     "db:migrate": "node scripts/apply-supabase-migration.mjs",
     "supabase:push": "supabase db push",
     "supabase:link": "supabase link --project-ref bnzvpkgffeappfxatuyu",
+    "supabase:deploy-auth-email": "supabase functions deploy send-auth-email --no-verify-jwt --project-ref bnzvpkgffeappfxatuyu",
     "marketplace:ensure-schema": "node --env-file=.env.local scripts/ensure-marketplace-schema.mjs",
     "marketplace:seed-demo": "node --env-file=.env.local artifacts/ownerr-web-app/scripts/seed-demo-marketplace-users.mjs",
     "marketplace:reset-demo": "node --env-file=.env.local artifacts/ownerr-web-app/scripts/reset-demo-marketplace-users.mjs",

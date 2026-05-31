@@ -495,7 +495,7 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
           <div className={`${LAYOUT_CENTER_GUTTER} pointer-events-none`}>
             <main
               data-scroll-reset
-              className="pointer-events-auto w-full min-w-0 max-w-full box-border"
+              className="pointer-events-auto brand-app-page w-full min-w-0 max-w-full box-border"
             >
               {!isHome ? <PageBackRow className="mb-6 hidden lg:flex" /> : null}
               {isSlimChrome ? null : (

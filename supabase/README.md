@@ -11,7 +11,7 @@ Environment files (repo root):
 1. Copy `.env.example` → `.env.local` and fill **Database password**, **anon key**, and **service role key** from the Supabase dashboard.
 2. Put the **connection string** (URI) into `DATABASE_URL` in `.env.local`.
 3. Run the migration in [migrations/20260521120000_founder_viral_system.sql](./migrations/20260521120000_founder_viral_system.sql) via the SQL editor or `supabase db push`.
-4. Founder flows use **Supabase RPC** (`founder_track_referral`, `founder_analytics_summary`, etc.). Set admin analytics key in Postgres:
+4. Founder flows use **Supabase RPC** (`founder_track_referral`, `founder_analytics_summary`, etc.). Set admin intelligence key in Postgres:
    - `update public.founder_admin_secrets set secret = 'your-key' where id = 1;`
 5. Push schema (pick one):
    - **SQL migrations (works with `.env.local`):** `npm run db:migrate`
@@ -49,6 +49,37 @@ Frontend (Vite loads env from repo root via `envDir`):
 - `VITE_PUBLIC_SITE_URL` — production site origin for referral / OG URLs
 
 Referral URLs: `{PUBLIC_SITE_URL}/join?ref={code}`
+
+## Platform admin (`/admin`)
+
+Access is **database-only**: the signed-in user must have `public.users.role = 'admin'`.
+
+1. Apply migrations (includes `is_platform_admin()` RPC and admin RLS policies).
+2. Grant admin to a user (SQL editor or service role):
+
+```sql
+UPDATE public.users
+SET role = 'admin', updated_at = now()
+WHERE email = 'you@company.com';
+```
+
+3. Sign out and sign back in so the app reloads admin status from the RPC.
+
+Do not rely on `VITE_PLATFORM_ADMIN_EMAILS` or Auth `user_metadata.role` — those are no longer used by the web app.
+
+### Admin intelligence RPCs
+
+After platform admin migrations, apply:
+
+- `20260701170000_admin_analytics_rpcs.sql` — base summaries
+- `20260701180000_admin_intelligence_extended.sql` — funnels, platform KPIs, operations feed, system counts
+- `20260701183000_admin_platform_ops_system_enriched.sql` — governance KPIs on operations summary, grouped table counts on system health
+- `20260701183500_admin_rpc_runtime_fixes.sql` — fix platform intelligence trackingGaps SQL and operations onboarding count
+- `20260701190000_admin_marketplace_participants.sql` — buyer/seller lists, detail RPCs, chart RPC, marketplace admin RLS
+- `20260701200000_admin_network_members.sql` — unified members list, member 360°, network charts
+- `20260701210000_admin_ownerr_os_founders.sql` — founders directory (viral join), founder detail, OS charts RPCs
+
+RPCs (all gated by `is_platform_admin()`): `admin_platform_summary`, `admin_network_summary`, `admin_marketplace_summary`, `admin_os_summary`, `admin_operations_summary`, `admin_system_health`, plus `admin_ownerr_os_founders`, `admin_ownerr_os_founder_detail`, `admin_ownerr_os_charts`.
 
 ## OWNERR Unemployed Network (`/unemployed`)
 

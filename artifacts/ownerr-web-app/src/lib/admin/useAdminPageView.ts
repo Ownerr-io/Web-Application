@@ -10,8 +10,12 @@ export function useAdminPageView(page: string): void {
     const app = getAdminAppFromPath(location);
     if (app) {
       trackAdminPageView(app.slug, page);
-    } else if (location === "/admin") {
-      trackAdminPageView("ownerr_network", "hub");
+    } else if (
+      location === "/admin" ||
+      location.startsWith("/admin/operations") ||
+      location.startsWith("/admin/system")
+    ) {
+      trackAdminPageView("ownerr_network", page);
     }
   }, [location, page]);
 }

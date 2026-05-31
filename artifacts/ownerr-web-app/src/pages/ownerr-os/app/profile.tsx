@@ -7,6 +7,7 @@ import { loadFounderSubmissionForUser } from "@/lib/founderService";
 import type { FounderSubmissionRecord } from "@/lib/founderTypes";
 import { founderAvatarUrl } from "@/lib/utils";
 import { PRODUCT_ROUTES, PUBLIC_ROUTES } from "@/routing/routeRegistry";
+import { AccountChangePasswordSection } from "@/components/auth/AccountChangePasswordSection";
 
 export default function OwnerrOsAppProfilePage() {
   const { session, currentUser, logout } = useAuth();
@@ -106,6 +107,8 @@ export default function OwnerrOsAppProfilePage() {
           </>
         )}
       </section>
+
+      <AccountChangePasswordSection variant="terminal" />
 
       <section className="rounded-[12px] border border-[color:var(--terminal-border)] bg-[color:var(--terminal-surface)]/80 p-5 space-y-4">
         <p className="text-sm text-[color:var(--terminal-muted)]">

@@ -13,7 +13,11 @@ import {
   isAppSlug,
   productDashboardPath,
 } from "@/lib/auth/productLock";
-import { sanitizePostAuthRedirectParam } from "@/routing/authResolver";
+import {
+  resolvePlatformAdminPostAuthDestination,
+  sanitizePostAuthRedirectParam,
+} from "@/routing/authResolver";
+import { shouldHoldPostAuthForPlatformAdmin } from "@/hooks/useRedirectPlatformAdminWhenReady";
 import { logProductIssue } from "@/lib/observability/productErrors";
 import {
   mergeOwnerrOsDraftAfterAuth,
@@ -23,7 +27,8 @@ import { PUBLIC_ROUTES } from "@/routing/routeRegistry";
 
 export function ProductAuthCallbackPage() {
   const [location, navigate] = useLocation();
-  const { loading, session, authUser } = useAuth();
+  const { loading, session, authUser, platformAdminReady, isPlatformAdmin } =
+    useAuth();
   const { setActiveProduct } = useActiveProduct();
   const [error, setError] = useState<string | null>(null);
 
@@ -32,7 +37,15 @@ export function ProductAuthCallbackPage() {
   );
 
   useEffect(() => {
-    if (loading) return;
+    if (
+      shouldHoldPostAuthForPlatformAdmin({
+        loading,
+        session,
+        platformAdminReady,
+      })
+    ) {
+      return;
+    }
     if (!appSlug || !isAppSlug(appSlug)) {
       logProductIssue(
         "auth.callback",
@@ -45,13 +58,22 @@ export function ProductAuthCallbackPage() {
       setError("Sign-in did not complete. Try again from the product page.");
       return;
     }
+
+    const params = new URLSearchParams(
+      typeof window !== "undefined" ? window.location.search : "",
+    );
+    const returnTo =
+      consumeIntendedRoute() ??
+      sanitizePostAuthRedirectParam(params.get("returnTo"));
+
+    if (isPlatformAdmin) {
+      navigate(resolvePlatformAdminPostAuthDestination(returnTo), {
+        replace: true,
+      });
+      return;
+    }
+
     if (appSlug === "marketplace") {
-      const params = new URLSearchParams(
-        typeof window !== "undefined" ? window.location.search : "",
-      );
-      const returnTo =
-        consumeIntendedRoute() ??
-        sanitizePostAuthRedirectParam(params.get("returnTo"));
       if (returnTo && isMarketplacePublicPortalPath(returnTo)) {
         navigate(returnTo, { replace: true });
         return;
@@ -60,12 +82,6 @@ export function ProductAuthCallbackPage() {
     void (async () => {
       const user = authUser ?? session.user;
       if (appSlug === "ownerr_os" && user) {
-        const params = new URLSearchParams(
-          typeof window !== "undefined" ? window.location.search : "",
-        );
-        const returnTo =
-          consumeIntendedRoute() ??
-          sanitizePostAuthRedirectParam(params.get("returnTo"));
         try {
           const { record, merged } = await mergeOwnerrOsDraftAfterAuth(user);
           setActiveProduct("ownerr_os");
@@ -81,7 +97,16 @@ export function ProductAuthCallbackPage() {
       setActiveProduct(appSlug);
       navigate(productDashboardPath(appSlug), { replace: true });
     })();
-  }, [loading, session, authUser, appSlug, navigate, setActiveProduct]);
+  }, [
+    loading,
+    session,
+    authUser,
+    appSlug,
+    navigate,
+    setActiveProduct,
+    platformAdminReady,
+    isPlatformAdmin,
+  ]);
 
   if (!appSlug) return null;
 

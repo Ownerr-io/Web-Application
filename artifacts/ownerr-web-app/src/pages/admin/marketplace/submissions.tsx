@@ -38,7 +38,11 @@ export default function MarketplaceSubmissionsAdminPage() {
   const [editing, setEditing] = useState<AdminSubmissionRow | null>(null);
   const [form, setForm] = useState<Partial<AdminSubmissionRow>>({});
 
-  const { data = [], isLoading, error } = useQuery({
+  const {
+    data = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["admin", "marketplace", "submissions"],
     queryFn: fetchAllMarketplaceSubmissions,
   });
@@ -50,7 +54,9 @@ export default function MarketplaceSubmissionsAdminPage() {
       trackAdminCrud("marketplace", "update", "submission", { id: editing.id });
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["admin", "marketplace"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["admin", "marketplace"],
+      });
       setEditing(null);
       setForm({});
     },
@@ -62,7 +68,9 @@ export default function MarketplaceSubmissionsAdminPage() {
       trackAdminCrud("marketplace", "delete", "submission", { id });
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["admin", "marketplace"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["admin", "marketplace"],
+      });
     },
   });
 

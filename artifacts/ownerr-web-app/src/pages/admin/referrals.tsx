@@ -1,15 +1,16 @@
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { formatDistanceToNow } from "date-fns";
 import { AdminLayout } from "@/pages/admin/layout";
+import { DataTable, type Column } from "@/components/admin/DataTable";
 import { AdminCrudActions } from "@/components/admin/AdminCrudActions";
 import {
-  fetchAllReferrals,
+  fetchAdminReferralDetails,
   updateReferralStatus,
   deleteReferral,
 } from "@/lib/ownerr-network/adminApi";
-import type { OwnerrNetworkReferralRow } from "@/lib/ownerr-network/types";
+import type { AdminReferralDetail } from "@/lib/ownerr-network/types";
 import { useAdminPageView } from "@/lib/admin/useAdminPageView";
 import { trackAdminCrud } from "@/lib/admin/analytics";
-import { Card } from "@/components/ui/card";
 import {
   Select,
   SelectContent,
@@ -22,24 +23,24 @@ export default function AdminReferralsPage() {
   useAdminPageView("referrals");
   const queryClient = useQueryClient();
 
-  const { data, isLoading, error } = useQuery({
+  const {
+    data = [],
+    isLoading,
+    error,
+  } = useQuery({
     queryKey: ["admin", "ownerr-network", "referrals"],
-    queryFn: fetchAllReferrals,
+    queryFn: fetchAdminReferralDetails,
   });
 
   const updateMutation = useMutation({
-    mutationFn: async ({
-      id,
-      status,
-    }: {
-      id: string;
-      status: string;
-    }) => {
+    mutationFn: async ({ id, status }: { id: string; status: string }) => {
       await updateReferralStatus(id, status);
       trackAdminCrud("ownerr_network", "update", "referral", { id, status });
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["admin", "ownerr-network"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["admin", "ownerr-network"],
+      });
     },
   });
 
@@ -49,101 +50,87 @@ export default function AdminReferralsPage() {
       trackAdminCrud("ownerr_network", "delete", "referral", { id });
     },
     onSuccess: () => {
-      void queryClient.invalidateQueries({ queryKey: ["admin", "ownerr-network"] });
+      void queryClient.invalidateQueries({
+        queryKey: ["admin", "ownerr-network"],
+      });
     },
   });
 
-  if (isLoading) {
-    return (
-      <AdminLayout>
-        <p className="text-muted-foreground">Loading referrals...</p>
-      </AdminLayout>
-    );
-  }
-
-  if (error) {
-    return (
-      <AdminLayout>
-        <p className="text-red-500">Failed to load referrals</p>
-      </AdminLayout>
-    );
-  }
+  const columns: Column<AdminReferralDetail>[] = [
+    { key: "referrer_label", label: "Referrer", sortable: true },
+    { key: "referee_label", label: "Referred member", sortable: true },
+    {
+      key: "status",
+      label: "Status",
+      render: (_, row) => (
+        <Select
+          value={row.status}
+          onValueChange={(status) =>
+            updateMutation.mutate({ id: row.id, status })
+          }
+        >
+          <SelectTrigger className="h-8 w-[130px]">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="pending">pending</SelectItem>
+            <SelectItem value="completed">completed</SelectItem>
+            <SelectItem value="cancelled">cancelled</SelectItem>
+          </SelectContent>
+        </Select>
+      ),
+    },
+    {
+      key: "source",
+      label: "Source",
+      sortable: true,
+      render: (v) => (v ? String(v) : "—"),
+    },
+    {
+      key: "created_at",
+      label: "Created",
+      sortable: true,
+      render: (v) =>
+        v ? formatDistanceToNow(new Date(String(v)), { addSuffix: true }) : "—",
+    },
+    {
+      key: "id",
+      label: "",
+      render: (_, row) => (
+        <AdminCrudActions
+          onDelete={() => {
+            if (confirm("Delete this referral record?"))
+              deleteMutation.mutate(row.id);
+          }}
+          deleteLabel="Delete"
+        />
+      ),
+    },
+  ];
 
   return (
     <AdminLayout>
       <div className="space-y-6">
         <div>
-          <h1 className="text-2xl font-bold">Referrals</h1>
+          <h2 className="text-2xl font-bold tracking-tight">Referrals</h2>
           <p className="text-sm text-muted-foreground">
-            Track and manage referral activity
+            Who invited whom in Ownerr Network. Member details live under{" "}
+            <strong>Members</strong>.
           </p>
         </div>
 
-        <Card className="overflow-x-auto">
-          <table className="w-full text-sm">
-            <thead className="border-b bg-muted">
-              <tr>
-                <th className="px-4 py-3 text-left">Referrer</th>
-                <th className="px-4 py-3 text-left">Referred User</th>
-                <th className="px-4 py-3 text-left">Status</th>
-                <th className="px-4 py-3 text-left">Created At</th>
-                <th className="px-4 py-3 text-left">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {data && data.length > 0 ? (
-                data.map((referral: OwnerrNetworkReferralRow) => (
-                  <tr key={referral.id} className="border-b">
-                    <td className="px-4 py-3 font-medium">
-                      {referral.referrer_id}
-                    </td>
-                    <td className="px-4 py-3">{referral.referee_id}</td>
-                    <td className="px-4 py-3">
-                      <Select
-                        value={referral.status}
-                        onValueChange={(status) =>
-                          updateMutation.mutate({ id: referral.id, status })
-                        }
-                      >
-                        <SelectTrigger className="w-32 h-8">
-                          <SelectValue />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="completed">Completed</SelectItem>
-                          <SelectItem value="cancelled">Cancelled</SelectItem>
-                        </SelectContent>
-                      </Select>
-                    </td>
-                    <td className="px-4 py-3">
-                      {referral.created_at
-                        ? new Date(referral.created_at).toLocaleString()
-                        : "-"}
-                    </td>
-                    <td className="px-4 py-3">
-                      <AdminCrudActions
-                        onDelete={() => {
-                          if (confirm("Delete this referral?")) {
-                            deleteMutation.mutate(referral.id);
-                          }
-                        }}
-                      />
-                    </td>
-                  </tr>
-                ))
-              ) : (
-                <tr>
-                  <td
-                    colSpan={5}
-                    className="px-4 py-6 text-center text-muted-foreground"
-                  >
-                    No referrals found
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </Card>
+        {error ? (
+          <p className="text-sm text-destructive">Failed to load referrals</p>
+        ) : null}
+
+        <DataTable
+          columns={columns}
+          data={data}
+          isLoading={isLoading}
+          searchable
+          searchKeys={["referrer_label", "referee_label", "source"]}
+          emptyMessage="No referrals recorded yet."
+        />
       </div>
     </AdminLayout>
   );

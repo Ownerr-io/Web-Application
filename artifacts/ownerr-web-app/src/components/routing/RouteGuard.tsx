@@ -1,7 +1,6 @@
 import type { ReactNode } from "react";
 import { Redirect, useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
-import { isPlatformAdminUser } from "@/lib/auth/platformAdmin";
 import { useActiveProduct } from "@/context/ActiveProductContext";
 import {
   productDashboardPath,
@@ -21,11 +20,12 @@ type Props = {
 export function RouteGuard({ children, pathname }: Props) {
   const [location] = useLocation();
   const path = pathname ?? location;
-  const { session, loading, currentUser, authUser } = useAuth();
+  const { session, loading, platformAdminReady, isPlatformAdmin, currentUser } =
+    useAuth();
   const { activeProduct, setActiveProduct } = useActiveProduct();
   const ownerrNetwork = useOptionalOwnerrNetwork();
 
-  if (loading) {
+  if (loading || (session && !platformAdminReady)) {
     return (
       <div className="flex min-h-[40vh] items-center justify-center text-sm font-bold text-muted-foreground">
         Loading…
@@ -33,7 +33,7 @@ export function RouteGuard({ children, pathname }: Props) {
     );
   }
 
-  const isAdmin = isPlatformAdminUser(authUser);
+  const isAdmin = isPlatformAdmin;
 
   // STEP 1: Force admin redirect after login
   if (session && isAdmin && !path.startsWith("/admin")) {

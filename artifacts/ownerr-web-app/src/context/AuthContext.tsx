@@ -19,10 +19,30 @@ import { productAuthPath } from "@/lib/auth/productAuthRoutes";
 import type { DeskUser } from "@/lib/auth/types";
 import { mapDeskUserFromSupabase } from "@/lib/auth/mapDeskUser";
 import { buildAuthStartRedirect } from "@/routing/authResolver";
+import { fetchPlatformAdminFromDb } from "@/lib/auth/platformAdmin";
+import { authAbsoluteUrl } from "@/lib/auth/routes";
+import { normalizeAuthEmail } from "@/lib/auth/validation";
+import { mapSupabaseAuthError } from "@/lib/auth/authErrors";
+import type { ReauthSendResult } from "@/lib/auth/reauthenticate";
+import {
+  sendReauthenticationOtp,
+  updatePasswordWithReauthNonce,
+  confirmReauthenticationNonce,
+} from "@/lib/auth/reauthenticate";
+
+type MagicLinkOptions = {
+  emailRedirectTo: string;
+  shouldCreateUser?: boolean;
+  metadata?: Record<string, unknown>;
+};
 
 type AuthContextValue = {
   configured: boolean;
   loading: boolean;
+  /** False until platform admin status has been loaded for the current session. */
+  platformAdminReady: boolean;
+  /** From `public.users.role` via `is_platform_admin` RPC. */
+  isPlatformAdmin: boolean;
   session: Session | null;
   authUser: User | null;
   /** Desk role derived from Supabase user metadata (no provisioning). */
@@ -39,7 +59,24 @@ type AuthContextValue = {
     metadata?: Record<string, unknown>,
   ) => Promise<void>;
   signInWithGoogle: (redirectTo: string) => Promise<void>;
-  resetPasswordForEmail: (email: string) => Promise<void>;
+  /** Magic link email (Supabase signInWithOtp + emailRedirectTo). */
+  signInWithMagicLink: (
+    email: string,
+    options: MagicLinkOptions,
+  ) => Promise<void>;
+  resetPasswordForEmail: (email: string, redirectTo?: string) => Promise<void>;
+  updatePassword: (
+    newPassword: string,
+    reauth?: { nonce: string },
+  ) => Promise<void>;
+  /** Sends reauthentication OTP email (logged-in user). */
+  sendReauthenticationOtp: (options?: {
+    force?: boolean;
+  }) => Promise<ReauthSendResult>;
+  /** Confirms reauth OTP via updateUser({ nonce }) — not verifyOtp. */
+  confirmReauthenticationNonce: (nonce: string) => Promise<void>;
+  resendSignupVerification: (email: string) => Promise<void>;
+  formatAuthError: (error: unknown) => string;
   /** Navigate to product login or `/products` when product is unknown. */
   requestLogin: (options?: { app?: AppSlug }) => void;
 };
@@ -51,6 +88,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [, setLocation] = useLocation();
   const [loading, setLoading] = useState(configured);
   const [session, setSession] = useState<Session | null>(null);
+  const [platformAdminReady, setPlatformAdminReady] = useState(!configured);
+  const [isPlatformAdmin, setIsPlatformAdmin] = useState(false);
 
   const currentUser = useMemo(
     () => mapDeskUserFromSupabase(session?.user ?? null),
@@ -73,6 +112,31 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     });
     return () => sub.subscription.unsubscribe();
   }, [configured]);
+
+  useEffect(() => {
+    if (!configured) {
+      setIsPlatformAdmin(false);
+      setPlatformAdminReady(true);
+      return;
+    }
+    if (!session?.user?.id) {
+      setIsPlatformAdmin(false);
+      setPlatformAdminReady(true);
+      return;
+    }
+
+    let cancelled = false;
+    setPlatformAdminReady(false);
+    void fetchPlatformAdminFromDb().then((admin) => {
+      if (cancelled) return;
+      setIsPlatformAdmin(admin);
+      setPlatformAdminReady(true);
+    });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [configured, session?.user?.id]);
 
   const requireConfigured = useCallback(() => {
     if (!configured) {
@@ -106,8 +170,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     async (email: string, password: string) => {
       requireConfigured();
       const supabase = getSupabase();
+      const normalized = normalizeAuthEmail(email);
       const { error } = await supabase.auth.signInWithPassword({
-        email,
+        email: normalized,
         password,
       });
       if (error) throw error;
@@ -124,10 +189,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     ) => {
       requireConfigured();
       const supabase = getSupabase();
+      const normalized = normalizeAuthEmail(email);
       const { error } = await supabase.auth.signUp({
-        email,
+        email: normalized,
         password,
         options: {
+          emailRedirectTo: authAbsoluteUrl("/auth/confirm"),
           data: {
             full_name: name,
             ...metadata,
@@ -167,23 +234,102 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     [requireConfigured],
   );
 
-  const resetPasswordForEmail = useCallback(
-    async (email: string) => {
+  const signInWithMagicLink = useCallback(
+    async (email: string, options: MagicLinkOptions) => {
       requireConfigured();
       const supabase = getSupabase();
-      const base = import.meta.env.BASE_URL.replace(/\/$/, "");
-      const { error } = await supabase.auth.resetPasswordForEmail(email, {
-        redirectTo: `${window.location.origin}${base}/products`,
+      const normalized = normalizeAuthEmail(email);
+      const { error } = await supabase.auth.signInWithOtp({
+        email: normalized,
+        options: {
+          shouldCreateUser: options.shouldCreateUser ?? false,
+          emailRedirectTo: options.emailRedirectTo,
+          data: options.metadata,
+        },
       });
       if (error) throw error;
     },
     [requireConfigured],
   );
 
+  const resetPasswordForEmail = useCallback(
+    async (email: string, redirectTo?: string) => {
+      requireConfigured();
+      const supabase = getSupabase();
+      const normalized = normalizeAuthEmail(email);
+      const destination =
+        redirectTo ??
+        authAbsoluteUrl(
+          `/auth/reset-password${typeof window !== "undefined" ? window.location.search : ""}`,
+        );
+      const { error } = await supabase.auth.resetPasswordForEmail(normalized, {
+        redirectTo: destination,
+      });
+      if (error) throw error;
+    },
+    [requireConfigured],
+  );
+
+  const updatePassword = useCallback(
+    async (newPassword: string, reauth?: { nonce: string }) => {
+      requireConfigured();
+      if (reauth?.nonce) {
+        await updatePasswordWithReauthNonce(newPassword, reauth.nonce);
+        return;
+      }
+      const supabase = getSupabase();
+      const { error } = await supabase.auth.updateUser({
+        password: newPassword,
+      });
+      if (error) throw error;
+    },
+    [requireConfigured],
+  );
+
+  const sendReauthenticationOtpFn = useCallback(
+    async (options?: { force?: boolean }) => {
+      requireConfigured();
+      return sendReauthenticationOtp(options);
+    },
+    [requireConfigured],
+  );
+
+  const confirmReauthenticationNonceFn = useCallback(
+    async (nonce: string) => {
+      requireConfigured();
+      await confirmReauthenticationNonce(nonce);
+    },
+    [requireConfigured],
+  );
+
+  const resendSignupVerification = useCallback(
+    async (email: string) => {
+      requireConfigured();
+      const supabase = getSupabase();
+      const normalized = normalizeAuthEmail(email);
+      const { error } = await supabase.auth.resend({
+        type: "signup",
+        email: normalized,
+        options: {
+          emailRedirectTo: authAbsoluteUrl("/auth/confirm"),
+        },
+      });
+      if (error) throw error;
+    },
+    [requireConfigured],
+  );
+
+  const formatAuthError = useCallback(
+    (error: unknown) => mapSupabaseAuthError(error),
+    [],
+  );
+
   const value = useMemo<AuthContextValue>(
     () => ({
       configured,
       loading,
+      platformAdminReady,
+      isPlatformAdmin,
       session,
       authUser: session?.user ?? null,
       currentUser,
@@ -194,12 +340,20 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithEmail,
       signUpWithEmail,
       signInWithGoogle,
+      signInWithMagicLink,
       resetPasswordForEmail,
+      updatePassword,
+      sendReauthenticationOtp: sendReauthenticationOtpFn,
+      confirmReauthenticationNonce: confirmReauthenticationNonceFn,
+      resendSignupVerification,
+      formatAuthError,
       requestLogin,
     }),
     [
       configured,
       loading,
+      platformAdminReady,
+      isPlatformAdmin,
       session,
       currentUser,
       requestLogin,
@@ -207,7 +361,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       signInWithEmail,
       signUpWithEmail,
       signInWithGoogle,
+      signInWithMagicLink,
       resetPasswordForEmail,
+      updatePassword,
+      sendReauthenticationOtpFn,
+      confirmReauthenticationNonceFn,
+      resendSignupVerification,
+      formatAuthError,
     ],
   );
 

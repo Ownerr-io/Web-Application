@@ -1,6 +1,5 @@
 import { useEffect } from "react";
 import { useAuth } from "@/context/AuthContext";
-import { isPlatformAdminUser } from "@/lib/auth/platformAdmin";
 import {
   identifyPostHogUser,
   initPostHog,
@@ -8,7 +7,7 @@ import {
 } from "@/lib/analytics/posthog";
 
 export function PostHogProvider({ children }: { children: React.ReactNode }) {
-  const { authUser } = useAuth();
+  const { authUser, isPlatformAdmin } = useAuth();
 
   useEffect(() => {
     initPostHog();
@@ -17,13 +16,12 @@ export function PostHogProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
     if (authUser) {
       identifyPostHogUser(authUser.id, {
-        email: authUser.email,
-        is_platform_admin: isPlatformAdminUser(authUser),
+        is_platform_admin: isPlatformAdmin,
       });
     } else {
       resetPostHogUser();
     }
-  }, [authUser]);
+  }, [authUser, isPlatformAdmin]);
 
   return children;
 }

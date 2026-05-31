@@ -16,6 +16,7 @@ import {
   isUsersTableActive,
   networkTables,
 } from "./dbTables";
+import { devLog } from "@/lib/observability/devLog";
 
 export function normalizeOwnerrNetworkUserRow(
   data: unknown,
@@ -494,6 +495,28 @@ export async function fetchPublicProfileByUsername(
 export async function hasCompletedOnboarding(userId: string): Promise<boolean> {
   const supabase = getSupabase();
   await ensureNetworkTablesDetected(supabase);
+
+  if (isUsersTableActive()) {
+    const { data: profileRow, error: profileErr } = await supabase
+      .from("user_profiles")
+      .select("onboarding_completed")
+      .eq("user_id", userId)
+      .maybeSingle();
+    if (profileErr && !isMissingRpcOrTable(profileErr)) throw profileErr;
+    if (profileRow?.onboarding_completed === true) return true;
+
+    const { data: sessionRow, error: sessionErr } = await supabase
+      .from("user_onboarding_sessions")
+      .select("completed_at, status")
+      .eq("user_id", userId)
+      .eq("product_slug", "ownerr_network")
+      .maybeSingle();
+    if (sessionErr && !isMissingRpcOrTable(sessionErr)) throw sessionErr;
+    if (sessionRow?.completed_at || sessionRow?.status === "completed") {
+      return true;
+    }
+  }
+
   const { data, error } = await supabase
     .from(networkTables().onboardingSessions)
     .select("completed_at")
@@ -515,7 +538,7 @@ export async function fetchDiscoverProfiles(filters: {
   await ensureNetworkTablesDetected(supabase);
   const tbl = networkTables();
   const isNew = isUsersTableActive();
-  console.log("[Discover] fetchDiscoverProfiles isNew:", isNew, "tbl:", tbl);
+  devLog("[Discover] fetchDiscoverProfiles isNew:", isNew, "tbl:", tbl);
 
   let query: any;
 

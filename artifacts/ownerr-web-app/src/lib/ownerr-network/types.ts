@@ -60,6 +60,12 @@ export type OwnerrNetworkReferralRow = {
   status: string;
   created_at: string;
   completed_at: string | null;
+  source?: string | null;
+};
+
+export type AdminReferralDetail = OwnerrNetworkReferralRow & {
+  referrer_label: string;
+  referee_label: string;
 };
 
 export type LeaderboardEntry = Pick<

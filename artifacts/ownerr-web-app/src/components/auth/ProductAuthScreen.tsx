@@ -18,18 +18,32 @@ import {
 import { listActiveUserAppSlugs } from "@/lib/products/provision";
 import {
   resolveAuthenticatedAppEntry,
+  resolvePlatformAdminPostAuthDestination,
   sanitizePostAuthRedirectParam,
 } from "@/routing/authResolver";
+import { shouldHoldPostAuthForPlatformAdmin } from "@/hooks/useRedirectPlatformAdminWhenReady";
 import {
   productLandingPath,
   resolveProductAuthPath,
 } from "@/lib/auth/productAuthRoutes";
 import { DemoAccountsHint } from "@/components/auth/DemoAccountsHint";
+import { PasswordRulesHint } from "@/components/auth/PasswordRulesHint";
+import {
+  isEmailNotConfirmedError,
+  isMagicLinkNoAccountError,
+} from "@/lib/auth/authErrors";
+import {
+  normalizeAuthEmail,
+  validateAuthEmail,
+  validateAuthPassword,
+} from "@/lib/auth/validation";
+import { AUTH_ROUTES } from "@/routing/routeRegistry";
 import { isMarketplacePublicPortalPath } from "@/lib/auth/marketplacePortalAuth";
-import { marketplacePortalAuthPath } from "@/lib/auth/marketplacePortalAuth";
 import { syncMarketplaceDeskRoleForPath } from "@/lib/auth/syncMarketplaceDeskRole";
 import { syncOwnerrFounderRole } from "@/lib/auth/syncOwnerrFounderRole";
 import { PRODUCT_ROUTES } from "@/routing/routeRegistry";
+import { buildProductAuthCallbackUrl } from "@/lib/auth/productAuthCallbackUrl";
+
 export type ProductAuthMode = "signin" | "signup";
 
 type Props = {
@@ -50,9 +64,13 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
     session,
     authUser,
     currentUser,
+    platformAdminReady,
+    isPlatformAdmin,
     signInWithEmail,
     signUpWithEmail,
     signInWithGoogle,
+    signInWithMagicLink,
+    formatAuthError,
   } = useAuth();
   const { setActiveProduct } = useActiveProduct();
   const { toast } = useToast();
@@ -64,11 +82,13 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [magicLinkSent, setMagicLinkSent] = useState(false);
 
   const isOwnerr = appSlug === "ownerr_os";
 
   useEffect(() => {
     setMode(initialMode);
+    setMagicLinkSent(false);
   }, [initialMode]);
 
   useEffect(() => {
@@ -88,13 +108,31 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
   }, [appSlug, navigate, initialMode]);
 
   useEffect(() => {
-    if (loading || !session || !authUser?.id) return;
+    if (
+      shouldHoldPostAuthForPlatformAdmin({
+        loading,
+        session,
+        platformAdminReady,
+      })
+    ) {
+      return;
+    }
+    if (!session || !authUser?.id) return;
+
     const params = new URLSearchParams(
       typeof window !== "undefined" ? window.location.search : "",
     );
     const returnTo =
       consumeIntendedRoute() ??
       sanitizePostAuthRedirectParam(params.get("returnTo"));
+
+    if (isPlatformAdmin) {
+      navigate(resolvePlatformAdminPostAuthDestination(returnTo), {
+        replace: true,
+      });
+      return;
+    }
+
     const stayOnPublicPortal =
       appSlug === "marketplace" &&
       returnTo &&
@@ -125,6 +163,7 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
           : (readActiveProduct() ?? appSlug),
         currentUser,
         returnTo,
+        platformAdmin: false,
       });
       navigate(dest, { replace: true });
     })();
@@ -136,6 +175,8 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
     setActiveProduct,
     navigate,
     currentUser,
+    platformAdminReady,
+    isPlatformAdmin,
   ]);
 
   async function onSubmit(e: React.FormEvent) {
@@ -149,16 +190,15 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
       return;
     }
 
-    const trimmedEmail = email.trim();
-    if (!trimmedEmail.includes("@")) {
-      toast({ title: "Invalid email", variant: "destructive" });
+    const trimmedEmail = normalizeAuthEmail(email);
+    const emailCheck = validateAuthEmail(trimmedEmail);
+    if (!emailCheck.ok) {
+      toast({ title: emailCheck.message, variant: "destructive" });
       return;
     }
-    if (password.length < 6) {
-      toast({
-        title: "Password must be at least 6 characters",
-        variant: "destructive",
-      });
+    const pwCheck = validateAuthPassword(password);
+    if (!pwCheck.ok) {
+      toast({ title: pwCheck.message, variant: "destructive" });
       return;
     }
     if (mode === "signup" && name.trim().length < 2) {
@@ -173,6 +213,9 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
           title: "Check your email",
           description: "Confirm your email, then sign in to continue.",
         });
+        navigate(
+          `${AUTH_ROUTES.verifyEmail}?email=${encodeURIComponent(trimmedEmail)}`,
+        );
         return;
       }
       await signInWithEmail(trimmedEmail, password);
@@ -189,6 +232,12 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
         setActiveProduct(appSlug);
       }
     } catch (err) {
+      if (isEmailNotConfirmedError(err)) {
+        navigate(
+          `${AUTH_ROUTES.verifyEmail}?email=${encodeURIComponent(trimmedEmail)}`,
+        );
+        return;
+      }
       toast({
         title: mode === "signup" ? "Registration failed" : "Sign-in failed",
         description: err instanceof Error ? err.message : "Please try again.",
@@ -201,13 +250,7 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
 
   async function onGoogle() {
     if (session) return;
-    const callbackPath =
-      appSlug === "marketplace" &&
-      typeof window !== "undefined" &&
-      window.location.pathname.startsWith("/marketplace/")
-        ? marketplacePortalAuthPath("callback")
-        : resolveProductAuthPath(appSlug, "callback");
-    const redirectTo = `${window.location.origin}${import.meta.env.BASE_URL.replace(/\/$/, "")}${callbackPath}`;
+    const redirectTo = buildProductAuthCallbackUrl(appSlug);
     setBusy(true);
     try {
       await signInWithGoogle(redirectTo);
@@ -217,6 +260,46 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
         description: err instanceof Error ? err.message : "Please try again.",
         variant: "destructive",
       });
+      setBusy(false);
+    }
+  }
+
+  async function onMagicLink() {
+    if (session || mode !== "signin") return;
+    const trimmedEmail = normalizeAuthEmail(email);
+    const emailCheck = validateAuthEmail(trimmedEmail);
+    if (!emailCheck.ok) {
+      toast({ title: emailCheck.message, variant: "destructive" });
+      return;
+    }
+    setBusy(true);
+    try {
+      await signInWithMagicLink(trimmedEmail, {
+        emailRedirectTo: buildProductAuthCallbackUrl(appSlug),
+        shouldCreateUser: false,
+      });
+      setMagicLinkSent(true);
+      toast({
+        title: "Check your email",
+        description:
+          "We sent a sign-in link. Open it on this device to continue.",
+      });
+    } catch (err) {
+      if (isMagicLinkNoAccountError(err)) {
+        toast({
+          title: "No account for this email",
+          description:
+            "Create an account first, then you can sign in with a magic link.",
+          variant: "destructive",
+        });
+        return;
+      }
+      toast({
+        title: "Could not send magic link",
+        description: formatAuthError(err),
+        variant: "destructive",
+      });
+    } finally {
       setBusy(false);
     }
   }
@@ -328,9 +411,11 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
                 autoComplete={
                   mode === "signup" ? "new-password" : "current-password"
                 }
-                minLength={6}
                 required
               />
+              {mode === "signup" ? (
+                <PasswordRulesHint password={password} />
+              ) : null}
             </div>
 
             <Button
@@ -355,6 +440,28 @@ export function ProductAuthScreen({ appSlug, mode: initialMode }: Props) {
           >
             {busy ? "Opening Google…" : "Continue with Google"}
           </Button>
+
+          {mode === "signin" ? (
+            <>
+              <Button
+                type="button"
+                variant="ghost"
+                className="mt-2 w-full text-[color:var(--terminal-ochre)]"
+                disabled={busy || loading}
+                onClick={() => void onMagicLink()}
+              >
+                {magicLinkSent
+                  ? "Resend email magic link"
+                  : "Send email magic link"}
+              </Button>
+              {magicLinkSent ? (
+                <p className="mt-2 text-center text-xs text-[color:var(--terminal-muted)]">
+                  Link sent to {normalizeAuthEmail(email) || "your email"}. Use
+                  the same browser where you requested it.
+                </p>
+              ) : null}
+            </>
+          ) : null}
 
           {appSlug === "marketplace" && mode === "signin" ? (
             <DemoAccountsHint />

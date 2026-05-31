@@ -45,9 +45,9 @@ export default function Feed() {
   if (!isMounted) return <div className="min-h-[500px]" />;
 
   return (
-    <div className="w-full min-w-0">
+    <div className="w-full min-w-0 brand-app-page">
       <div className="mb-6 lg:mb-8">
-        <h1 className="text-2xl font-bold tracking-tight sm:text-3xl">
+        <h1 className="brand-page-title text-2xl font-bold tracking-tight sm:text-3xl">
           What&apos;s happening on Ownerr?
         </h1>
         <p className="mp-body mt-1 text-sm">
@@ -77,7 +77,7 @@ export default function Feed() {
                   delay: Math.min(index * 0.04, 0.3),
                   duration: 0.25,
                 }}
-                className="rounded-[12px] border border-border bg-card p-4 text-card-foreground shadow-sm"
+                className="brand-panel-card rounded-[12px] p-4 text-card-foreground shadow-none"
               >
                 <header className="mb-2 flex flex-wrap items-center gap-x-1.5 gap-y-1 text-xs">
                   <img

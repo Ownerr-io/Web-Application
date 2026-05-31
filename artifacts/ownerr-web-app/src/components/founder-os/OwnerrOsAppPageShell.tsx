@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { OWNERR_OS_APP_CONTENT_CLASS } from "@/lib/ownerrOsAppLayout";
+import { BrandAppPageShell } from "@/components/brand/BrandAppPageShell";
 import { cn } from "@/lib/utils";
 
 type Props = {
@@ -20,18 +21,14 @@ export function OwnerrOsAppPageShell({
     <div
       className={cn(OWNERR_OS_APP_CONTENT_CLASS, "ownerr-os-app-page w-full")}
     >
-      <header className="space-y-2">
-        <p className="text-xs font-bold uppercase tracking-widest text-muted-foreground">
-          {kicker}
-        </p>
-        <h1 className="ownerr-os-app-page-title text-2xl font-bold tracking-tight text-foreground sm:text-3xl">
-          {title}
-        </h1>
-        {description ? (
-          <p className="text-sm text-muted-foreground">{description}</p>
-        ) : null}
-      </header>
-      {children}
+      <BrandAppPageShell
+        kicker={kicker}
+        title={title}
+        description={description}
+        className="!space-y-6"
+      >
+        {children}
+      </BrandAppPageShell>
     </div>
   );
 }

@@ -15,6 +15,8 @@ import {
   ensureNetworkTablesDetected,
   isUsersTableActive,
 } from "@/lib/ownerr-network/dbTables";
+import { devLog, devWarn } from "@/lib/observability/devLog";
+import { logProductIssue } from "@/lib/observability/productErrors";
 
 type DeskRole = "buyer" | "founder" | null;
 
@@ -76,7 +78,7 @@ async function upsertPlatformUser(
     if (displayName) {
       updateData.full_name = displayName;
     }
-    console.log(
+    devLog(
       "[Provisioning] Updating central 'users' table for user:",
       authUserId,
     );
@@ -85,17 +87,14 @@ async function upsertPlatformUser(
       .update(updateData)
       .eq("auth_user_id", authUserId);
     if (userUpdateErr) {
-      console.error(
-        "[Provisioning] Failed to update public.users:",
-        userUpdateErr,
-      );
+      logProductIssue("provision.ownerr", userUpdateErr, { authUserId });
       throw userUpdateErr;
     }
     return;
   }
 
   // Legacy schema: platform_users table
-  console.log(
+  devLog(
     "[Provisioning] Upserting 'platform_users' table for user:",
     authUserId,
   );
@@ -108,7 +107,7 @@ async function upsertPlatformUser(
     { onConflict: "auth_user_id" },
   );
   if (error) {
-    console.error("[Provisioning] Failed to upsert platform_users:", error);
+    logProductIssue("provision.ownerr", error, { authUserId });
     throw error;
   }
 }
@@ -125,7 +124,7 @@ async function upsertMembership(
     (!isUsersTableActive() || isLegacySlugEnforced());
   const targetSlug = usesLegacy ? ("unemployed" as AppSlug) : appSlug;
 
-  console.log(
+  devLog(
     `[Provisioning] Upserting user_app_access membership for user ${authUserId}. targetSlug: ${targetSlug} (original appSlug: ${appSlug})`,
   );
   const { error } = await supabase.from("user_app_access").upsert(
@@ -140,8 +139,8 @@ async function upsertMembership(
   );
   if (error) {
     if (error.code === "23514" && targetSlug === "ownerr_network") {
-      console.warn(
-        "[Provisioning] Check constraint violation for 'ownerr_network' in user_app_access. Retrying with 'unemployed' and caching legacy fallback.",
+      devWarn(
+        "[Provisioning] Check constraint violation for 'ownerr_network' in user_app_access. Retrying with 'unemployed' and caching legacy slug mapping.",
       );
       setLegacySlugEnforced(true);
       const { error: retryErr } = await supabase.from("user_app_access").upsert(
@@ -155,15 +154,15 @@ async function upsertMembership(
         { onConflict: "auth_user_id,app_slug" },
       );
       if (retryErr) {
-        console.error(
-          "[Provisioning] Retry failed for 'unemployed' slug:",
-          retryErr,
-        );
+        logProductIssue("provision.ownerr", retryErr, {
+          authUserId,
+          slug: "unemployed",
+        });
         throw retryErr;
       }
       return;
     }
-    console.error("[Provisioning] Failed to upsert user_app_access:", error);
+    logProductIssue("provision.ownerr", error, { authUserId, targetSlug });
     throw error;
   }
 }
@@ -409,7 +408,7 @@ export async function listActiveUserAppSlugs(
     .eq("auth_user_id", authUserId)
     .eq("status", "active");
   if (error) {
-    console.error("[Provisioning] Failed to list active app slugs:", error);
+    logProductIssue("provision.ownerr", error, { authUserId });
     throw error;
   }
   const slugs: AppSlug[] = [];
@@ -417,7 +416,7 @@ export async function listActiveUserAppSlugs(
     let raw = (row as { app_slug?: string }).app_slug;
     if (raw === "unemployed") {
       raw = "ownerr_network";
-      console.log(
+      devLog(
         "[Provisioning] Active 'unemployed' slug detected in database. Activating cached legacy slug mapping.",
       );
       setLegacySlugEnforced(true);
@@ -438,7 +437,7 @@ export async function touchProductSession(
     (!isUsersTableActive() || isLegacySlugEnforced());
   const targetProduct = usesLegacy ? ("unemployed" as AppSlug) : product;
 
-  console.log(
+  devLog(
     `[Provisioning] Touching product session for ${authUserId}. targetProduct: ${targetProduct} (original product: ${product})`,
   );
   const { error } = await supabase.from("product_sessions").upsert(
@@ -451,7 +450,7 @@ export async function touchProductSession(
   );
   if (error) {
     if (error.code === "23514" && targetProduct === "ownerr_network") {
-      console.warn(
+      devWarn(
         "[Provisioning] touchProductSession check constraint violation for 'ownerr_network'. Retrying with 'unemployed' and caching.",
       );
       setLegacySlugEnforced(true);
@@ -468,7 +467,7 @@ export async function touchProductSession(
       if (!retryErr) return;
     }
 
-    console.error("[Provisioning] Failed to touch product session:", error);
+    logProductIssue("provision.ownerr", error, { authUserId, targetProduct });
     const code = error.code ?? "";
     const status = (error as { status?: number }).status;
     const message = typeof error.message === "string" ? error.message : "";

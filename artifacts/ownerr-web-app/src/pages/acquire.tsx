@@ -744,6 +744,10 @@ export default function Acquire() {
   const wouterSearch = useSearch();
   const [location, setLocation] = useLocation();
   const isBuyerPage = location.startsWith(MARKETPLACE_ROUTES.buyerAcquire);
+  const deskFilterPanel = cn(
+    FILTER_PANEL,
+    isBuyerPage && "brand-panel-card brand-panel-card--top-gradient",
+  );
   const acquireBase = isBuyerPage
     ? MARKETPLACE_ROUTES.buyerAcquire
     : MARKETPLACE_ROUTES.acquire;
@@ -1219,7 +1223,14 @@ export default function Acquire() {
   );
 
   return (
-    <div className="acquire-terminal-palette flex min-w-0 flex-col gap-6 pb-16 sm:pb-20 lg:gap-12 lg:pb-24">
+    <div
+      className={cn(
+        "flex min-w-0 flex-col gap-6 pb-16 sm:pb-20 lg:gap-12 lg:pb-24",
+        isBuyerPage
+          ? "marketplace-desk-acquire w-full"
+          : "acquire-terminal-palette",
+      )}
+    >
       {isBuyerPage ? (
         <>
           <div className="lg:hidden">
@@ -1282,7 +1293,7 @@ export default function Acquire() {
 
           <section
             className={cn(
-              FILTER_PANEL,
+              deskFilterPanel,
               "hidden max-h-none overflow-visible p-3 lg:block",
             )}
           >
@@ -1486,7 +1497,7 @@ export default function Acquire() {
         <div className="grid min-w-0 grid-cols-1 gap-6 lg:grid-cols-[minmax(280px,320px)_minmax(0,1fr)] lg:gap-8 lg:items-start">
           <aside
             className={cn(
-              FILTER_PANEL,
+              deskFilterPanel,
               "lg:sticky lg:top-[calc(env(safe-area-inset-top,0px)+5.85rem)] lg:z-10 lg:self-start",
             )}
           >

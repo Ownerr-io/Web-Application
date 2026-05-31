@@ -1,9 +1,9 @@
 import { getSupabase } from "@/lib/supabase/client";
 import type {
   OwnerrNetworkUser,
-  OwnerrNetworkProfileRow,
   OwnerrNetworkLedgerRow,
   OwnerrNetworkReferralRow,
+  AdminReferralDetail,
 } from "./types";
 import {
   ensureNetworkTablesDetected,
@@ -25,8 +25,9 @@ export async function fetchAllUsers(): Promise<OwnerrNetworkUser[]> {
   await ensureNetworkTablesDetected(supabase);
   const tables = networkTables();
 
+  const isNew = isUsersTableActive();
   const { data, error } = await supabase
-    .from(tables.users)
+    .from(isNew ? "users" : tables.users)
     .select("*")
     .order("created_at", { ascending: false });
 
@@ -34,33 +35,41 @@ export async function fetchAllUsers(): Promise<OwnerrNetworkUser[]> {
     throw new Error(`fetchAllUsers: ${error.message}`);
   }
 
-  return (data ?? []) as OwnerrNetworkUser[];
-}
+  if (!isNew) return (data ?? []) as OwnerrNetworkUser[];
 
-/**
- * Fetch all profiles
- */
-export async function fetchAllProfiles(): Promise<OwnerrNetworkProfileRow[]> {
-  const supabase = getSupabase();
-  await ensureNetworkTablesDetected(supabase);
-  const tables = networkTables();
-
-  const { data, error } = await supabase
-    .from(tables.profiles)
-    .select("*")
-    .order("onboarding_completed_at", { ascending: false });
-
-  if (error) {
-    throw new Error(`fetchAllProfiles: ${error.message}`);
-  }
-
-  return (data ?? []) as OwnerrNetworkProfileRow[];
+  return (data ?? []).map((row) => {
+    const r = row as Record<string, unknown>;
+    return {
+      id: r.id as string,
+      auth_user_id: r.auth_user_id as string,
+      name: (r.full_name as string) ?? (r.name as string) ?? "",
+      username: (r.username as string) ?? "",
+      email: (r.email as string) ?? "",
+      profile_image: (r.profile_image as string | null) ?? null,
+      referral_code: (r.referral_code as string) ?? "",
+      referred_by: (r.referred_by as string | null) ?? null,
+      points: Number(r.points ?? 0),
+      wallet_balance: Number(r.wallet_balance ?? 0),
+      total_earned: Number(r.total_earned ?? 0),
+      total_referrals: Number(r.total_referrals ?? 0),
+      leaderboard_rank: (r.leaderboard_rank as number | null) ?? null,
+      subscription_status: (r.subscription_status as string) ?? "free",
+      profile_verified:
+        r.verification_status === "verified" || Boolean(r.profile_verified),
+      last_daily_reward_at: (r.last_daily_reward_at as string | null) ?? null,
+      signup_source: (r.signup_source as string | null) ?? null,
+      created_at: (r.created_at as string) ?? "",
+      platform_role: r.role as PlatformUserRole | undefined,
+    } as OwnerrNetworkUser & { platform_role?: PlatformUserRole };
+  });
 }
 
 /**
  * Fetch all ledger entries
  */
-export async function fetchAllLedgerEntries(): Promise<OwnerrNetworkLedgerRow[]> {
+export async function fetchAllLedgerEntries(): Promise<
+  OwnerrNetworkLedgerRow[]
+> {
   const supabase = getSupabase();
   await ensureNetworkTablesDetected(supabase);
 
@@ -86,7 +95,9 @@ export async function fetchAllLedgerEntries(): Promise<OwnerrNetworkLedgerRow[]>
 
     return (data ?? []).map((row) => {
       const wallet = row.wallets as { user_id: string } | { user_id: string }[];
-      const userId = Array.isArray(wallet) ? wallet[0]?.user_id : wallet?.user_id;
+      const userId = Array.isArray(wallet)
+        ? wallet[0]?.user_id
+        : wallet?.user_id;
       return {
         id: row.id,
         user_id: userId ?? "",
@@ -122,7 +133,9 @@ export async function fetchAllReferrals(): Promise<OwnerrNetworkReferralRow[]> {
   if (isUsersTableActive()) {
     const { data, error } = await supabase
       .from("referrals")
-      .select("id, referrer_user_id, referred_user_id, status, source, created_at")
+      .select(
+        "id, referrer_user_id, referred_user_id, status, source, created_at",
+      )
       .eq("product_slug", "ownerr_network")
       .order("created_at", { ascending: false });
 
@@ -152,6 +165,26 @@ export async function fetchAllReferrals(): Promise<OwnerrNetworkReferralRow[]> {
   }
 
   return (data ?? []) as OwnerrNetworkReferralRow[];
+}
+
+export async function fetchAdminReferralDetails(): Promise<
+  AdminReferralDetail[]
+> {
+  const referrals = await fetchAllReferrals();
+  const users = await fetchAllUsers();
+  const byId = new Map(users.map((u) => [u.id, u]));
+
+  const label = (id: string) => {
+    const u = byId.get(id);
+    if (!u) return id.slice(0, 8) + "…";
+    return u.username ? `@${u.username}` : u.email || u.name || id.slice(0, 8);
+  };
+
+  return referrals.map((r) => ({
+    ...r,
+    referrer_label: label(r.referrer_id),
+    referee_label: label(r.referee_id),
+  }));
 }
 
 /**
@@ -231,11 +264,16 @@ export async function saveReferralForUser(userId: string) {
   return true;
 }
 
+export type PlatformUserRole = "member" | "admin" | "moderator";
+
 export type UpdateNetworkUserInput = {
   name?: string;
   username?: string;
   profile_verified?: boolean;
+  verificationStatus?: "unverified" | "pending" | "verified" | "rejected";
   points?: number;
+  /** Canonical `public.users.role` — platform admin access. */
+  platformRole?: PlatformUserRole;
 };
 
 export async function updateNetworkUser(
@@ -254,6 +292,10 @@ export async function updateNetworkUser(
         ? "verified"
         : "unverified";
     }
+    if (input.verificationStatus !== undefined) {
+      payload.verification_status = input.verificationStatus;
+    }
+    if (input.platformRole !== undefined) payload.role = input.platformRole;
     const { error } = await supabase
       .from("users")
       .update(payload)
@@ -261,9 +303,11 @@ export async function updateNetworkUser(
     if (error) throw new Error(`updateNetworkUser: ${error.message}`);
 
     if (input.points !== undefined) {
-      const { error: scoreErr } = await supabase
-        .from("user_scores")
-        .upsert({ user_id: userId, points: input.points, updated_at: new Date().toISOString() });
+      const { error: scoreErr } = await supabase.from("user_scores").upsert({
+        user_id: userId,
+        points: input.points,
+        updated_at: new Date().toISOString(),
+      });
       if (scoreErr) throw new Error(`updateNetworkUser: ${scoreErr.message}`);
     }
     return;
@@ -301,6 +345,8 @@ export type UpdateNetworkProfileInput = {
   user_type?: string | null;
   experience_level?: string | null;
   work_preference?: string | null;
+  bio?: string | null;
+  onboarding_completed?: boolean;
 };
 
 export async function updateNetworkProfile(
@@ -319,6 +365,10 @@ export async function updateNetworkProfile(
     }
     if (input.work_preference !== undefined) {
       payload.remote_preference = input.work_preference;
+    }
+    if (input.bio !== undefined) payload.bio = input.bio;
+    if (input.onboarding_completed !== undefined) {
+      payload.onboarding_completed = input.onboarding_completed;
     }
     const { error } = await supabase
       .from("user_profiles")
@@ -364,9 +414,7 @@ export async function deleteReferral(referralId: string): Promise<void> {
   const supabase = getSupabase();
   await ensureNetworkTablesDetected(supabase);
 
-  const table = isUsersTableActive()
-    ? "referrals"
-    : networkTables().referrals;
+  const table = isUsersTableActive() ? "referrals" : networkTables().referrals;
   const { error } = await supabase.from(table).delete().eq("id", referralId);
   if (error) throw new Error(`deleteReferral: ${error.message}`);
 }

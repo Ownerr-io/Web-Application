@@ -7,6 +7,7 @@ import type {
 } from "@/lib/platform/types";
 import {
   AUTH_ROUTES,
+  ADMIN_ROUTES,
   MARKETPLACE_ROUTES,
   PRODUCT_ROUTES,
   PUBLIC_ROUTES,
@@ -74,6 +75,17 @@ export function sanitizePostAuthRedirectParam(
   return safe;
 }
 
+/**
+ * Platform admins always land in `/admin` after sign-in unless `returnTo` is already an admin path.
+ */
+export function resolvePlatformAdminPostAuthDestination(
+  returnTo?: string | null,
+): string {
+  const safe = sanitizePostAuthRedirectParam(returnTo ?? null);
+  if (safe?.startsWith("/admin")) return safe;
+  return ADMIN_ROUTES.hub;
+}
+
 export function parseAuthProductQuery(raw: string | null): AuthProduct | null {
   if (raw === "ownerr-network" || raw === "ownerr-os") return raw;
   return null;
@@ -106,6 +118,10 @@ function destinationForIntent(
 export function resolvePostAuthDestination(
   input: PostAuthResolveInput,
 ): string {
+  if (input.platformAdmin) {
+    return resolvePlatformAdminPostAuthDestination(input.redirectParam);
+  }
+
   if (input.pendingIntent) {
     const fromIntent = destinationForIntent(
       input.pendingIntent,
@@ -178,7 +194,12 @@ export function resolveAuthenticatedAppEntry(input: {
   activeProduct: AppSlug | null;
   currentUser: DeskUser | null;
   returnTo: string | null;
+  platformAdmin?: boolean;
 }): string {
+  if (input.platformAdmin) {
+    return resolvePlatformAdminPostAuthDestination(input.returnTo);
+  }
+
   if (
     input.currentUser &&
     isDemoMarketplaceLockedSession(input.currentUser.email)
@@ -213,6 +234,7 @@ export function resolvePostAuthRedirect(input: {
   hasSession: boolean;
   pathname?: string;
   pendingIntent?: StoredAuthIntent | null;
+  platformAdmin?: boolean;
 }): string {
   return resolvePostAuthDestination({
     redirectParam: input.redirectParam,
@@ -221,5 +243,6 @@ export function resolvePostAuthRedirect(input: {
     currentUser: input.currentUser,
     hasSession: input.hasSession,
     pendingIntent: input.pendingIntent ?? null,
+    platformAdmin: input.platformAdmin,
   });
 }

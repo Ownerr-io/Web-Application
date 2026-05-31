@@ -55,6 +55,7 @@ Thumbs.db
 .env.production
 .env.*.local
 !.env.example
+supabase/.env
 
 
 # temporary files
