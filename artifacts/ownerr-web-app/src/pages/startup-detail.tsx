@@ -25,21 +25,29 @@ import {
   BarChart3,
 } from "lucide-react";
 
-import { leaderboardMetricValue, type Startup } from "@/lib/mockData";
+import {
+  leaderboardMetricValue,
+  type Startup,
+  type Founder,
+} from "@/lib/mockData";
 import { buildFoundersFromStartups } from "@/lib/marketplace/founders";
 import { usePublicStartups } from "@/hooks/marketplace/usePublicStartups";
 import {
-  isMarketplaceBuyerAppPath,
   marketplaceBrowsePath,
   marketplacePath,
   marketplaceStartupPath,
+  isMarketplaceBuyerAppPath,
+  isMarketplaceSellerAppPath,
 } from "@/lib/appPaths";
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
 import { MarketplaceAppPageShell } from "@/components/marketplace/MarketplaceAppPageShell";
 import { getStartupDetailModel } from "@/lib/startupDetailContent";
+import type { StartupDetailRich } from "@/lib/startupDetailContent";
 import { StartupScoresDetailGrid } from "@/components/StartupTripleScores";
 import {
   formatCurrency,
   formatShortCurrency,
+  dicebearShapesSvg,
   founderAvatarUrl,
 } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
@@ -68,16 +76,17 @@ import {
   fetchMarketplaceInterests,
   fetchMarketplaceListingBySlug,
   fetchMarketplaceListings,
-  runDomainVerification,
   submitMarketplaceInterest,
   trustLabelFromScore,
-  updateMarketplaceVerification,
   updateMarketplaceInterestStage,
   type MarketplaceInterestRecord,
   type MarketplaceListing,
 } from "@/lib/marketplace/service";
+import { StartupVerificationCenter } from "@/components/marketplace/StartupVerificationCenter";
+import { ListingVerificationTimeline } from "@/components/marketplace/ListingVerificationTimeline";
 import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/lib/platform/requireAuth";
+import { marketplaceKeys } from "@/lib/marketplace/queryKeys";
 
 function DiscoverCard({ s }: { s: Startup }) {
   const [location] = useLocation();
@@ -97,11 +106,7 @@ function DiscoverCard({ s }: { s: Startup }) {
               className="flex h-10 w-10 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-border text-xs font-bold"
               style={{ backgroundColor: s.logoColor }}
             >
-              <img
-                src={`https://api.dicebear.com/7.x/shapes/svg?seed=${s.name}`}
-                alt=""
-                className="h-8 w-8"
-              />
+              <img src={dicebearShapesSvg(s.name)} alt="" className="h-8 w-8" />
             </div>
             <div className="min-w-0">
               <div className="font-bold leading-tight group-hover:underline line-clamp-2">
@@ -146,16 +151,16 @@ function DiscoverCard({ s }: { s: Startup }) {
   );
 }
 
-function wrapBuyerDeskPage(
-  inBuyerApp: boolean,
+function wrapDeskListingPage(
+  desk: "buyer" | "seller" | null,
   node: ReactNode,
   opts: { title: string; description?: ReactNode; headerActions?: ReactNode },
 ): ReactNode {
-  if (!inBuyerApp) return node;
+  if (!desk) return node;
   return (
     <MarketplaceAppPageShell
       layout="compact"
-      kicker="Marketplace · Buyer"
+      kicker={desk === "buyer" ? "Marketplace · Buyer" : "Seller desk"}
       title={opts.title}
       description={opts.description}
       headerActions={opts.headerActions}
@@ -167,11 +172,12 @@ function wrapBuyerDeskPage(
 
 export default function StartupDetail() {
   const { slug } = useParams();
-  const [location] = useLocation();
+  const [location, setLocation] = useLocation();
   const inBuyerApp = isMarketplaceBuyerAppPath(location);
+  const inSellerApp = isMarketplaceSellerAppPath(location);
   const { toast } = useToast();
   const queryClient = useQueryClient();
-  const { currentUser, isBuyer, isAuthenticated } = useAuth();
+  const { currentUser, session, isBuyer, isAuthenticated } = useAuth();
   const { requireAuth } = useRequireAuth();
   const [mounted, setMounted] = useState(false);
   const [contactOpen, setContactOpen] = useState(false);
@@ -200,8 +206,12 @@ export default function StartupDetail() {
   const founder = startup
     ? founders.find((f) => f.handle === startup.founderHandle)
     : undefined;
+  const authUserId = session?.user?.id;
   const isOwner =
-    !!startup && !!currentUser && startup.ownerUserId === currentUser.id;
+    !!startup &&
+    !!authUserId &&
+    (startup.ownerUserId === authUserId ||
+      startup.founderUserId === authUserId);
 
   const interestsQuery = useQuery({
     queryKey: ["marketplace-interests", startup?.slug],
@@ -254,6 +264,26 @@ export default function StartupDetail() {
   const mrrShown = detail.mrrDisplay;
   const foundedLabel = detail.foundedLabel;
   const visitUrl = detail.visitUrl;
+  const revenueChartSubtitle =
+    startup.revenueHistory.length >= 2
+      ? `${startup.growthPct >= 0 ? "+" : ""}${startup.growthPct}% vs previous month`
+      : detail.revenueVerified && mrrShown > 0
+        ? "Current MRR from verified provider"
+        : "History appears after revenue provider sync";
+  const showTrafficChart =
+    startup.trafficHistory.length > 0 ||
+    startup.trafficMonthlyVisitors != null ||
+    startup.verification.traffic.status === "verified";
+  const trafficChartSubtitle =
+    startup.trafficMonthlyVisitors != null
+      ? `${startup.trafficMonthlyVisitors.toLocaleString("en-US")} visitors/mo · Traffic ${startup.verification.traffic.status}`
+      : `Traffic ${startup.verification.traffic.status}`;
+  const hasTechStack =
+    detail.techStack.frontend.length > 0 || detail.techStack.backend.length > 0;
+  const businessDetailPills = detail.insights.businessPills;
+  const showBusinessDetails =
+    businessDetailPills.length > 0 || detail.insights.userCountLabel != null;
+  const showInsightsTags = detail.insights.tags.length > 0;
 
   const shareTitle = startup.name;
 
@@ -304,7 +334,7 @@ export default function StartupDetail() {
                 style={{ backgroundColor: startup.logoColor }}
               >
                 <img
-                  src={`https://api.dicebear.com/7.x/shapes/svg?seed=${startup.name}`}
+                  src={dicebearShapesSvg(startup.name)}
                   alt={`${startup.name} avatar`}
                   className="h-16 w-16"
                 />
@@ -362,124 +392,38 @@ export default function StartupDetail() {
                     : "Login to continue"}
                 </Button>
               )}
-              <Button
-                type="button"
-                className="btn-marketplace-primary font-bold"
-                asChild
-              >
-                <a href={visitUrl} target="_blank" rel="noreferrer">
-                  <ExternalLink className="h-4 w-4" />
-                  Visit
-                </a>
-              </Button>
+              {visitUrl ? (
+                <Button
+                  type="button"
+                  className="btn-marketplace-primary font-bold"
+                  asChild
+                >
+                  <a href={visitUrl} target="_blank" rel="noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                    Visit
+                  </a>
+                </Button>
+              ) : null}
             </div>
           </div>
         </section>
 
-        <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-          <div className="rounded-xl border border-border bg-card p-5 text-center">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              All-time revenue
-            </div>
-            <div className="mt-2 text-2xl font-bold tabular-nums">
-              {formatCurrency(detail.allTimeRevenue)}
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              Ranked #{detail.leaderboardRank} on Ownerr
-            </p>
-          </div>
-          <div className="rounded-xl border border-border bg-card p-5 text-center">
-            <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              MRR (estimated)
-              <Info
-                className="h-3.5 w-3.5 shrink-0 text-muted-foreground/80"
-                aria-hidden
-              />
-            </div>
-            <div className="mt-2 text-2xl font-bold tabular-nums">
-              {formatCurrency(mrrShown)}
-            </div>
-            <p className="mt-1 text-xs text-muted-foreground">
-              {detail.activeSubscriptions} active subscriptions
-            </p>
-          </div>
-          <div className="rounded-xl border border-border bg-card p-5 text-center">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Founder
-            </div>
-            <div className="mt-3 flex min-w-0 flex-col items-center gap-2">
-              {founder ? (
-                <FounderLink
-                  handle={founder.handle}
-                  className="flex min-w-0 flex-col items-center gap-2 font-bold text-foreground sm:flex-row"
-                >
-                  <img
-                    src={founderAvatarUrl(founder.avatarSeed)}
-                    alt=""
-                    className="h-11 w-11 shrink-0 rounded-full border border-border bg-muted"
-                  />
-                  <span className="max-w-full truncate text-center sm:text-left">
-                    {founder.name}
-                  </span>
-                </FounderLink>
-              ) : (
-                <FounderLink
-                  handle={startup.founderHandle}
-                  className="block max-w-full truncate font-bold text-foreground"
-                >
-                  {startup.founderDisplayName ?? startup.founderHandle}
-                </FounderLink>
-              )}
-            </div>
-          </div>
-          <div className="rounded-xl border border-border bg-card p-5 text-center">
-            <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Founded
-            </div>
-            <div className="mt-2 text-2xl font-bold tabular-nums">
-              {foundedLabel}
-            </div>
-            <div className="mt-2 flex items-center justify-center gap-1.5 text-sm text-muted-foreground">
-              <span aria-hidden>🇺🇸</span>
-              <span>United States</span>
-            </div>
-          </div>
-        </div>
+        <ListingDetailMetricCards
+          detail={detail}
+          mrrShown={mrrShown}
+          foundedLabel={foundedLabel}
+          founder={founder}
+          startup={startup}
+        />
 
         <StartupScoresDetailGrid startup={startup} />
 
         <VerificationSection listing={startup} />
+        <ListingVerificationTimeline startupSlug={startup.slug} />
         {isOwner ? (
           <FounderControlsSection
             listing={startup}
             interestRecords={interestsQuery.data ?? []}
-            onVerificationUpdated={async (kind, status, provider) => {
-              await updateMarketplaceVerification(
-                startup,
-                kind,
-                status,
-                provider,
-              );
-              await Promise.all([
-                queryClient.invalidateQueries({
-                  queryKey: ["marketplace-listing", startup.slug],
-                }),
-                queryClient.invalidateQueries({
-                  queryKey: ["marketplace-listings"],
-                }),
-              ]);
-            }}
-            onDomainVerify={async () => {
-              await runDomainVerification(startup);
-              await Promise.all([
-                queryClient.invalidateQueries({
-                  queryKey: ["marketplace-listing", startup.slug],
-                }),
-                queryClient.invalidateQueries({
-                  queryKey: ["marketplace-listings"],
-                }),
-              ]);
-            }}
             onInterestStageUpdated={async (record, stage) => {
               await updateMarketplaceInterestStage(record, stage);
               await queryClient.invalidateQueries({
@@ -489,7 +433,7 @@ export default function StartupDetail() {
             onSendFounderReply={async (record) => {
               await appendMarketplaceThreadMessage({
                 threadId: record.id,
-                senderUserId: startup.ownerUserId,
+                senderUserId: authUserId ?? startup.ownerUserId,
                 senderName:
                   founder?.name ?? startup.founderDisplayName ?? startup.name,
                 senderRole: "founder",
@@ -501,18 +445,26 @@ export default function StartupDetail() {
             }}
           />
         ) : null}
-        <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div
+          className={
+            showTrafficChart
+              ? "grid grid-cols-1 gap-4 lg:grid-cols-2"
+              : "grid grid-cols-1 gap-4"
+          }
+        >
           <MarketplaceTrendChart
             title="Revenue history"
-            subtitle={`${startup.growthPct >= 0 ? "+" : ""}${startup.growthPct}% vs previous month`}
+            subtitle={revenueChartSubtitle}
             points={startup.revenueHistory}
           />
-          <MarketplaceTrendChart
-            title="Traffic history"
-            subtitle={`${(startup.trafficMonthlyVisitors ?? 0).toLocaleString("en-US")} visitors/mo · ${startup.verification.traffic.status}`}
-            points={startup.trafficHistory}
-            mode="number"
-          />
+          {showTrafficChart ? (
+            <MarketplaceTrendChart
+              title="Traffic history"
+              subtitle={trafficChartSubtitle}
+              points={startup.trafficHistory}
+              mode="number"
+            />
+          ) : null}
         </div>
 
         <section className="rounded-xl border border-border bg-card p-6 sm:p-8">
@@ -598,24 +550,94 @@ export default function StartupDetail() {
           </span>
         </Button>
       )}
+      {visitUrl ? (
+        <Button
+          type="button"
+          size="sm"
+          className="btn-marketplace-primary h-9 font-bold"
+          asChild
+        >
+          <a href={visitUrl} target="_blank" rel="noreferrer">
+            <ExternalLink className="h-4 w-4" />
+            <span className="hidden sm:inline">Visit</span>
+          </a>
+        </Button>
+      ) : null}
+    </>
+  ) : null;
+
+  const sellerHeaderActions = inSellerApp ? (
+    <>
+      <Button
+        type="button"
+        size="sm"
+        variant="outline"
+        className="h-9 font-bold"
+        asChild
+      >
+        <Link href={MARKETPLACE_ROUTES.sellerListings}>My listings</Link>
+      </Button>
       <Button
         type="button"
         size="sm"
         className="btn-marketplace-primary h-9 font-bold"
+        onClick={() => void onShare()}
+      >
+        <Share2 className="h-4 w-4" />
+        <span className="hidden sm:inline">Share</span>
+      </Button>
+      <Button
+        type="button"
+        size="sm"
+        variant="secondary"
+        className="h-9 font-bold"
         asChild
       >
-        <a href={visitUrl} target="_blank" rel="noreferrer">
+        <Link href={MARKETPLACE_ROUTES.startup(startup.slug)}>
           <ExternalLink className="h-4 w-4" />
-          <span className="hidden sm:inline">Visit</span>
-        </a>
+          <span className="hidden sm:inline">Public page</span>
+        </Link>
       </Button>
     </>
   ) : null;
 
-  return wrapBuyerDeskPage(
-    inBuyerApp,
+  const deskMode = inBuyerApp ? "buyer" : inSellerApp ? "seller" : null;
+  const deskDescription = inSellerApp ? (
+    <>
+      {startup.category} · Trust {startup.trustScore} ({startup.trustLabel})
+      {startup.forSale && startup.price != null
+        ? ` · Asking ${formatShortCurrency(startup.price)}`
+        : null}
+    </>
+  ) : inBuyerApp ? (
+    startup.category
+  ) : undefined;
+
+  const founderName =
+    founder?.name ??
+    startup.founderDisplayName ??
+    currentUser?.name ??
+    startup.founderHandle;
+  const founderHandle = founder?.handle ?? startup.founderHandle;
+  const founderAvatar = founderAvatarUrl(
+    founder?.avatarSeed ?? currentUser?.avatarSeed ?? founderHandle,
+  );
+
+  return wrapDeskListingPage(
+    deskMode,
     <div className="flex flex-col gap-4 pb-8 sm:gap-6 sm:pb-10">
-      {!inBuyerApp ? (
+      {inSellerApp ? (
+        <nav className="flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
+          <Link
+            href={MARKETPLACE_ROUTES.sellerListings}
+            className="hover:text-foreground"
+          >
+            My listings
+          </Link>
+          <ChevronRight className="h-4 w-4 opacity-50" />
+          <span className="font-bold text-foreground">{startup.name}</span>
+        </nav>
+      ) : !inBuyerApp ? (
         <nav className="flex min-w-0 flex-wrap items-center gap-1 text-xs text-muted-foreground sm:text-sm">
           <Link href={marketplacePath("/")} className="hover:text-foreground">
             Ownerr
@@ -634,6 +656,40 @@ export default function StartupDetail() {
         </nav>
       ) : null}
 
+      {inSellerApp && isOwner ? (
+        <section className="rounded-xl border border-border bg-muted/15 p-4 sm:p-5">
+          <h2 className="text-sm font-bold uppercase tracking-wider text-muted-foreground">
+            Founder (you)
+          </h2>
+          <div className="mt-3 flex flex-col gap-3 sm:flex-row sm:items-center">
+            <img
+              src={founderAvatar}
+              alt=""
+              className="h-14 w-14 shrink-0 rounded-full border border-border bg-muted object-cover"
+            />
+            <div className="min-w-0">
+              <p className="text-lg font-bold text-foreground">{founderName}</p>
+              {currentUser?.email ? (
+                <p className="text-sm text-muted-foreground">
+                  {currentUser.email}
+                </p>
+              ) : null}
+              <p className="text-xs text-muted-foreground mt-1">
+                Desk handle{" "}
+                <span className="font-mono text-foreground">
+                  @{founderHandle}
+                </span>
+              </p>
+            </div>
+            <Button size="sm" variant="outline" className="sm:ml-auto" asChild>
+              <Link href={MARKETPLACE_ROUTES.sellerProfile}>
+                Seller profile
+              </Link>
+            </Button>
+          </div>
+        </section>
+      ) : null}
+
       <section className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-8">
         <div className="flex flex-col gap-4 sm:gap-6 md:flex-row md:items-start md:justify-between">
           <div className="flex min-w-0 flex-1 flex-col gap-4 sm:gap-5 sm:flex-row sm:items-start">
@@ -642,13 +698,13 @@ export default function StartupDetail() {
               style={{ backgroundColor: startup.logoColor }}
             >
               <img
-                src={`https://api.dicebear.com/7.x/shapes/svg?seed=${startup.name}`}
+                src={dicebearShapesSvg(startup.name)}
                 alt={`${startup.name} avatar`}
                 className="h-14 w-14 sm:h-16 sm:w-16"
               />
             </div>
             <div className="min-w-0 flex-1">
-              {inBuyerApp ? (
+              {inBuyerApp && !inSellerApp ? (
                 <p className="max-w-2xl text-sm leading-relaxed text-muted-foreground sm:text-base">
                   {startup.description}
                 </p>
@@ -669,7 +725,7 @@ export default function StartupDetail() {
               )}
             </div>
           </div>
-          {!inBuyerApp ? (
+          {!inBuyerApp && !inSellerApp ? (
             <div className="flex w-full shrink-0 gap-2 self-start md:w-auto md:self-center">
               <Button
                 type="button"
@@ -712,121 +768,39 @@ export default function StartupDetail() {
                     : "Login to continue"}
                 </Button>
               )}
-              <Button
-                type="button"
-                className="btn-marketplace-primary h-10 flex-1 font-bold md:h-11 md:flex-none"
-                asChild
-              >
-                <a href={visitUrl} target="_blank" rel="noreferrer">
-                  <ExternalLink className="h-4 w-4" />
-                  Visit
-                </a>
-              </Button>
+              {visitUrl ? (
+                <Button
+                  type="button"
+                  className="btn-marketplace-primary h-10 flex-1 font-bold md:h-11 md:flex-none"
+                  asChild
+                >
+                  <a href={visitUrl} target="_blank" rel="noreferrer">
+                    <ExternalLink className="h-4 w-4" />
+                    Visit
+                  </a>
+                </Button>
+              ) : null}
             </div>
           ) : null}
         </div>
       </section>
 
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
-        <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            All-time revenue
-          </div>
-          <div className="mt-2 text-2xl font-bold tabular-nums">
-            {formatCurrency(detail.allTimeRevenue)}
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Ranked #{detail.leaderboardRank} on Ownerr
-          </p>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
-          <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            MRR (estimated)
-            <Info
-              className="h-3.5 w-3.5 shrink-0 text-muted-foreground/80"
-              aria-hidden
-            />
-          </div>
-          <div className="mt-2 text-2xl font-bold tabular-nums">
-            {formatCurrency(mrrShown)}
-          </div>
-          <p className="mt-1 text-xs text-muted-foreground">
-            {detail.activeSubscriptions} active subscriptions
-          </p>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            Founder
-          </div>
-          <div className="mt-3 flex min-w-0 flex-col items-center gap-2">
-            {founder ? (
-              <FounderLink
-                handle={founder.handle}
-                className="flex min-w-0 flex-col items-center gap-2 font-bold text-foreground sm:flex-row"
-              >
-                <img
-                  src={founderAvatarUrl(founder.avatarSeed)}
-                  alt=""
-                  className="h-11 w-11 shrink-0 rounded-full border border-border bg-muted"
-                />
-                <span className="max-w-full truncate text-center sm:text-left">
-                  {founder.name}
-                </span>
-              </FounderLink>
-            ) : (
-              <FounderLink
-                handle={startup.founderHandle}
-                className="block max-w-full truncate font-bold text-foreground"
-              >
-                {startup.founderDisplayName ?? startup.founderHandle}
-              </FounderLink>
-            )}
-          </div>
-        </div>
-        <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
-          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-            Founded
-          </div>
-          <div className="mt-2 text-2xl font-bold tabular-nums">
-            {foundedLabel}
-          </div>
-        </div>
-      </div>
+      <ListingDetailMetricCards
+        detail={detail}
+        mrrShown={mrrShown}
+        foundedLabel={foundedLabel}
+        founder={founder}
+        startup={startup}
+      />
 
       <StartupScoresDetailGrid startup={startup} />
 
       <VerificationSection listing={startup} />
+      <ListingVerificationTimeline startupSlug={startup.slug} />
       {isOwner ? (
         <FounderControlsSection
           listing={startup}
           interestRecords={interestsQuery.data ?? []}
-          onVerificationUpdated={async (kind, status, provider) => {
-            await updateMarketplaceVerification(
-              startup,
-              kind,
-              status,
-              provider,
-            );
-            await Promise.all([
-              queryClient.invalidateQueries({
-                queryKey: ["marketplace-listing", startup.slug],
-              }),
-              queryClient.invalidateQueries({
-                queryKey: ["marketplace-listings"],
-              }),
-            ]);
-          }}
-          onDomainVerify={async () => {
-            await runDomainVerification(startup);
-            await Promise.all([
-              queryClient.invalidateQueries({
-                queryKey: ["marketplace-listing", startup.slug],
-              }),
-              queryClient.invalidateQueries({
-                queryKey: ["marketplace-listings"],
-              }),
-            ]);
-          }}
           onInterestStageUpdated={async (record, stage) => {
             await updateMarketplaceInterestStage(record, stage);
             await queryClient.invalidateQueries({
@@ -836,7 +810,7 @@ export default function StartupDetail() {
           onSendFounderReply={async (record) => {
             await appendMarketplaceThreadMessage({
               threadId: record.id,
-              senderUserId: startup.ownerUserId,
+              senderUserId: authUserId ?? startup.ownerUserId,
               senderName:
                 founder?.name ?? startup.founderDisplayName ?? startup.name,
               senderRole: "founder",
@@ -848,18 +822,26 @@ export default function StartupDetail() {
           }}
         />
       ) : null}
-      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+      <div
+        className={
+          showTrafficChart
+            ? "grid grid-cols-1 gap-4 lg:grid-cols-2"
+            : "grid grid-cols-1 gap-4"
+        }
+      >
         <MarketplaceTrendChart
           title="Revenue history"
-          subtitle={`${startup.growthPct >= 0 ? "+" : ""}${startup.growthPct}% vs previous month`}
+          subtitle={revenueChartSubtitle}
           points={startup.revenueHistory}
         />
-        <MarketplaceTrendChart
-          title="Traffic history"
-          subtitle={`${(startup.trafficMonthlyVisitors ?? 0).toLocaleString("en-US")} visitors/mo · ${startup.verification.traffic.status}`}
-          points={startup.trafficHistory}
-          mode="number"
-        />
+        {showTrafficChart ? (
+          <MarketplaceTrendChart
+            title="Traffic history"
+            subtitle={trafficChartSubtitle}
+            points={startup.trafficHistory}
+            mode="number"
+          />
+        ) : null}
       </div>
 
       <section className="rounded-xl border border-border bg-card p-4 sm:p-8">
@@ -888,26 +870,30 @@ export default function StartupDetail() {
               label="Target audience"
               body={detail.insights.targetAudience}
             />
-            <div>
-              <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-                <Building2 className="h-4 w-4" />
-                Business details
+            {showBusinessDetails ? (
+              <div>
+                <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                  <Building2 className="h-4 w-4" />
+                  Business details
+                </div>
+                <div className="flex flex-wrap gap-2">
+                  {businessDetailPills.map((p) => (
+                    <span
+                      key={p}
+                      className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-bold"
+                    >
+                      {p}
+                    </span>
+                  ))}
+                  {detail.insights.userCountLabel ? (
+                    <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-bold">
+                      <Users className="h-3.5 w-3.5" />
+                      {detail.insights.userCountLabel}
+                    </span>
+                  ) : null}
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {detail.insights.businessPills.map((p) => (
-                  <span
-                    key={p}
-                    className="rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-bold"
-                  >
-                    {p}
-                  </span>
-                ))}
-                <span className="inline-flex items-center gap-1 rounded-full border border-border bg-muted/40 px-3 py-1 text-xs font-bold">
-                  <Users className="h-3.5 w-3.5" />
-                  {detail.insights.userCountLabel}
-                </span>
-              </div>
-            </div>
+            ) : null}
             <InsightBlock
               icon={<Sparkles className="h-4 w-4" />}
               label="Additional info"
@@ -915,101 +901,107 @@ export default function StartupDetail() {
             />
           </div>
         </div>
-        <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-5 sm:mt-8 sm:pt-6">
-          {detail.insights.tags.map((t) => (
-            <span
-              key={t}
-              className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground"
-            >
-              {t}
-            </span>
-          ))}
-        </div>
-      </section>
-
-      <section className="rounded-xl border border-border bg-card p-4 sm:p-8">
-        <h2 className="mb-4 text-lg font-bold sm:mb-6">Tech stack</h2>
-        <div className="space-y-4 sm:space-y-5">
-          <div>
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Frontend
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {detail.techStack.frontend.map((t) => (
-                <TechPill key={t} tech={t} />
-              ))}
-            </div>
-          </div>
-          <div>
-            <div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
-              Backend
-            </div>
-            <div className="flex flex-wrap gap-2">
-              {detail.techStack.backend.map((t) => (
-                <TechPill key={t} tech={t} />
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      <section className="rounded-xl border border-border bg-card px-4 py-7 text-center sm:px-10 sm:py-10">
-        <Quote className="mx-auto mb-4 h-8 w-8 text-muted-foreground/40" />
-        <blockquote className="mx-auto max-w-2xl text-base font-medium leading-relaxed sm:text-lg">
-          {detail.founderQuote}
-        </blockquote>
-        <div className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
-          {founder ? (
-            <>
-              <FounderLink
-                handle={founder.handle}
-                className="inline-flex items-center gap-3 text-foreground"
+        {showInsightsTags ? (
+          <div className="mt-6 flex flex-wrap gap-2 border-t border-border pt-5 sm:mt-8 sm:pt-6">
+            {detail.insights.tags.map((t) => (
+              <span
+                key={t}
+                className="rounded-full border border-border px-3 py-1 text-xs font-medium text-muted-foreground"
               >
-                <img
-                  src={founderAvatarUrl(founder.avatarSeed)}
-                  alt=""
-                  className="h-10 w-10 shrink-0 rounded-full border border-border bg-muted"
-                />
-                <span className="text-left font-bold">{founder.name}</span>
-              </FounderLink>
-              <div className="max-w-full text-center text-sm text-muted-foreground sm:text-left">
-                Founder of{" "}
-                <StartupLink
-                  slug={startup.slug}
-                  className="text-muted-foreground hover:text-foreground"
-                >
-                  {startup.name}
-                </StartupLink>
+                {t}
+              </span>
+            ))}
+          </div>
+        ) : null}
+      </section>
+
+      {hasTechStack ? (
+        <section className="rounded-xl border border-border bg-card p-4 sm:p-8">
+          <h2 className="mb-4 text-lg font-bold sm:mb-6">Tech stack</h2>
+          <div className="space-y-4 sm:space-y-5">
+            <div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Frontend
               </div>
-            </>
-          ) : (
-            <div className="flex items-center gap-3 text-left">
-              <img
-                src={founderAvatarUrl(startup.founderHandle)}
-                alt=""
-                className="h-10 w-10 rounded-full border border-border bg-muted"
-              />
-              <div>
+              <div className="flex flex-wrap gap-2">
+                {detail.techStack.frontend.map((t) => (
+                  <TechPill key={t} tech={t} />
+                ))}
+              </div>
+            </div>
+            <div>
+              <div className="mb-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                Backend
+              </div>
+              <div className="flex flex-wrap gap-2">
+                {detail.techStack.backend.map((t) => (
+                  <TechPill key={t} tech={t} />
+                ))}
+              </div>
+            </div>
+          </div>
+        </section>
+      ) : null}
+
+      {detail.founderQuote ? (
+        <section className="rounded-xl border border-border bg-card px-4 py-7 text-center sm:px-10 sm:py-10">
+          <Quote className="mx-auto mb-4 h-8 w-8 text-muted-foreground/40" />
+          <blockquote className="mx-auto max-w-2xl text-base font-medium leading-relaxed sm:text-lg">
+            {detail.founderQuote}
+          </blockquote>
+          <div className="mt-6 flex flex-wrap items-center justify-center gap-x-4 gap-y-2">
+            {founder ? (
+              <>
                 <FounderLink
-                  handle={startup.founderHandle}
-                  className="block font-bold text-foreground"
+                  handle={founder.handle}
+                  className="inline-flex items-center gap-3 text-foreground"
                 >
-                  {startup.founderDisplayName ?? startup.founderHandle}
+                  <img
+                    src={founderAvatarUrl(founder.avatarSeed)}
+                    alt=""
+                    className="h-10 w-10 shrink-0 rounded-full border border-border bg-muted"
+                  />
+                  <span className="text-left font-bold">{founder.name}</span>
                 </FounderLink>
-                <div className="text-sm text-muted-foreground">
+                <div className="max-w-full text-center text-sm text-muted-foreground sm:text-left">
                   Founder of{" "}
                   <StartupLink
                     slug={startup.slug}
-                    className="text-muted-foreground"
+                    className="text-muted-foreground hover:text-foreground"
                   >
                     {startup.name}
                   </StartupLink>
                 </div>
+              </>
+            ) : (
+              <div className="flex items-center gap-3 text-left">
+                <img
+                  src={founderAvatarUrl(startup.founderHandle)}
+                  alt=""
+                  className="h-10 w-10 rounded-full border border-border bg-muted"
+                />
+                <div>
+                  <FounderLink
+                    handle={startup.founderHandle}
+                    className="block font-bold text-foreground"
+                  >
+                    {startup.founderDisplayName ?? startup.founderHandle}
+                  </FounderLink>
+                  <div className="text-sm text-muted-foreground">
+                    Founder of{" "}
+                    <StartupLink
+                      slug={startup.slug}
+                      className="text-muted-foreground"
+                    >
+                      {startup.name}
+                    </StartupLink>
+                  </div>
+                </div>
               </div>
-            </div>
-          )}
-        </div>
-      </section>
+            )}
+          </div>
+        </section>
+      ) : null}
 
       <Dialog open={contactOpen} onOpenChange={setContactOpen}>
         <DialogContent className="max-w-md border-border bg-card sm:rounded-xl">
@@ -1026,7 +1018,12 @@ export default function StartupDetail() {
           <ContactSellerForm
             listing={startup}
             startupName={startup.name}
-            onSent={async () => {
+            onSent={async (record) => {
+              if (currentUser?.id) {
+                await queryClient.invalidateQueries({
+                  queryKey: marketplaceKeys.inbox(currentUser.id),
+                });
+              }
               await Promise.all([
                 queryClient.invalidateQueries({
                   queryKey: ["marketplace-interests", startup.slug],
@@ -1036,10 +1033,23 @@ export default function StartupDetail() {
                 }),
               ]);
               setContactOpen(false);
-              toast({
-                title: "Interest expressed",
-                description: "The founder will be notified.",
-              });
+              if (record?.conversationId) {
+                setLocation(
+                  MARKETPLACE_ROUTES.buyerInboxConversation(
+                    record.conversationId,
+                  ),
+                );
+                toast({
+                  title: "Interest expressed",
+                  description: "You can keep chatting with the founder here.",
+                });
+              } else {
+                toast({
+                  title: "Interest expressed",
+                  description:
+                    "The founder will see your message in their inbox.",
+                });
+              }
             }}
           />
         </DialogContent>
@@ -1047,8 +1057,12 @@ export default function StartupDetail() {
     </div>,
     {
       title: startup.name,
-      description: startup.category,
-      headerActions: buyerHeaderActions,
+      description: deskDescription,
+      headerActions: inSellerApp
+        ? sellerHeaderActions
+        : inBuyerApp
+          ? buyerHeaderActions
+          : undefined,
     },
   );
 }
@@ -1157,19 +1171,11 @@ function VerificationSection({ listing }: { listing: MarketplaceListing }) {
 function FounderControlsSection({
   listing,
   interestRecords,
-  onVerificationUpdated,
-  onDomainVerify,
   onInterestStageUpdated,
   onSendFounderReply,
 }: {
   listing: MarketplaceListing;
   interestRecords: MarketplaceInterestRecord[];
-  onVerificationUpdated: (
-    kind: keyof MarketplaceListing["verification"],
-    status: MarketplaceListing["verification"][keyof MarketplaceListing["verification"]]["status"],
-    provider?: string | null,
-  ) => Promise<void>;
-  onDomainVerify: () => Promise<void>;
   onInterestStageUpdated: (
     record: MarketplaceInterestRecord,
     stage: MarketplaceInterestRecord["stage"],
@@ -1189,7 +1195,7 @@ function FounderControlsSection({
         <div>
           <h2 className="text-lg font-bold">Founder controls</h2>
           <p className="text-sm text-muted-foreground">
-            Mock-only verification and inbox tools for the listing owner.
+            Connect providers and manage verification for this listing.
           </p>
         </div>
         <div className="text-sm text-muted-foreground">
@@ -1199,56 +1205,10 @@ function FounderControlsSection({
           </span>
         </div>
       </div>
-      <div className="mt-4 grid grid-cols-1 gap-3 lg:grid-cols-3">
-        <FounderVerificationCard
-          title="Revenue verification"
-          description={`${listing.verification.revenue.note} Provider: ${listing.verification.revenue.provider ?? "none"}`}
-          actions={[
-            {
-              label: "Mark pending",
-              onClick: () =>
-                onVerificationUpdated(
-                  "revenue",
-                  "pending",
-                  listing.revenueProvider ?? "Stripe",
-                ),
-            },
-            {
-              label: "Verify",
-              onClick: () =>
-                onVerificationUpdated(
-                  "revenue",
-                  "verified",
-                  listing.revenueProvider ?? "Stripe",
-                ),
-            },
-          ]}
-        />
-        <FounderVerificationCard
-          title="Domain verification"
-          description={`Add this TXT record: ${listing.verification.domain.expectedValue ?? "n/a"}`}
-          actions={[{ label: "Verify TXT record", onClick: onDomainVerify }]}
-          helper="Why it matters: buyers trust that the founder actually controls the domain before moving off-platform."
-        />
-        <FounderVerificationCard
-          title="Traffic connection"
-          description={`${listing.verification.traffic.note} Source: ${listing.verification.traffic.sourceLabel ?? "Manual upload"}`}
-          actions={[
-            {
-              label: "Manual upload",
-              onClick: () =>
-                onVerificationUpdated("traffic", "verified", "Manual upload"),
-            },
-            {
-              label: "Connect GA",
-              onClick: () =>
-                onVerificationUpdated(
-                  "traffic",
-                  "verified",
-                  "Google Analytics",
-                ),
-            },
-          ]}
+      <div className="mt-4">
+        <StartupVerificationCenter
+          startupSlug={listing.slug}
+          variant="compact"
         />
       </div>
       <div className="mt-5 rounded-lg border border-border bg-muted/20 p-4">
@@ -1380,41 +1340,6 @@ function FounderControlsSection({
   );
 }
 
-function FounderVerificationCard({
-  title,
-  description,
-  actions,
-  helper,
-}: {
-  title: string;
-  description: string;
-  actions: { label: string; onClick: () => void | Promise<void> }[];
-  helper?: string;
-}) {
-  return (
-    <div className="rounded-lg border border-border bg-muted/20 p-4">
-      <div className="text-sm font-bold">{title}</div>
-      <p className="mt-1 text-sm text-muted-foreground">{description}</p>
-      {helper ? (
-        <p className="mt-2 text-xs text-muted-foreground">{helper}</p>
-      ) : null}
-      <div className="mt-3 flex flex-wrap gap-2">
-        {actions.map((action) => (
-          <Button
-            key={action.label}
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => void action.onClick()}
-          >
-            {action.label}
-          </Button>
-        ))}
-      </div>
-    </div>
-  );
-}
-
 function FounderChecklistRow({
   done,
   label,
@@ -1434,6 +1359,100 @@ function FounderChecklistRow({
   );
 }
 
+function ListingDetailMetricCards({
+  detail,
+  mrrShown,
+  foundedLabel,
+  founder,
+  startup,
+}: {
+  detail: StartupDetailRich;
+  mrrShown: number;
+  foundedLabel: string;
+  founder: Founder | undefined;
+  startup: MarketplaceListing;
+}) {
+  const mrrLabel = detail.revenueVerified ? "MRR (verified)" : "MRR";
+  return (
+    <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4 lg:gap-4">
+      {detail.allTimeRevenue != null ? (
+        <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
+          <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            All-time revenue
+          </div>
+          <div className="mt-2 text-2xl font-bold tabular-nums">
+            {formatCurrency(detail.allTimeRevenue)}
+          </div>
+          {detail.leaderboardRank != null ? (
+            <p className="mt-1 text-xs text-muted-foreground">
+              Ranked #{detail.leaderboardRank} on Ownerr
+            </p>
+          ) : null}
+        </div>
+      ) : null}
+      <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
+        <div className="flex items-center justify-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          {mrrLabel}
+          <Info
+            className="h-3.5 w-3.5 shrink-0 text-muted-foreground/80"
+            aria-hidden
+          />
+        </div>
+        <div className="mt-2 text-2xl font-bold tabular-nums">
+          {mrrShown > 0 ? formatCurrency(mrrShown) : "—"}
+        </div>
+        {detail.activeSubscriptions != null ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            {detail.activeSubscriptions.toLocaleString("en-US")} active
+            subscriptions
+          </p>
+        ) : detail.revenueVerified && mrrShown > 0 ? (
+          <p className="mt-1 text-xs text-muted-foreground">
+            From verified revenue provider
+          </p>
+        ) : null}
+      </div>
+      <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Founder
+        </div>
+        <div className="mt-3 flex min-w-0 flex-col items-center gap-2">
+          {founder ? (
+            <FounderLink
+              handle={founder.handle}
+              className="flex min-w-0 flex-col items-center gap-2 font-bold text-foreground sm:flex-row"
+            >
+              <img
+                src={founderAvatarUrl(founder.avatarSeed)}
+                alt=""
+                className="h-11 w-11 shrink-0 rounded-full border border-border bg-muted"
+              />
+              <span className="max-w-full truncate text-center sm:text-left">
+                {founder.name}
+              </span>
+            </FounderLink>
+          ) : (
+            <FounderLink
+              handle={startup.founderHandle}
+              className="block max-w-full truncate font-bold text-foreground"
+            >
+              {startup.founderDisplayName ?? startup.founderHandle}
+            </FounderLink>
+          )}
+        </div>
+      </div>
+      <div className="rounded-xl border border-border bg-card p-4 text-center sm:p-5">
+        <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          Founded
+        </div>
+        <div className="mt-2 text-2xl font-bold tabular-nums">
+          {foundedLabel}
+        </div>
+      </div>
+    </div>
+  );
+}
+
 function InsightBlock({
   icon,
   label,
@@ -1441,8 +1460,9 @@ function InsightBlock({
 }: {
   icon: ReactNode;
   label: string;
-  body: string;
+  body: string | null;
 }) {
+  if (!body?.trim()) return null;
   return (
     <div>
       <div className="mb-2 flex items-center gap-2 text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
@@ -1461,23 +1481,27 @@ function ContactSellerForm({
 }: {
   listing: MarketplaceListing;
   startupName: string;
-  onSent: () => void | Promise<void>;
+  onSent: (record: MarketplaceInterestRecord) => void | Promise<void>;
 }) {
   const { currentUser } = useAuth();
   const { toast } = useToast();
-  const [name, setName] = useState("John Doe");
-  const [email, setEmail] = useState("john@example.com");
-  const [message, setMessage] = useState(
-    "Can you share more about your growth and churn?",
-  );
-  const [offer, setOffer] = useState("10000");
+  const [name, setName] = useState("");
+  const [email, setEmail] = useState("");
+  const [message, setMessage] = useState("");
+  const [offer, setOffer] = useState("");
+
+  useEffect(() => {
+    if (!currentUser) return;
+    setName((prev) => prev || currentUser.name || "");
+    setEmail((prev) => prev || currentUser.email || "");
+  }, [currentUser]);
 
   async function submit(e: FormEvent) {
     e.preventDefault();
     if (!currentUser) return;
     if (message.trim().length < 20) return;
     try {
-      await submitMarketplaceInterest({
+      const record = await submitMarketplaceInterest({
         listingId: listing.slug,
         buyerUserId: currentUser.id,
         buyerName: name.trim() || currentUser.name,
@@ -1488,7 +1512,7 @@ function ContactSellerForm({
           ? Number(offer.replace(/[^0-9.]/g, ""))
           : null,
       });
-      await onSent();
+      await onSent(record);
     } catch (error) {
       toast({
         title: "Could not send interest",

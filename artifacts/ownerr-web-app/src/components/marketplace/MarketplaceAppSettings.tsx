@@ -27,7 +27,7 @@ const SELLER_LINKS = [
   { href: MARKETPLACE_ROUTES.sellerDashboard, label: "Overview" },
   { href: MARKETPLACE_ROUTES.sellerListings, label: "My listings" },
   { href: MARKETPLACE_ROUTES.sellerInbox, label: "Inbox" },
-  { href: MARKETPLACE_ROUTES.sellerVerification, label: "Verification" },
+  { href: MARKETPLACE_ROUTES.sellerCompanies, label: "Companies" },
 ];
 
 export function MarketplaceAppSettings() {
@@ -86,8 +86,8 @@ export function MarketplaceAppSettings() {
               Switch desk
             </p>
             <p className="mt-1 text-sm text-muted-foreground">
-              Open the {otherDesk} app with the matching demo account when
-              enabled.
+              Use the same account as buyer and seller — we will create a desk
+              profile if you do not have one yet.
             </p>
             <Button
               type="button"

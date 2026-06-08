@@ -43,20 +43,12 @@ export async function provisionOwnerrNetworkUser(
 ): Promise<OwnerrNetworkUser> {
   const supabase = getSupabase();
   await ensureNetworkTablesDetected(supabase);
-  let { data, error } = await supabase.rpc("ownerr_network_provision_user", {
+  const { data, error } = await supabase.rpc("ownerr_network_provision_user", {
     p_name: name,
     p_referral_code_input: referralCode,
     p_signup_source: signupSource ?? null,
     p_device_info: collectDeviceInfo(),
   });
-  if (error && isMissingRpcOrTable(error)) {
-    ({ data, error } = await supabase.rpc("unemployed_provision_user", {
-      p_name: name,
-      p_referral_code_input: referralCode,
-      p_signup_source: signupSource ?? null,
-      p_device_info: collectDeviceInfo(),
-    }));
-  }
   if (error) {
     if (error.code === "23505") {
       const existing = await fetchCurrentOwnerrNetworkUser();
@@ -97,10 +89,7 @@ async function fetchCurrentOwnerrNetworkUserFromTable(): Promise<OwnerrNetworkUs
 export async function fetchCurrentOwnerrNetworkUser(): Promise<OwnerrNetworkUser | null> {
   const supabase = getSupabase();
   await ensureNetworkTablesDetected(supabase);
-  let { data, error } = await supabase.rpc("ownerr_network_current_user_row");
-  if (error && isMissingRpcOrTable(error)) {
-    ({ data, error } = await supabase.rpc("unemployed_current_user_row"));
-  }
+  const { data, error } = await supabase.rpc("ownerr_network_current_user_row");
   if (!error && data) {
     const normalized = normalizeOwnerrNetworkUserRow(data);
     if (
@@ -131,7 +120,7 @@ export async function completeOnboarding(
     username,
     skills: answers.skills ? [answers.skills] : [],
   };
-  let { data, error } = await supabase.rpc(
+  const { data, error } = await supabase.rpc(
     "ownerr_network_complete_onboarding",
     {
       p_name: name,
@@ -139,11 +128,6 @@ export async function completeOnboarding(
       p_answers: payload,
     },
   );
-  if (error && isMissingRpcOrTable(error)) {
-    ({ data, error } = await supabase.rpc("unemployed_complete_mcq", {
-      p_answers: payload,
-    }));
-  }
   if (error) throw error;
   return normalizeOwnerrNetworkUserRow(data) as OwnerrNetworkUser;
 }

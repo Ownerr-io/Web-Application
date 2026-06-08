@@ -1,11 +1,13 @@
 import { useMemo } from "react";
-import { useQuery } from "@tanstack/react-query";
-import { fetchMarketplaceListings } from "@/lib/marketplace/service";
+import { Link } from "wouter";
 import type { DealRelationshipStage } from "@/lib/marketplace/types";
-import { useMyBids } from "@/hooks/marketplace/useBids";
+import { useBuyerOffers } from "@/hooks/marketplace/useOffers";
 import { useMyInterests } from "@/hooks/marketplace/useInterests";
 import { Skeleton } from "@/components/ui/skeleton";
 import { formatCurrency } from "@/lib/utils";
+import { offerStatusLabel } from "@/lib/marketplace/offerStatusUi";
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
+import { BuyerOfferActivityFeed } from "@/components/marketplace/BuyerOfferActivityFeed";
 import {
   MarketplaceDeskKpiCard,
   MarketplaceDeskListItem,
@@ -17,18 +19,16 @@ import {
 
 export default function BuyerDashboard() {
   const { data: interests, isLoading: isLoadingInterests } = useMyInterests();
-  const { data: bids, isLoading: isLoadingBids } = useMyBids();
+  const { data: offers = [], isLoading: isLoadingOffers } = useBuyerOffers();
 
-  const { data: listings } = useQuery({
-    queryKey: ["buyer-overview-listings"],
-    queryFn: () => fetchMarketplaceListings(),
-  });
-  const listingBySlug = new Map(
-    (listings ?? []).map((listing) => [listing.slug, listing] as const),
-  );
   const safeInterests = useMemo(() => interests ?? [], [interests]);
-  const safeBids = bids ?? [];
-  const recent = [...safeInterests].slice(0, 4);
+  const recentOffers = useMemo(
+    () =>
+      [...offers]
+        .sort((a, b) => b.updatedAt.localeCompare(a.updatedAt))
+        .slice(0, 4),
+    [offers],
+  );
   const stageCounts: Record<DealRelationshipStage, number> = {
     interested: 0,
     contacted: 0,
@@ -42,12 +42,17 @@ export default function BuyerDashboard() {
     () => new Set(safeInterests.map((i) => i.listingId)).size,
     [safeInterests],
   );
-  const totalOfferValue = safeBids.reduce((sum, row) => sum + row.amount, 0);
-  const activeBidCount = safeBids.filter(
+  const totalOfferValue = offers.reduce((sum, row) => sum + row.amount, 0);
+  const activeBidCount = offers.filter(
     (b) =>
       b.status !== "withdrawn" &&
+      b.status !== "declined" &&
       b.status !== "rejected" &&
-      b.status !== "accepted",
+      b.status !== "accepted" &&
+      b.status !== "closed",
+  ).length;
+  const needsActionCount = offers.filter(
+    (b) => b.status === "countered" && b.lastActorRole === "seller",
   ).length;
 
   return (
@@ -69,8 +74,8 @@ export default function BuyerDashboard() {
             </>
           )}
         </MarketplaceDeskKpiCard>
-        <MarketplaceDeskKpiCard title="Active bids">
-          {isLoadingBids ? (
+        <MarketplaceDeskKpiCard title="Active offers">
+          {isLoadingOffers ? (
             <Skeleton className="h-8 w-1/2" />
           ) : (
             <>
@@ -80,8 +85,21 @@ export default function BuyerDashboard() {
                 {activeBidCount}
               </div>
               <p className="text-xs text-muted-foreground">
-                {safeBids.length} total · {formatCurrency(totalOfferValue)}{" "}
+                {offers.length} total · {formatCurrency(totalOfferValue)}{" "}
                 offered
+                {needsActionCount > 0 ? (
+                  <>
+                    {" "}
+                    ·{" "}
+                    <Link
+                      href={MARKETPLACE_ROUTES.buyerOffers}
+                      className="text-brand-orange"
+                    >
+                      {needsActionCount} need{needsActionCount === 1 ? "s" : ""}{" "}
+                      action
+                    </Link>
+                  </>
+                ) : null}
               </p>
             </>
           )}
@@ -103,30 +121,40 @@ export default function BuyerDashboard() {
           )}
         </MarketplaceDeskKpiCard>
       </div>
-      <MarketplaceDeskPanel title="Recent activity">
-        {isLoadingInterests ? (
+      <MarketplaceDeskPanel title="Offer status (seller responses)">
+        {isLoadingOffers ? (
           <p className="text-sm text-muted-foreground">Loading…</p>
-        ) : recent.length === 0 ? (
+        ) : recentOffers.length === 0 ? (
           <p className="text-sm text-muted-foreground">
-            No interests yet. Browse listings to get started.
+            No offers yet.{" "}
+            <Link
+              href={MARKETPLACE_ROUTES.buyerOffers}
+              className="text-brand-lime hover:underline"
+            >
+              My offers
+            </Link>
           </p>
         ) : (
           <div className="space-y-2">
-            {recent.map((item) => (
-              <MarketplaceDeskListItem key={item.id}>
-                <p className="font-medium">
-                  {listingBySlug.get(item.listingId)?.name ?? item.listingId}
-                </p>
+            {recentOffers.map((offer) => (
+              <MarketplaceDeskListItem key={offer.id}>
+                <Link href={MARKETPLACE_ROUTES.buyerOffers}>
+                  <p className="font-medium hover:underline">
+                    {offer.startupTitle}
+                  </p>
+                </Link>
                 <p className="text-xs text-muted-foreground">
-                  {item.offerAmount
-                    ? `Offer · ${formatCurrency(item.offerAmount)}`
-                    : "Interest expressed"}{" "}
-                  · {new Date(item.updatedAt).toLocaleDateString()}
+                  {formatCurrency(offer.amount)} ·{" "}
+                  {offerStatusLabel(offer.status)} ·{" "}
+                  {new Date(offer.updatedAt).toLocaleDateString()}
                 </p>
               </MarketplaceDeskListItem>
             ))}
           </div>
         )}
+      </MarketplaceDeskPanel>
+      <MarketplaceDeskPanel title="Recent seller activity">
+        <BuyerOfferActivityFeed />
       </MarketplaceDeskPanel>
       <MarketplaceDeskPanel title="Pipeline snapshot">
         <MarketplaceDeskStatGrid>

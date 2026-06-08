@@ -23,6 +23,8 @@ export interface Startup {
   multiple?: number;
   forSale: boolean;
   founderHandle: string;
+  /** Supabase auth user id when loaded from DB (for ownership checks). */
+  founderUserId?: string | null;
   founderDisplayName?: string;
   listingUsername?: string;
   description: string;
@@ -40,8 +42,14 @@ export interface Startup {
   lendScore: number;
   acquisitionPower: number;
   revenueVerified: boolean;
-  revenueProvider: "Stripe" | "RevenueCat" | null;
+  revenueProvider: string | null;
   domainVerified: boolean;
+  /** Public company site (verified domain or metadata); used for Visit links. */
+  companyWebsiteUrl?: string | null;
+  listingCreatedAt?: string | null;
+  listingUpdatedAt?: string | null;
+  /** Raw metadata from DB (seller intake, listing fields). */
+  metadata?: Record<string, unknown>;
   trafficVerified: boolean;
   trafficMonthlyVisitors: number | null;
   trafficTrend: "up" | "down" | "flat" | null;
@@ -126,10 +134,24 @@ export type BidStatus =
   | "draft"
   | "submitted"
   | "under_review"
+  | "countered"
   | "accepted"
   | "rejected"
+  | "declined"
   | "withdrawn"
-  | "expired";
+  | "expired"
+  | "superseded"
+  | "closed_due_to_accepted_offer"
+  | "due_diligence"
+  | "closed";
+
+export type AcquisitionStage =
+  | "accepted"
+  | "due_diligence"
+  | "legal_review"
+  | "asset_transfer"
+  | "payment_pending"
+  | "closed";
 
 export type MarketplaceBid = {
   id: string;
@@ -142,8 +164,62 @@ export type MarketplaceBid = {
   currency: string;
   status: BidStatus;
   message: string | null;
+  proofOfFunds?: string | null;
+  expiresAt?: string | null;
+  conversationId?: string | null;
+  acquisitionStage?: AcquisitionStage | null;
+  lastActorRole?: "buyer" | "seller" | null;
+  acceptedAt?: string | null;
   createdAt: string;
   updatedAt: string;
+};
+
+export type BidVersion = {
+  versionNumber: number;
+  actorRole: "buyer" | "seller" | "system";
+  actorUserId: string | null;
+  amount: number;
+  currency: string;
+  message: string | null;
+  proofOfFunds: string | null;
+  createdAt: string;
+};
+
+export type BuyerOfferRow = MarketplaceBid & {
+  startupTitle: string;
+  trustScore: number | null;
+  listingLifecycle: string;
+  offersOpen: boolean;
+};
+
+export type SellerOfferRow = {
+  id: string;
+  buyerName: string;
+  buyerAuthUserId: string;
+  amount: number;
+  currency: string;
+  status: BidStatus;
+  message: string | null;
+  proofOfFunds: string | null;
+  expiresAt: string | null;
+  conversationId: string | null;
+  acquisitionStage: AcquisitionStage | null;
+  lastActorRole: string | null;
+  createdAt: string;
+  updatedAt: string;
+  acceptedAt: string | null;
+};
+
+export type SellerOfferStartupGroup = {
+  startupId: string;
+  startupSlug: string;
+  startupTitle: string;
+  listingLifecycle: string;
+  offersOpen: boolean;
+  offerCount: number;
+  highestOffer: number | null;
+  latestActivity: string;
+  offers: SellerOfferRow[];
 };
 
 export type InboxThread = {
@@ -155,6 +231,8 @@ export type InboxThread = {
   lastMessage: string;
   updatedAt: string;
   unreadCount: number;
+  /** open = messaging allowed; closed = read-only (e.g. after offer declined). */
+  status: "open" | "closed" | "archived";
 };
 
 export type ConversationMessage = {
@@ -200,6 +278,10 @@ export type MarketplaceInterestRecord = {
   updatedAt: string;
   stage: DealRelationshipStage;
   messages: MarketplaceThreadMessage[];
+  /** Latest structured offer status from bids, when present. */
+  offerBidStatus?: BidStatus | null;
+  /** Set when interest syncs to conversations/messages for inbox. */
+  conversationId?: string;
 };
 
 export type MarketplaceListing = Startup & {
@@ -239,6 +321,7 @@ export type StartupRow = {
   verified: boolean;
   visibility: string;
   status: string;
+  listing_lifecycle?: string;
   metadata: Record<string, unknown>;
   created_at: string;
   updated_at: string;

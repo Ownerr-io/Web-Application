@@ -2,13 +2,13 @@ import type { User } from "@supabase/supabase-js";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { MarketplaceError, mapSupabaseError } from "@/lib/marketplace/errors";
 import {
-  ensureBuyerProfile,
   getBuyerProfileId,
+  getMarketplaceProfileIdsForUser,
 } from "@/lib/marketplace/profiles";
 import type { BidStatus, MarketplaceBid } from "@/lib/marketplace/types";
+import { SchemaTables as T } from "@/lib/supabase/schemaTables";
 
-const BID_COLUMNS =
-  "id, startup_id, buyer_profile_id, amount, currency, status, message, created_at, updated_at, startups(slug), marketplace_profiles(auth_user_id, metadata)";
+const BID_COLUMNS = `id, startup_id, buyer_profile_id, amount, currency, status, message, created_at, updated_at, ${T.marketplace.companies}(slug), ${T.marketplace.accounts}(auth_user_id, metadata)`;
 
 type BidRow = {
   id: string;
@@ -20,8 +20,8 @@ type BidRow = {
   message: string | null;
   created_at: string;
   updated_at: string;
-  startups: { slug: string } | { slug: string }[] | null;
-  marketplace_profiles:
+  marketplace_companies: { slug: string } | { slug: string }[] | null;
+  marketplace_accounts:
     | { auth_user_id: string; metadata: Record<string, unknown> }
     | { auth_user_id: string; metadata: Record<string, unknown> }[]
     | null;
@@ -30,14 +30,14 @@ type BidRow = {
 function profileFrom(
   row: BidRow,
 ): { auth_user_id: string; metadata: Record<string, unknown> } | null {
-  const p = row.marketplace_profiles;
+  const p = row.marketplace_accounts;
   if (!p) return null;
   if (Array.isArray(p)) return p[0] ?? null;
   return p;
 }
 
 function slugFrom(row: BidRow): string {
-  const s = row.startups;
+  const s = row.marketplace_companies;
   if (Array.isArray(s)) return s[0]?.slug ?? "";
   return s?.slug ?? "";
 }
@@ -54,7 +54,7 @@ function mapBid(row: BidRow): MarketplaceBid {
     buyerDisplayName: (meta.display_name as string) ?? "Buyer",
     amount: Number(row.amount),
     currency: row.currency,
-    status: row.status,
+    status: row.status === "rejected" ? "declined" : row.status,
     message: row.message,
     createdAt: row.created_at,
     updatedAt: row.updated_at,
@@ -69,7 +69,7 @@ function requireSupabase() {
 
 async function startupIdForSlug(slug: string): Promise<string> {
   const { data, error } = await requireSupabase()
-    .from("startups")
+    .from(T.marketplace.companies)
     .select("id")
     .eq("slug", slug)
     .maybeSingle();
@@ -83,7 +83,7 @@ export async function listBidsForStartupSlug(
 ): Promise<MarketplaceBid[]> {
   const startupId = await startupIdForSlug(slug);
   const { data, error } = await requireSupabase()
-    .from("bids")
+    .from(T.marketplace.offers)
     .select(BID_COLUMNS)
     .eq("startup_id", startupId)
     .order("amount", { ascending: false });
@@ -94,12 +94,14 @@ export async function listBidsForStartupSlug(
 export async function listBidsForBuyer(
   authUserId: string,
 ): Promise<MarketplaceBid[]> {
-  const profileId = await getBuyerProfileId(authUserId);
-  if (!profileId) return [];
+  const profileIds = await getMarketplaceProfileIdsForUser(authUserId);
+  const buyerOnly = await getBuyerProfileId(authUserId);
+  const ids = profileIds.length ? profileIds : buyerOnly ? [buyerOnly] : [];
+  if (!ids.length) return [];
   const { data, error } = await requireSupabase()
-    .from("bids")
+    .from(T.marketplace.offers)
     .select(BID_COLUMNS)
-    .eq("buyer_profile_id", profileId)
+    .in("buyer_profile_id", ids)
     .order("updated_at", { ascending: false });
   if (error) throw mapSupabaseError(error);
   return (data ?? []).map((r) => mapBid(r as unknown as BidRow));
@@ -112,23 +114,33 @@ export async function createBid(input: {
   message?: string | null;
   status?: BidStatus;
 }): Promise<MarketplaceBid> {
-  const profile = await ensureBuyerProfile(input.user);
-  const startupId = await startupIdForSlug(input.startupSlug);
-  const status = input.status ?? "submitted";
-  const { data, error } = await requireSupabase()
-    .from("bids")
-    .insert({
-      startup_id: startupId,
-      buyer_profile_id: profile.id,
-      amount: input.amount,
-      currency: "USD",
-      status,
-      message: input.message ?? null,
-    })
-    .select(BID_COLUMNS)
-    .single();
-  if (error) throw mapSupabaseError(error);
-  return mapBid(data as unknown as BidRow);
+  const { submitOffer, fetchBidDetail } =
+    await import("@/lib/marketplace/offerService");
+  const bidId = await submitOffer({
+    user: input.user,
+    startupSlug: input.startupSlug,
+    amount: input.amount,
+    message: input.message,
+  });
+  const detail = await fetchBidDetail(bidId);
+  if (!detail?.bid) {
+    throw new MarketplaceError("Offer created but detail missing", "unknown");
+  }
+  const b = detail.bid;
+  return {
+    id: String(b.id),
+    startupId: String(b.startupId ?? b.startup_id ?? ""),
+    startupSlug: input.startupSlug,
+    buyerProfileId: String(b.buyerProfileId ?? b.buyer_profile_id ?? ""),
+    buyerAuthUserId: input.user.id,
+    buyerDisplayName: "Buyer",
+    amount: Number(b.amount),
+    currency: String(b.currency ?? "USD"),
+    status: (b.status === "rejected" ? "declined" : b.status) as BidStatus,
+    message: b.message != null ? String(b.message) : null,
+    createdAt: String(b.createdAt ?? b.created_at ?? new Date().toISOString()),
+    updatedAt: String(b.updatedAt ?? b.updated_at ?? new Date().toISOString()),
+  };
 }
 
 export async function updateBidStatus(input: {
@@ -136,15 +148,30 @@ export async function updateBidStatus(input: {
   status: BidStatus;
   asAuthUserId: string;
 }): Promise<MarketplaceBid> {
-  const { data, error } = await requireSupabase()
-    .from("bids")
-    .update({ status: input.status, updated_at: new Date().toISOString() })
-    .eq("id", input.bidId)
-    .select(BID_COLUMNS)
-    .single();
-  if (error) throw mapSupabaseError(error);
-  void input.asAuthUserId;
-  return mapBid(data as unknown as BidRow);
+  const { declineOffer, withdrawOffer, acceptOffer, fetchBidDetail } =
+    await import("@/lib/marketplace/offerService");
+  if (input.status === "declined") await declineOffer(input.bidId);
+  else if (input.status === "withdrawn") await withdrawOffer(input.bidId);
+  else if (input.status === "accepted") await acceptOffer(input.bidId);
+  else
+    throw new MarketplaceError("Use offer RPCs for this status", "validation");
+  const detail = await fetchBidDetail(input.bidId);
+  if (!detail?.bid) throw new MarketplaceError("Offer not found", "not_found");
+  const b = detail.bid;
+  return {
+    id: input.bidId,
+    startupId: String(b.startupId ?? ""),
+    startupSlug: String(b.startupSlug ?? ""),
+    buyerProfileId: "",
+    buyerAuthUserId: input.asAuthUserId,
+    buyerDisplayName: "Buyer",
+    amount: Number(b.amount),
+    currency: String(b.currency ?? "USD"),
+    status: input.status,
+    message: b.message != null ? String(b.message) : null,
+    createdAt: String(b.createdAt ?? ""),
+    updatedAt: String(b.updatedAt ?? ""),
+  };
 }
 
 export function highestActiveBidAmount(bids: MarketplaceBid[]): number | null {

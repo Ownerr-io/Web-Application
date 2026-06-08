@@ -1,5 +1,6 @@
 import type { ReactNode } from "react";
 import { OWNERR_OS_APP_CONTENT_CLASS } from "@/lib/ownerrOsAppLayout";
+import { AUTH_APP_PAGE_ROOT } from "@/lib/appDeskLayout";
 import { BrandAppPageShell } from "@/components/brand/BrandAppPageShell";
 import { cn } from "@/lib/utils";
 
@@ -19,7 +20,11 @@ export function OwnerrOsAppPageShell({
 }: Props) {
   return (
     <div
-      className={cn(OWNERR_OS_APP_CONTENT_CLASS, "ownerr-os-app-page w-full")}
+      className={cn(
+        OWNERR_OS_APP_CONTENT_CLASS,
+        AUTH_APP_PAGE_ROOT,
+        "ownerr-os-app-page w-full",
+      )}
     >
       <BrandAppPageShell
         kicker={kicker}

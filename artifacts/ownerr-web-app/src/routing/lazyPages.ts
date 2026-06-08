@@ -38,6 +38,12 @@ export const LazyMarketplaceAdminListingsPage = lazy(
 export const LazyMarketplaceAdminSubmissionsPage = lazy(
   () => import("@/pages/admin/marketplace/submissions"),
 );
+export const LazyMarketplaceAdminVerificationPage = lazy(
+  () => import("@/pages/admin/marketplace/verification"),
+);
+export const LazyMarketplaceAdminOffersPage = lazy(
+  () => import("@/pages/admin/marketplace/offers"),
+);
 
 export const LazyOwnerrOsAdminDashboard = lazy(
   () => import("@/pages/admin/ownerr-os/dashboard"),

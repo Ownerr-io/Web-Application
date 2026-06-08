@@ -11,9 +11,11 @@ const ALL = [
   DEMO_MARKETPLACE_SELLER_EMAIL,
 ] as const;
 
-/** Optional UI hints in local/QA (does not supply credentials). */
+/** Optional UI hints in local dev only (does not supply credentials). */
 export function showDemoAccountHints(): boolean {
-  return import.meta.env.VITE_ENABLE_DEMO_USERS === "true";
+  return (
+    import.meta.env.DEV && import.meta.env.VITE_ENABLE_DEMO_USERS === "true"
+  );
 }
 
 export function isDemoAccountEmail(email: string | null | undefined): boolean {

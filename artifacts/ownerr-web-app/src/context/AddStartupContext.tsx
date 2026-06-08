@@ -1,14 +1,8 @@
-import React, {
-  createContext,
-  useCallback,
-  useContext,
-  useMemo,
-  useState,
-} from "react";
+import React, { createContext, useCallback, useContext, useMemo } from "react";
+import { useLocation } from "wouter";
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
 
 type Ctx = {
-  addOpen: boolean;
-  setAddOpen: (open: boolean) => void;
   openAddStartup: () => void;
 };
 
@@ -19,13 +13,13 @@ export function AddStartupProvider({
 }: {
   children: React.ReactNode;
 }) {
-  const [addOpen, setAddOpen] = useState(false);
-  const openAddStartup = useCallback(() => setAddOpen(true), []);
+  const [, setLocation] = useLocation();
 
-  const value = useMemo(
-    () => ({ addOpen, setAddOpen, openAddStartup }),
-    [addOpen, openAddStartup],
-  );
+  const openAddStartup = useCallback(() => {
+    setLocation(MARKETPLACE_ROUTES.sellerCompanyNew);
+  }, [setLocation]);
+
+  const value = useMemo(() => ({ openAddStartup }), [openAddStartup]);
 
   return (
     <AddStartupContext.Provider value={value}>

@@ -40,6 +40,7 @@ export const ADMIN_APPS: AdminAppConfig[] = [
       { label: "Buyers", path: "/admin/marketplace/buyers" },
       { label: "Sellers", path: "/admin/marketplace/sellers" },
       { label: "Listings", path: "/admin/marketplace/listings" },
+      { label: "Verification", path: "/admin/marketplace/verification" },
       { label: "Submissions", path: "/admin/marketplace/submissions" },
     ],
   },

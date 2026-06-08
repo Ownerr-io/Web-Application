@@ -16,7 +16,12 @@ export function isMarketplaceBuyerAppPath(pathname: string): boolean {
   return pathname.startsWith(`${MARKETPLACE_ROUTES.buyer}/`);
 }
 
-/** Public acquire page vs in-app buyer listing detail. */
+/** True when the user is in the authenticated seller desk. */
+export function isMarketplaceSellerAppPath(pathname: string): boolean {
+  return pathname.startsWith(`${MARKETPLACE_ROUTES.seller}/`);
+}
+
+/** Public acquire page vs in-app buyer/seller listing detail. */
 export function marketplaceStartupPath(
   slug: string,
   pathname?: string,
@@ -25,6 +30,9 @@ export function marketplaceStartupPath(
     pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
   if (isMarketplaceBuyerAppPath(loc)) {
     return MARKETPLACE_ROUTES.buyerStartup(slug);
+  }
+  if (isMarketplaceSellerAppPath(loc)) {
+    return MARKETPLACE_ROUTES.sellerStartup(slug);
   }
   return MARKETPLACE_ROUTES.startup(slug);
 }
@@ -38,7 +46,23 @@ export function marketplaceFounderPath(
   if (isMarketplaceBuyerAppPath(loc)) {
     return MARKETPLACE_ROUTES.buyerFounder(handle);
   }
+  if (isMarketplaceSellerAppPath(loc)) {
+    return MARKETPLACE_ROUTES.sellerProfile;
+  }
   return MARKETPLACE_ROUTES.founder(handle);
+}
+
+/** Seller desk: full listing detail for a company the seller owns. */
+export function marketplaceSellerListingPath(slug: string): string {
+  return MARKETPLACE_ROUTES.sellerStartup(slug);
+}
+
+export function marketplaceSellerVerificationPath(slug: string): string {
+  return `${MARKETPLACE_ROUTES.sellerCompanyDetail(slug)}?tab=verification`;
+}
+
+export function marketplaceSellerCompanyPath(slug: string): string {
+  return MARKETPLACE_ROUTES.sellerCompanyDetail(slug);
 }
 
 /** Browse hub for marketplace desk vs public marketing acquire. */
@@ -47,6 +71,9 @@ export function marketplaceBrowsePath(pathname?: string): string {
     pathname ?? (typeof window !== "undefined" ? window.location.pathname : "");
   if (isMarketplaceBuyerAppPath(loc)) {
     return MARKETPLACE_ROUTES.buyerBrowse;
+  }
+  if (isMarketplaceSellerAppPath(loc)) {
+    return MARKETPLACE_ROUTES.sellerListings;
   }
   return MARKETPLACE_ROUTES.acquire;
 }

@@ -1501,11 +1501,41 @@
 }
 
 .desk-app-shell {
-  min-height: 100vh;
+  min-height: 100dvh;
   background-color: var(--terminal-bg);
   color: var(--terminal-fg);
   font-size: var(--terminal-body-size);
   line-height: 1.55;
+}
+
+.desk-app-shell .brand-app-page {
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+}
+
+.desk-app-shell .brand-app-page img,
+.desk-app-shell .brand-app-page video {
+  max-width: 100%;
+  height: auto;
+}
+
+.desk-app-shell main[data-scroll-reset] {
+  -webkit-overflow-scrolling: touch;
+  overscroll-behavior-y: contain;
+}
+
+/* Desk apps scroll inside <main>, not the document (mobile bottom nav layout). */
+html:has(.desk-app-shell),
+html:has(.desk-app-shell) body {
+  height: 100%;
+  overflow: hidden;
+}
+
+#root:has(.desk-app-shell) {
+  height: 100%;
+  min-height: 0;
+  overflow: hidden;
 }
 
 .admin-app-shell {

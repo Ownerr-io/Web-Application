@@ -92,7 +92,7 @@ export function AcquireBidPanel({
           size={compact ? "sm" : "default"}
           disabled={createBid.isPending}
         >
-          {createBid.isPending ? "Submitting…" : "Place bid"}
+          {createBid.isPending ? "Submitting…" : "Submit offer"}
         </Button>
       </div>
       {!compact ? (

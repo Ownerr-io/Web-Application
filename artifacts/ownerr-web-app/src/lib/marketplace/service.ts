@@ -3,9 +3,10 @@ import type { User } from "@supabase/supabase-js";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import {
   fetchPublicStartups,
-  fetchStartupBySlug,
+  fetchStartupBySlugWithAccess,
+  fetchStartupsForSlugs,
 } from "@/lib/marketplace/catalog";
-import { buildMarketplaceListingFromStartup } from "@/lib/marketplace/listingModel";
+import { enrichListingWithIntelligence } from "@/lib/marketplace/enrichListing";
 import {
   ensureMarketplaceProfile,
   fetchMarketplaceProfilesForUser,
@@ -26,6 +27,10 @@ import type {
   MarketplaceListing,
   VerificationStatus,
 } from "@/lib/marketplace/types";
+import { SchemaTables as T } from "@/lib/supabase/schemaTables";
+
+const MC = T.marketplace.companies;
+const MSell = T.marketplace.sellerPublications;
 
 export {
   buildMarketplaceListingFromStartup,
@@ -52,56 +57,25 @@ export async function fetchMarketplaceListings(): Promise<
   MarketplaceListing[]
 > {
   const startups = await fetchPublicStartups();
-  return startups.map((s) => buildMarketplaceListingFromStartup(s));
+  return Promise.all(startups.map((s) => enrichListingWithIntelligence(s)));
 }
 
 export async function fetchMarketplaceListingBySlug(
   slug: string,
 ): Promise<MarketplaceListing | null> {
-  const startup = await fetchStartupBySlug(slug);
+  const startup = await fetchStartupBySlugWithAccess(slug);
   if (!startup) return null;
-  return buildMarketplaceListingFromStartup(startup);
+  return enrichListingWithIntelligence(startup, {
+    ownerUserId: startup.founderUserId ?? undefined,
+  });
 }
 
 export async function upsertMarketplaceListing(
   listing: MarketplaceListing,
 ): Promise<MarketplaceListing> {
-  if (!isSupabaseConfigured()) throw new Error("Supabase is not configured");
-  const enriched = buildMarketplaceListingFromStartup(listing, {
-    ...listing,
-    updatedAt: new Date().toISOString(),
-  });
-  const { error } = await getSupabase()
-    .from("startups")
-    .update({
-      title: enriched.name,
-      description: enriched.description,
-      industry: enriched.category,
-      asking_price: enriched.price ?? null,
-      annual_revenue: enriched.revenue * 12,
-      profit: enriched.ttmProfit ?? null,
-      growth_rate: enriched.momGrowth,
-      team_size: enriched.customers,
-      founded_year: enriched.foundedYear,
-      verified: enriched.revenueVerified,
-      metadata: {
-        monthly_revenue_series: enriched.monthlyRevenueSeries,
-        logo_color: enriched.logoColor,
-        business_score: enriched.businessScore,
-        lend_score: enriched.lendScore,
-        acquisition_power: enriched.acquisitionPower,
-        revenue_verified: enriched.revenueVerified,
-        revenue_provider: enriched.revenueProvider,
-        domain_verified: enriched.domainVerified,
-        traffic_verified: enriched.trafficVerified,
-        traffic_monthly_visitors: enriched.trafficMonthlyVisitors,
-        traffic_trend: enriched.trafficTrend,
-      },
-      updated_at: new Date().toISOString(),
-    })
-    .eq("slug", enriched.slug);
-  if (error) throw error;
-  return enriched;
+  const { updateMarketplaceListing } =
+    await import("@/lib/marketplace/updateListingApi");
+  return updateMarketplaceListing(listing);
 }
 
 export async function submitMarketplaceInterest(record: {
@@ -145,18 +119,21 @@ async function startupSlugsForSellerAuthUser(
   const sellerProfileId = await getSellerProfileId(authUserId);
   if (sellerProfileId) {
     const { data: links, error: linkErr } = await supabase
-      .from("seller_listings")
-      .select("startups(slug)")
+      .from(MSell)
+      .select("marketplace_companies(slug)")
       .eq("seller_profile_id", sellerProfileId);
     if (linkErr) throw linkErr;
     for (const row of links ?? []) {
-      const st = row.startups as { slug?: string } | { slug?: string }[] | null;
+      const st = row.marketplace_companies as
+        | { slug?: string }
+        | { slug?: string }[]
+        | null;
       const slug = Array.isArray(st) ? st[0]?.slug : st?.slug;
       if (slug) slugs.add(slug);
     }
   }
   const { data: founderRows, error: founderErr } = await supabase
-    .from("startups")
+    .from(MC)
     .select("slug")
     .eq("founder_user_id", authUserId);
   if (founderErr) throw founderErr;
@@ -172,8 +149,14 @@ export async function getUserListings(
   if (!isSupabaseConfigured()) return [];
   const slugs = await startupSlugsForSellerAuthUser(authUserId);
   if (!slugs.size) return [];
-  const all = await fetchMarketplaceListings();
-  return all.filter((l) => slugs.has(l.slug));
+  const startups = await fetchStartupsForSlugs([...slugs]);
+  return Promise.all(
+    startups.map((s) =>
+      enrichListingWithIntelligence(s, {
+        ownerUserId: s.founderUserId ?? undefined,
+      }),
+    ),
+  );
 }
 
 export async function getAllThreadsForOwner(
@@ -225,40 +208,23 @@ export async function updateMarketplaceInterestStage(
 }
 
 export async function updateMarketplaceVerification(
-  listing: MarketplaceListing,
-  kind: keyof MarketplaceListing["verification"],
-  nextStatus: VerificationStatus,
-  provider?: string | null,
+  _listing: MarketplaceListing,
+  _kind: keyof MarketplaceListing["verification"],
+  _nextStatus: VerificationStatus,
+  _provider?: string | null,
 ): Promise<MarketplaceListing> {
-  const next = {
-    ...listing,
-    verification: {
-      ...listing.verification,
-      [kind]: {
-        ...listing.verification[kind],
-        status: nextStatus,
-        provider: provider ?? listing.verification[kind].provider,
-      },
-    },
-  };
-  return upsertMarketplaceListing(
-    buildMarketplaceListingFromStartup(next, next),
+  throw new Error(
+    "Manual verification toggles are disabled. Use provider connections in the Verification Center.",
   );
 }
 
 export async function runDomainVerification(
-  listing: MarketplaceListing,
+  _listing: MarketplaceListing,
 ): Promise<MarketplaceListing> {
-  return updateMarketplaceVerification(
-    listing,
-    "domain",
-    "verified",
-    "DNS TXT",
+  throw new Error(
+    "Use domain verification flow (TXT/CNAME) from the Verification Center.",
   );
 }
-
-/** @deprecated use runDomainVerification */
-export const runMockDomainVerification = runDomainVerification;
 
 export async function provisionBuyerForUser(user: User): Promise<void> {
   await ensureMarketplaceProfile(user, "buyer");

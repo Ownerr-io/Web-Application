@@ -8,8 +8,11 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useLocation } from "wouter";
 import { useAuth } from "@/context/AuthContext";
 import type { AuthRole } from "@/lib/auth/types";
+import { inferAuthRoleFromMarketplaceAppPath } from "@/lib/auth/marketplaceDeskRole";
+import { authRoleToDeskRole } from "@/lib/marketplace/profiles";
 import { useActiveProduct } from "@/context/ActiveProductContext";
 import {
   fetchMarketplaceProfileForUser,
@@ -20,6 +23,7 @@ import {
   logProductIssue,
   toUserFacingProductError,
 } from "@/lib/observability/productErrors";
+import { getSupabase } from "@/lib/supabase/client";
 import {
   provisionMarketplaceProduct,
   touchProductSession,
@@ -35,6 +39,7 @@ type MarketplaceContextValue = {
 const MarketplaceContext = createContext<MarketplaceContextValue | null>(null);
 
 export function MarketplaceProvider({ children }: { children: ReactNode }) {
+  const [location] = useLocation();
   const { session, currentUser } = useAuth();
   const { setActiveProduct } = useActiveProduct();
   const userId = session?.user?.id;
@@ -56,12 +61,19 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
     setError(null);
     try {
       setActiveProduct("marketplace");
-      await provisionMarketplaceProduct(session!.user);
+      const pathRole = inferAuthRoleFromMarketplaceAppPath(location);
+      const preferredRole: AuthRole | null =
+        pathRole ?? currentUser?.role ?? null;
+      const desk = preferredRole
+        ? authRoleToDeskRole(preferredRole)
+        : undefined;
+      const {
+        data: { user },
+      } = await getSupabase().auth.getUser();
+      if (!user) return;
+      await provisionMarketplaceProduct(user, desk ? { desk } : undefined);
       await touchProductSession(userId, "marketplace");
-      const row = await fetchMarketplaceProfileForUser(
-        userId,
-        (currentUser?.role ?? null) as AuthRole | null,
-      );
+      const row = await fetchMarketplaceProfileForUser(userId, preferredRole);
       setProfile(row);
     } catch (err) {
       if (!isDuplicateDbError(err)) {
@@ -73,7 +85,7 @@ export function MarketplaceProvider({ children }: { children: ReactNode }) {
       inFlightRef.current = false;
       setLoading(false);
     }
-  }, [userId, session, currentUser?.role, setActiveProduct]);
+  }, [userId, currentUser?.role, location, setActiveProduct]);
 
   useEffect(() => {
     void reload();

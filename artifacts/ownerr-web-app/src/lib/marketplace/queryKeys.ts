@@ -8,6 +8,16 @@ export const marketplaceKeys = {
     startup: (slug: string) =>
       [...marketplaceKeys.all, "bids", "startup", slug] as const,
   },
+  offers: {
+    buyer: (userId: string) =>
+      [...marketplaceKeys.all, "offers", "buyer", userId] as const,
+    seller: (userId: string) =>
+      [...marketplaceKeys.all, "offers", "seller", userId] as const,
+    startup: (slug: string) =>
+      [...marketplaceKeys.all, "offers", "startup", slug] as const,
+    detail: (bidId: string) =>
+      [...marketplaceKeys.all, "offers", "detail", bidId] as const,
+  },
   interests: {
     mine: (userId: string) =>
       [...marketplaceKeys.all, "interests", "mine", userId] as const,

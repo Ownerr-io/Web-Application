@@ -52,16 +52,14 @@ export function resolveRoleAccess(
     return { allowed: false, fallback: AUTH_ROUTES.forbidden, reason: "role" };
   }
 
-  let deskRole: RouteRole | null = subject.deskUser
-    ? deskRoleToRouteRole(subject.deskUser.role)
-    : null;
-  if (!deskRole) {
-    const inferred = inferAuthRoleFromMarketplaceAppPath(pathname);
-    if (inferred) deskRole = inferred;
+  const path = normalizePathname(pathname);
+  const fromMarketplacePath = inferAuthRoleFromMarketplaceAppPath(pathname);
+  let deskRole: RouteRole | null = fromMarketplacePath;
+  if (!deskRole && subject.deskUser) {
+    deskRole = deskRoleToRouteRole(subject.deskUser.role);
   }
 
   if (!deskRole) {
-    const path = normalizePathname(pathname);
     if (
       roles.includes("founder") &&
       path.startsWith("/ownerr-os/app") &&
@@ -77,7 +75,6 @@ export function resolveRoleAccess(
     return { allowed: true };
   }
 
-  const path = normalizePathname(pathname);
   if (
     roles.includes("founder") &&
     path.startsWith("/ownerr-os/app") &&

@@ -1,5 +1,8 @@
 import { getSupabase } from "@/lib/supabase/client";
+import { SchemaTables as T } from "@/lib/supabase/schemaTables";
 import type { StartupRow } from "@/lib/marketplace/types";
+
+const COMPANIES = T.marketplace.companies;
 
 const STARTUP_COLUMNS =
   "id, slug, founder_user_id, founder_handle, title, tagline, description, industry, asking_price, currency, annual_revenue, profit, growth_rate, team_size, founded_year, verified, visibility, status, metadata, created_at, updated_at";
@@ -20,7 +23,7 @@ export type AdminSubmissionRow = {
 export async function fetchAllMarketplaceListings(): Promise<StartupRow[]> {
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from("startups")
+    .from(COMPANIES)
     .select(STARTUP_COLUMNS)
     .order("updated_at", { ascending: false });
   if (error) throw new Error(`fetchAllMarketplaceListings: ${error.message}`);
@@ -59,7 +62,7 @@ export async function updateMarketplaceListing(
 ): Promise<void> {
   const supabase = getSupabase();
   const { error } = await supabase
-    .from("startups")
+    .from(COMPANIES)
     .update({ ...input, updated_at: new Date().toISOString() })
     .eq("id", id);
   if (error) throw new Error(`updateMarketplaceListing: ${error.message}`);
@@ -68,7 +71,7 @@ export async function updateMarketplaceListing(
 export async function deleteMarketplaceListing(id: string): Promise<void> {
   const supabase = getSupabase();
   const { error } = await supabase
-    .from("startups")
+    .from(COMPANIES)
     .update({ status: "archived", visibility: "unlisted" })
     .eq("id", id);
   if (error) throw new Error(`deleteMarketplaceListing: ${error.message}`);
@@ -88,7 +91,7 @@ export async function createMarketplaceListing(
 ): Promise<StartupRow> {
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from("startups")
+    .from(COMPANIES)
     .insert({
       slug: input.slug,
       title: input.title,

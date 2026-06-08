@@ -6,12 +6,12 @@ import {
   LayoutDashboard,
   MessageSquare,
   Search,
+  ShieldCheck,
   Star,
   Trophy,
   User,
   Wallet,
   Compass,
-  Shield,
   Link2,
 } from "lucide-react";
 import type { AuthRole } from "@/lib/auth/types";
@@ -239,10 +239,24 @@ const MARKETPLACE_BUYER_SIDEBAR: readonly SidebarNavSection[] = [
         ["buyer"],
       ),
       marketplaceNavItem(
-        "marketplace.buyer.bids",
-        "My Bids",
-        MARKETPLACE_ROUTES.buyerBids,
+        "marketplace.buyer.offers",
+        "My Offers",
+        MARKETPLACE_ROUTES.buyerOffers,
         Activity,
+        ["buyer"],
+      ),
+      marketplaceNavItem(
+        "marketplace.buyer.inbox",
+        "Inbox",
+        MARKETPLACE_ROUTES.buyerInbox,
+        MessageSquare,
+        ["buyer"],
+      ),
+      marketplaceNavItem(
+        "marketplace.buyer.verification",
+        "Verification",
+        MARKETPLACE_ROUTES.buyerVerification,
+        ShieldCheck,
         ["buyer"],
       ),
       marketplaceNavItem(
@@ -268,10 +282,17 @@ const MARKETPLACE_SELLER_SIDEBAR: readonly SidebarNavSection[] = [
         ["founder"],
       ),
       marketplaceNavItem(
-        "marketplace.seller.listings",
-        "My Listings",
-        MARKETPLACE_ROUTES.sellerListings,
+        "marketplace.seller.companies",
+        "Companies",
+        MARKETPLACE_ROUTES.sellerCompanies,
         Briefcase,
+        ["founder"],
+      ),
+      marketplaceNavItem(
+        "marketplace.seller.offers",
+        "Offers & Bids",
+        MARKETPLACE_ROUTES.sellerOffers,
+        Activity,
         ["founder"],
       ),
       marketplaceNavItem(
@@ -282,10 +303,10 @@ const MARKETPLACE_SELLER_SIDEBAR: readonly SidebarNavSection[] = [
         ["founder"],
       ),
       marketplaceNavItem(
-        "marketplace.seller.verification",
+        "marketplace.seller.personVerification",
         "Verification",
-        MARKETPLACE_ROUTES.sellerVerification,
-        Shield,
+        MARKETPLACE_ROUTES.sellerPersonVerification,
+        ShieldCheck,
         ["founder"],
       ),
       marketplaceNavItem(

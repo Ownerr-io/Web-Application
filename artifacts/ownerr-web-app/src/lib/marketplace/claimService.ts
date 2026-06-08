@@ -3,6 +3,9 @@ import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import { MarketplaceError, mapSupabaseError } from "@/lib/marketplace/errors";
 import type { ClaimSpotEntry, ClaimSpotRole } from "@/lib/marketplace/types";
 import { founderAvatarUrl } from "@/lib/utils";
+import { SchemaTables as T } from "@/lib/supabase/schemaTables";
+
+const MClaims = T.marketplace.companyClaims;
 
 export const CLAIM_SPOTS_TOTAL = 250;
 
@@ -41,7 +44,7 @@ export async function getClaimSpotStats(): Promise<{
     return { total: CLAIM_SPOTS_TOTAL, claimed: 0 };
   }
   const { count, error } = await getSupabase()
-    .from("startup_claims")
+    .from(MClaims)
     .select("id", { count: "exact", head: true })
     .in("status", ["pending", "approved"]);
   if (error) {
@@ -56,7 +59,7 @@ export async function getClaimSpotStats(): Promise<{
 
 export async function listPublicClaims(limit = 200): Promise<ClaimSpotEntry[]> {
   const { data, error } = await requireSupabase()
-    .from("startup_claims")
+    .from(MClaims)
     .select("id, claiming_user_id, status, metadata, created_at")
     .in("status", ["pending", "approved"])
     .order("created_at", { ascending: false })
@@ -76,7 +79,7 @@ export async function submitSpotClaim(input: {
 }): Promise<ClaimSpotEntry> {
   const handleNorm = input.handle.trim().replace(/^@+/, "").toLowerCase();
   const { data, error } = await requireSupabase()
-    .from("startup_claims")
+    .from(MClaims)
     .insert({
       startup_id: input.startupId ?? null,
       claiming_user_id: input.user.id,

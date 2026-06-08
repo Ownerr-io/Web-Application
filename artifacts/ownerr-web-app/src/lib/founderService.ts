@@ -13,6 +13,9 @@ import {
 } from "./db";
 import { COMPANY_WEBSITE_URL } from "@/lib/company";
 import { getSupabase, isSupabaseConfigured } from "./supabase/client";
+import { SchemaTables as T } from "@/lib/supabase/schemaTables";
+
+const FOUNDER_SUBMISSIONS = T.founder.campaignSubmissions;
 import { devWarn } from "@/lib/observability/devLog";
 
 type FounderSubmissionDbRow = {
@@ -167,7 +170,7 @@ async function createFounderSupabase(
     const referralCode = generateReferralCode(8);
     const referralLink = buildReferralLink(origin, referralCode);
     const { data, error } = await supabase
-      .from("founder_submissions")
+      .from(FOUNDER_SUBMISSIONS)
       .insert({
         auth_user_id: authUserId,
         founder_name: input.founderName.trim(),
@@ -204,7 +207,7 @@ async function updateFounderSupabase(
   const socialLinks = input.socialLinks ?? {};
   const website = input.website?.trim() || null;
   const { data, error } = await supabase
-    .from("founder_submissions")
+    .from(FOUNDER_SUBMISSIONS)
     .update({
       founder_name: input.founderName.trim(),
       startup_name: input.startupName.trim(),
@@ -309,7 +312,7 @@ export async function saveFounderShareCard(
     const authUserId = await requireAuthUserId();
     const supabase = getSupabase();
     const { data, error } = await supabase
-      .from("founder_submissions")
+      .from(FOUNDER_SUBMISSIONS)
       .update({ share_card_url: shareCardUrl })
       .eq("id", record.id)
       .eq("auth_user_id", authUserId)
@@ -400,7 +403,7 @@ export async function fetchFounderSubmissionById(
   try {
     const authUserId = await requireAuthUserId();
     const { data, error } = await getSupabase()
-      .from("founder_submissions")
+      .from(FOUNDER_SUBMISSIONS)
       .select(FOUNDER_SUBMISSION_SELECT)
       .eq("id", trimmed)
       .eq("auth_user_id", authUserId)
@@ -424,7 +427,7 @@ export async function loadFounderSubmissionsForUser(
 
   if (isSupabaseConfigured()) {
     const { data, error } = await getSupabase()
-      .from("founder_submissions")
+      .from(FOUNDER_SUBMISSIONS)
       .select(FOUNDER_SUBMISSION_SELECT)
       .eq("auth_user_id", userId)
       .order("created_at", { ascending: false });
@@ -471,19 +474,9 @@ export async function fetchFounderAnalytics(
 
   const key = adminKey?.trim() ?? "";
   if (isSupabaseConfigured() && key) {
-    try {
-      const { data, error } = await getSupabase().rpc(
-        "founder_analytics_summary",
-        {
-          p_admin_key: key,
-        },
-      );
-      if (!error && data && typeof data === "object") {
-        return data as FounderAnalytics;
-      }
-    } catch {
-      /* fall through */
-    }
+    devWarn(
+      "founder_analytics_summary(admin_key) is deprecated; use platform admin session.",
+    );
   }
 
   const rows = await getAllFounderSubmissionsDB();

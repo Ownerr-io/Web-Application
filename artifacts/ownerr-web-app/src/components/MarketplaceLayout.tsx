@@ -11,7 +11,6 @@ import { ProductNav } from "@/components/ProductNav";
 import { useAddStartup } from "@/context/AddStartupContext";
 import { useAuth } from "@/context/AuthContext";
 import { useRequireAuth } from "@/lib/platform/requireAuth";
-import { AddStartupDialog } from "@/components/AddStartupDialog";
 import { HeaderStartupSearch } from "@/components/HeaderStartupSearch";
 import { AdvertiseDialog } from "@/components/AdvertiseDialog";
 import { SiteFooter } from "@/components/SiteFooter";
@@ -394,7 +393,7 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
   const { data: claimStats } = useClaimStats();
   const claimSpotsClaimed = claimStats?.claimed ?? 0;
   const [location] = useLocation();
-  const { addOpen, setAddOpen, openAddStartup } = useAddStartup();
+  const { openAddStartup } = useAddStartup();
   const { isAuthenticated } = useAuth();
   const { requireAuth } = useRequireAuth();
   const [advertiseOpen, setAdvertiseOpen] = useState(false);
@@ -406,7 +405,11 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
   const isAcquire = location === marketplacePath("/acquire");
   const isStartupDetail = location.startsWith(`${MARKETPLACE_BASE}/startup/`);
   const isFounderProfile = location.startsWith(`${MARKETPLACE_BASE}/founder/`);
-  const isSlimChrome = isAcquire || isStartupDetail || isFounderProfile;
+  const isVerifyBusinessEmail = location.startsWith(
+    `${MARKETPLACE_BASE}/verify-business-email`,
+  );
+  const isSlimChrome =
+    isAcquire || isStartupDetail || isFounderProfile || isVerifyBusinessEmail;
 
   useEffect(() => {
     applyTheme();
@@ -533,8 +536,6 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
                       <Plus className="h-4 w-4 shrink-0" /> Add startup
                     </button>
                   </div>
-
-                  <AddStartupDialog open={addOpen} onOpenChange={setAddOpen} />
                 </div>
               )}
 
@@ -581,7 +582,7 @@ export function MarketplaceLayout({ children }: { children: React.ReactNode }) {
               <div className="pointer-events-auto animate-in fade-in duration-500">
                 {children}
               </div>
-              {!isHome ? (
+              {!isHome && !isVerifyBusinessEmail ? (
                 <div className="pointer-events-auto relative z-[1]">
                   <MoreStartupsForSaleSection />
                 </div>

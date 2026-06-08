@@ -6,6 +6,7 @@
  */
 import fs from "node:fs";
 import path from "node:path";
+import dns from "node:dns";
 import { fileURLToPath } from "node:url";
 import pg from "pg";
 import { config } from "dotenv";
@@ -16,10 +17,24 @@ const repoRoot = path.resolve(__dirname, "..");
 config({ path: path.join(repoRoot, ".env.local") });
 config({ path: path.join(repoRoot, ".env") });
 
-const url = process.env.DATABASE_URL;
-if (!url) {
-  console.error("DATABASE_URL missing. Set it in .env.local (Supabase → Database → URI).");
-  process.exit(1);
+/** Optional: set DATABASE_IPV4_ONLY=1 when IPv6 routes to db.*.supabase.co fail. */
+function lookupIpv4(hostname, _options, callback) {
+  dns.lookup(hostname, { family: 4, all: false }, callback);
+}
+
+function poolConfig(connectionString) {
+  const ssl = connectionString.includes("supabase.co")
+    ? { rejectUnauthorized: false }
+    : undefined;
+  const base = {
+    connectionString,
+    ssl,
+    connectionTimeoutMillis: 30_000,
+  };
+  if (process.env.DATABASE_IPV4_ONLY === "1") {
+    return { ...base, lookup: lookupIpv4 };
+  }
+  return base;
 }
 
 const migrationsDir = path.join(repoRoot, "supabase", "migrations");
@@ -33,12 +48,96 @@ if (files.length === 0) {
   process.exit(1);
 }
 
-const pool = new pg.Pool({
-  connectionString: url,
-  ssl: url.includes("supabase.co") ? { rejectUnauthorized: false } : undefined,
-});
+function createPool(connectionString) {
+  return new pg.Pool(poolConfig(connectionString));
+}
 
-/** Errors that usually mean this migration was already applied manually or earlier. */
+function hintForConnectError(connectionString, err) {
+  const msg = err instanceof Error ? err.message : String(err);
+  const label = connectionLabel(connectionString);
+  if (/connection timeout|terminated due to connection timeout/i.test(msg)) {
+    if (label.startsWith("db.") && process.env.DATABASE_IPV4_ONLY === "1") {
+      return "Direct host may be IPv6-only — unset DATABASE_IPV4_ONLY or use Session pooler URI from the dashboard.";
+    }
+    if (label.startsWith("db.")) {
+      return "Port 5432 to db.* may be blocked on your network — set DATABASE_URL_POOLER from Dashboard → Database → Connection pooling (Session mode).";
+    }
+  }
+  if (/tenant\/user|ENOTFOUND/i.test(msg) && connectionString.includes("pooler")) {
+    return "Pooler host/region or username is wrong — copy the full Session mode URI from Dashboard → Database (username must be postgres.[project-ref], host aws-0-<your-region>).";
+  }
+  return null;
+}
+
+function migrationCandidateUrls() {
+  const urls = [];
+  if (process.env.DATABASE_URL_MIGRATE) urls.push(process.env.DATABASE_URL_MIGRATE);
+  // Pooler before direct: many networks block db.*:5432 but allow pooler (IPv4).
+  if (process.env.DATABASE_URL_POOLER) urls.push(process.env.DATABASE_URL_POOLER);
+  if (process.env.DATABASE_URL) urls.push(process.env.DATABASE_URL);
+  return [...new Set(urls.filter(Boolean))];
+}
+
+function validatePoolerUrl(connectionString) {
+  if (
+    connectionString.includes("pooler.supabase.com") &&
+    !/postgres\.[a-z0-9]+:/i.test(connectionString)
+  ) {
+    throw new Error(
+      "Pooler URI must use username postgres.[project-ref] (Supabase → Database → Connection pooling → Session mode URI).",
+    );
+  }
+}
+
+function connectionLabel(connectionString) {
+  try {
+    const u = new URL(connectionString.replace(/^postgresql:/, "http:"));
+    return `${u.hostname}:${u.port || "5432"}`;
+  } catch {
+    return "database";
+  }
+}
+
+async function connectForMigrations() {
+  const candidates = migrationCandidateUrls();
+  if (candidates.length === 0) {
+    console.error("DATABASE_URL missing in .env.local");
+    process.exit(1);
+  }
+
+  let lastErr;
+  for (const connectionString of candidates) {
+    try {
+      validatePoolerUrl(connectionString);
+    } catch (err) {
+      lastErr = err;
+      console.error(err instanceof Error ? err.message : err);
+      continue;
+    }
+    const pool = createPool(connectionString);
+    try {
+      const client = await pool.connect();
+      console.log(`Connected (${connectionLabel(connectionString)})`);
+      return { client, pool };
+    } catch (err) {
+      lastErr = err;
+      const msg = err instanceof Error ? err.message : String(err);
+      console.warn(
+        `Could not connect via ${connectionLabel(connectionString)}: ${msg}`,
+      );
+      const hint = hintForConnectError(connectionString, err);
+      if (hint) console.warn(`  → ${hint}`);
+      await pool.end().catch(() => {});
+    }
+  }
+
+  console.error(
+    "All database connection attempts failed. Set DATABASE_URL from Dashboard → Database → URI (direct), or DATABASE_URL_POOLER (Session mode, exact region host). Optional: DATABASE_URL_MIGRATE to force one URI.",
+  );
+  if (lastErr instanceof Error) console.error(lastErr.message);
+  process.exit(1);
+}
+
 function isAlreadyAppliedError(err) {
   const msg = err instanceof Error ? err.message : String(err);
   return (
@@ -110,7 +209,7 @@ async function recordApplied(client, filename) {
   );
 }
 
-const client = await pool.connect();
+const { client, pool } = await connectForMigrations();
 
 try {
   await ensureMigrationTable(client);

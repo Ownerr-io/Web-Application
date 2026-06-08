@@ -8,6 +8,7 @@ import { fileURLToPath } from 'node:url';
 import { config } from 'dotenv';
 import { createAdminClient, seedDemoUsersFull } from './demo-marketplace-lib.mjs';
 import { DEMO_BUYER, DEMO_SELLER } from './demo-marketplace.constants.mjs';
+import { T } from '../../../lib/db-schema/physicalTables.mjs';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const repoRoot = path.resolve(__dirname, '../../..');
@@ -16,8 +17,8 @@ config({ path: path.join(repoRoot, '.env') });
 
 async function main() {
   const admin = createAdminClient();
-  const { error: probe } = await admin.from('startups').select('id', { head: true, count: 'exact' });
-  if (probe?.code === 'PGRST205' || probe?.message?.includes('startups')) {
+  const { error: probe } = await admin.from(T.companies).select('id', { head: true, count: 'exact' });
+  if (probe?.code === 'PGRST205' || probe?.message?.includes('marketplace_companies')) {
     console.error(
       '\nMarketplace tables are missing on this Supabase project.\n' +
         'Run first:  npm run marketplace:ensure-schema\n' +

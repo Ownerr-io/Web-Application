@@ -60,30 +60,12 @@ export async function gateMarketplaceAction(input: {
   }
 
   if (buyerActions.includes(input.action)) {
-    if (input.deskRole === "founder") {
-      return {
-        ok: false,
-        redirect: MARKETPLACE_ROUTES.buyerDashboard,
-        reason: "switch_workspace",
-      };
-    }
-    if (input.deskRole !== "buyer") {
-      await provisionBuyerForUser(input.authUser);
-    }
+    await provisionBuyerForUser(input.authUser);
     return { ok: true };
   }
 
   if (sellerActions.includes(input.action)) {
-    if (input.deskRole === "buyer") {
-      return {
-        ok: false,
-        redirect: MARKETPLACE_ROUTES.sellerDashboard,
-        reason: "switch_workspace",
-      };
-    }
-    if (input.deskRole !== "founder") {
-      await provisionSellerForUser(input.authUser);
-    }
+    await provisionSellerForUser(input.authUser);
     return { ok: true };
   }
 

@@ -2,6 +2,8 @@ import type { AppSlug } from "@workspace/api-zod";
 import { isAppSlug } from "@/lib/auth/productLock";
 import type { User } from "@supabase/supabase-js";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import { ensureMarketplaceTablesDetected } from "@/lib/marketplace/dbTables";
+import type { DeskMarketplaceRole } from "@/lib/marketplace/types";
 import { ensureMarketplaceProfile } from "@/lib/marketplace/profiles";
 import {
   fetchCurrentOwnerrNetworkUser,
@@ -333,19 +335,24 @@ export async function provisionOwnerrProduct(user: User): Promise<void> {
   await upsertMembership(authUserId, "ownerr_os", "founder", profileId);
 }
 
-export async function provisionMarketplaceProduct(user: User): Promise<void> {
+export async function provisionMarketplaceProduct(
+  user: User,
+  options?: { desk?: DeskMarketplaceRole },
+): Promise<void> {
   if (!isSupabaseConfigured()) return;
+  await ensureMarketplaceTablesDetected();
   const authUserId = user.id;
   const email = user.email ?? "";
   const deskRole =
-    parseDeskRole(user.user_metadata as Record<string, unknown> | undefined) ??
-    "buyer";
-  const membershipRole = deskRole === "founder" ? "founder" : "buyer";
+    options?.desk ??
+    (parseDeskRole(
+      user.user_metadata as Record<string, unknown> | undefined,
+    ) === "founder"
+      ? "seller"
+      : "buyer");
+  const membershipRole = deskRole === "seller" ? "founder" : "buyer";
   await upsertPlatformUser(authUserId, email, displayNameFromUser(user));
-  const profileRow = await ensureMarketplaceProfile(
-    user,
-    membershipRole === "founder" ? "seller" : "buyer",
-  );
+  const profileRow = await ensureMarketplaceProfile(user, deskRole);
   await upsertMembership(
     authUserId,
     "marketplace",

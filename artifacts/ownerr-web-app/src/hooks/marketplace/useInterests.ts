@@ -42,7 +42,7 @@ export function useExpressInterest() {
         offerAmount: input.offerAmount,
       });
     },
-    onSuccess: () => {
+    onSuccess: (record) => {
       if (currentUser) {
         void qc.invalidateQueries({
           queryKey: marketplaceKeys.interests.mine(currentUser.id),
@@ -50,8 +50,16 @@ export function useExpressInterest() {
         void qc.invalidateQueries({
           queryKey: marketplaceKeys.bids.mine(currentUser.id),
         });
+        void qc.invalidateQueries({
+          queryKey: marketplaceKeys.inbox(currentUser.id),
+        });
       }
-      toast({ title: "Interest sent" });
+      toast({
+        title: "Interest sent",
+        description: record.conversationId
+          ? "Continue in Inbox to chat with the founder."
+          : "The founder will see your message in their inbox.",
+      });
     },
     onError: (err: Error) => {
       toast({
