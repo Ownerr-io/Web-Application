@@ -15,6 +15,19 @@ export function isDuplicateDbError(err: unknown): boolean {
   return code === "23505" || status === 409;
 }
 
+function errorMessage(err: unknown): string {
+  if (err instanceof Error) return err.message;
+  if (err && typeof err === "object" && "message" in err) {
+    const msg = (err as { message: unknown }).message;
+    if (typeof msg === "string" && msg.trim()) return msg;
+  }
+  try {
+    return JSON.stringify(err);
+  } catch {
+    return String(err);
+  }
+}
+
 /** Structured dev log for unexpected product failures (no noise for duplicates). */
 export function logProductIssue(
   scope: ProductErrorScope,
@@ -25,7 +38,7 @@ export function logProductIssue(
   if (!import.meta.env.DEV) return;
   const payload = {
     scope,
-    message: err instanceof Error ? err.message : String(err),
+    message: errorMessage(err),
     code: (err as { code?: string })?.code,
     ...context,
   };

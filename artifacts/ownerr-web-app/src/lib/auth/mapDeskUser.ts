@@ -10,6 +10,9 @@ function parseRole(
 ): AuthRole | null {
   const role = metadata?.role;
   if (role === "buyer" || role === "founder") return role;
+  const desk = metadata?.desk_role;
+  if (desk === "buyer") return "buyer";
+  if (desk === "seller" || desk === "founder") return "founder";
   return null;
 }
 

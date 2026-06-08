@@ -2,7 +2,7 @@ import { Link, useLocation } from "wouter";
 import { Eye, Heart, BadgeCheck, Globe, BarChart3 } from "lucide-react";
 import type { ReactNode } from "react";
 import type { Startup } from "@/lib/mockData";
-import { cn, formatShortCurrency } from "@/lib/utils";
+import { cn, dicebearShapesSvg, formatShortCurrency } from "@/lib/utils";
 import { marketplaceStartupPath } from "@/lib/appPaths";
 import { StartupTripleScores } from "@/components/StartupTripleScores";
 
@@ -66,8 +66,14 @@ export function AcquireListingCard({
 }) {
   const [location] = useLocation();
   const detailHref = marketplaceStartupPath(startup.slug, location);
-  const views = startup.listingViews ?? Math.round(startup.customers * 1.2);
-  const favs = startup.listingFavorites ?? Math.round(views / 400);
+  const views =
+    startup.listingViews != null && startup.listingViews > 0
+      ? startup.listingViews
+      : null;
+  const favs =
+    startup.listingFavorites != null && startup.listingFavorites > 0
+      ? startup.listingFavorites
+      : null;
   const growth = formatGrowthPct(startupGrowthValue(startup));
   const strike = startup.askingPriceStrike;
   const nicheTags = startupNicheTags(startup);
@@ -87,7 +93,7 @@ export function AcquireListingCard({
                 style={{ backgroundColor: startup.logoColor }}
               >
                 <img
-                  src={`https://api.dicebear.com/7.x/shapes/svg?seed=${startup.name}`}
+                  src={dicebearShapesSvg(startup.name)}
                   alt={`${startup.name} avatar`}
                   className="h-7 w-7"
                 />
@@ -131,14 +137,24 @@ export function AcquireListingCard({
                     </div>
                   </div>
                   <div className="mp-muted flex shrink-0 flex-col items-end gap-0.5 text-[10px] tabular-nums">
-                    <span className="inline-flex items-center gap-0.5 font-mono font-bold">
-                      <Eye className="h-3 w-3" strokeWidth={2} aria-hidden />
-                      {views >= 1000 ? `${(views / 1000).toFixed(1)}k` : views}
-                    </span>
-                    <span className="inline-flex items-center gap-0.5 font-mono font-bold">
-                      <Heart className="h-3 w-3" strokeWidth={2} aria-hidden />
-                      {favs}
-                    </span>
+                    {views != null ? (
+                      <span className="inline-flex items-center gap-0.5 font-mono font-bold">
+                        <Eye className="h-3 w-3" strokeWidth={2} aria-hidden />
+                        {views >= 1000
+                          ? `${(views / 1000).toFixed(1)}k`
+                          : views}
+                      </span>
+                    ) : null}
+                    {favs != null ? (
+                      <span className="inline-flex items-center gap-0.5 font-mono font-bold">
+                        <Heart
+                          className="h-3 w-3"
+                          strokeWidth={2}
+                          aria-hidden
+                        />
+                        {favs}
+                      </span>
+                    ) : null}
                   </div>
                 </div>
               </div>

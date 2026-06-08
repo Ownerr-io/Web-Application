@@ -1,5 +1,9 @@
 import type { AuthRole } from "@/lib/auth/types";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
+import {
+  ensureMarketplaceTablesDetected,
+  getMarketplaceTables,
+} from "@/lib/marketplace/dbTables";
 
 export type MarketplaceProfileRow = {
   id: string;
@@ -32,8 +36,9 @@ export async function fetchMarketplaceProfileForUser(
   preferredRole: AuthRole | null = null,
 ): Promise<MarketplaceProfileRow | null> {
   if (!isSupabaseConfigured()) return null;
+  await ensureMarketplaceTablesDetected();
   const { data, error } = await getSupabase()
-    .from("marketplace_profiles")
+    .from(getMarketplaceTables().accounts)
     .select("id, auth_user_id, desk_role, metadata, created_at, updated_at")
     .eq("auth_user_id", authUserId);
   if (error) throw error;

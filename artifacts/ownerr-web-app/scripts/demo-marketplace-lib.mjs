@@ -5,6 +5,7 @@ import {
   DEMO_CONVERSATION_STARTUP_SLUG,
   DEMO_SELLER_STARTUP_SLUGS,
 } from './demo-marketplace.constants.mjs';
+import { T } from '../../../lib/db-schema/physicalTables.mjs';
 
 export function createAdminClient() {
   const url = process.env.SUPABASE_URL ?? process.env.VITE_SUPABASE_URL;
@@ -98,33 +99,33 @@ export async function upsertMarketplaceProfile(admin, authUserId, spec) {
   };
 
   const { data: byRole } = await admin
-    .from('marketplace_profiles')
+    .from(T.accounts)
     .select('id')
     .eq('auth_user_id', authUserId)
     .eq('desk_role', spec.profile.desk_role)
     .maybeSingle();
   if (byRole?.id) {
-    const { error: upErr } = await admin.from('marketplace_profiles').update(row).eq('id', byRole.id);
+    const { error: upErr } = await admin.from(T.accounts).update(row).eq('id', byRole.id);
     if (upErr) throw upErr;
     return byRole.id;
   }
 
   const tryComposite = await admin
-    .from('marketplace_profiles')
+    .from(T.accounts)
     .upsert(row, { onConflict: 'auth_user_id,desk_role' })
     .select('id')
     .single();
   if (!tryComposite.error) return tryComposite.data.id;
 
   const trySingle = await admin
-    .from('marketplace_profiles')
+    .from(T.accounts)
     .upsert(row, { onConflict: 'auth_user_id' })
     .select('id')
     .single();
   if (!trySingle.error) return trySingle.data.id;
 
   const { data: inserted, error: insErr } = await admin
-    .from('marketplace_profiles')
+    .from(T.accounts)
     .insert(row)
     .select('id')
     .single();
@@ -172,7 +173,7 @@ async function upsertOwnerrProfile(admin, authUserId) {
 }
 
 async function startupIdsBySlug(admin, slugs) {
-  const { data, error } = await admin.from('startups').select('id, slug').in('slug', slugs);
+  const { data, error } = await admin.from(T.companies).select('id, slug').in('slug', slugs);
   if (error) throw error;
   const map = new Map((data ?? []).map((r) => [r.slug, r.id]));
   for (const slug of slugs) {
@@ -185,7 +186,7 @@ async function startupIdsBySlug(admin, slugs) {
 export async function resolveDemoStartupSlugs(admin) {
   const preferred = [...DEMO_SELLER_STARTUP_SLUGS];
   const { data: preferredRows } = await admin
-    .from('startups')
+    .from(T.companies)
     .select('slug')
     .in('slug', preferred)
     .eq('status', 'published');
@@ -201,7 +202,7 @@ export async function resolveDemoStartupSlugs(admin) {
   }
 
   const { data: fallback, error } = await admin
-    .from('startups')
+    .from(T.companies)
     .select('slug')
     .eq('status', 'published')
     .eq('visibility', 'public')
@@ -228,7 +229,7 @@ export async function linkSellerStartups(admin, sellerAuthUserId, sellerProfileI
   for (const slug of sellerSlugs) {
     const startupId = slugToId.get(slug);
     const { error: upErr } = await admin
-      .from('startups')
+      .from(T.companies)
       .update({
         founder_user_id: sellerAuthUserId,
         status: 'published',
@@ -238,7 +239,7 @@ export async function linkSellerStartups(admin, sellerAuthUserId, sellerProfileI
       .eq('id', startupId);
     if (upErr) throw upErr;
 
-    const { error: listErr } = await admin.from('seller_listings').upsert(
+    const { error: listErr } = await admin.from(T.sellerListings).upsert(
       {
         startup_id: startupId,
         seller_profile_id: sellerProfileId,
@@ -254,22 +255,22 @@ export async function linkSellerStartups(admin, sellerAuthUserId, sellerProfileI
 
 export async function clearDemoTransactionalData(admin, buyerProfileId, sellerProfileId) {
   const { data: convs, error: cErr } = await admin
-    .from('conversations')
+    .from(T.conversations)
     .select('id')
     .or(`buyer_profile_id.eq.${buyerProfileId},seller_profile_id.eq.${sellerProfileId}`);
   if (cErr) throw cErr;
   const convIds = (convs ?? []).map((c) => c.id);
   if (convIds.length) {
-    const { error: mErr } = await admin.from('messages').delete().in('conversation_id', convIds);
+    const { error: mErr } = await admin.from(T.messages).delete().in('conversation_id', convIds);
     if (mErr) throw mErr;
-    const { error: dErr } = await admin.from('conversations').delete().in('id', convIds);
+    const { error: dErr } = await admin.from(T.conversations).delete().in('id', convIds);
     if (dErr) throw dErr;
   }
 
-  const { error: bErr } = await admin.from('bids').delete().eq('buyer_profile_id', buyerProfileId);
+  const { error: bErr } = await admin.from(T.offers).delete().eq('buyer_profile_id', buyerProfileId);
   if (bErr) throw bErr;
   const { error: iErr } = await admin
-    .from('startup_interests')
+    .from(T.interests)
     .delete()
     .eq('buyer_profile_id', buyerProfileId);
   if (iErr) throw iErr;
@@ -307,14 +308,14 @@ export async function seedDemoTransactionalData(
   ];
 
   for (const row of interests) {
-    const { error } = await admin.from('startup_interests').upsert(row, {
+    const { error } = await admin.from(T.interests).upsert(row, {
       onConflict: 'startup_id,buyer_profile_id',
     });
     if (error) throw error;
   }
 
-  await admin.from('bids').delete().eq('buyer_profile_id', buyerProfileId).eq('startup_id', sorioId);
-  const { error: insBid } = await admin.from('bids').insert({
+  await admin.from(T.offers).delete().eq('buyer_profile_id', buyerProfileId).eq('startup_id', sorioId);
+  const { error: insBid } = await admin.from(T.offers).insert({
     startup_id: sorioId,
     buyer_profile_id: buyerProfileId,
     amount: 215000,
@@ -325,7 +326,7 @@ export async function seedDemoTransactionalData(
   if (insBid) throw insBid;
 
   const { data: conversation, error: convErr } = await admin
-    .from('conversations')
+    .from(T.conversations)
     .upsert(
       {
         startup_id: sorioId,
@@ -361,9 +362,9 @@ export async function seedDemoTransactionalData(
     },
   ];
 
-  const { error: delMsg } = await admin.from('messages').delete().eq('conversation_id', conversation.id);
+  const { error: delMsg } = await admin.from(T.messages).delete().eq('conversation_id', conversation.id);
   if (delMsg) throw delMsg;
-  const { error: msgErr } = await admin.from('messages').insert(thread);
+  const { error: msgErr } = await admin.from(T.messages).insert(thread);
   if (msgErr) throw msgErr;
 
   console.log('Seeded demo interests, bid, conversation, and messages.');

@@ -4,74 +4,35 @@ import type {
   TimeSeriesPoint,
   TrustLabel,
 } from "@/lib/marketplace/types";
-function hash(seed: string): number {
-  let value = 0;
-  for (let i = 0; i < seed.length; i++) {
-    value = (value * 33 + seed.charCodeAt(i)) >>> 0;
+
+function revenueHistoryFromStartup(startup: Startup): TimeSeriesPoint[] {
+  const series = startup.monthlyRevenueSeries ?? [];
+  if (series.length > 0) {
+    return series.map((p) => ({
+      label: p.month,
+      timestamp: p.month,
+      value: Math.max(0, Math.round(p.value)),
+    }));
   }
-  return value;
+  return [];
 }
 
-function startOfMonthOffset(offset: number): Date {
-  const date = new Date();
-  date.setDate(1);
-  date.setHours(0, 0, 0, 0);
-  date.setMonth(date.getMonth() + offset);
-  return date;
-}
-
-function monthLabel(date: Date): string {
-  return date.toLocaleString("en-US", { month: "short" });
-}
-
-function roundSeries(series: number[], target: number): number[] {
-  const rounded = series.map((value) => Math.max(0, Math.round(value)));
-  const drift =
-    Math.round(target) - rounded.reduce((sum, value) => sum + value, 0);
-  rounded[rounded.length - 1] = Math.max(
-    0,
-    rounded[rounded.length - 1] + drift,
-  );
-  return rounded;
-}
-
-function buildHistorySeries(
-  seed: string,
-  currentValue: number,
-  months: number,
-  variance: number,
-): TimeSeriesPoint[] {
-  const values: number[] = [];
-  let pointer = hash(seed) || 17;
-  const next = () => {
-    pointer = (pointer * 1103515245 + 12345) >>> 0;
-    return pointer / 4294967296;
-  };
-
-  let totalWeight = 0;
-  const weights: number[] = [];
-  for (let index = 0; index < months; index++) {
-    const seasonal = 0.84 + Math.sin(index / 2.8) * variance;
-    const noise = 0.9 + next() * variance;
-    const weight = Math.max(0.3, seasonal * noise);
-    weights.push(weight);
-    totalWeight += weight;
+function trafficHistoryFromStartup(startup: Startup): TimeSeriesPoint[] {
+  const meta = startup.metadata ?? {};
+  const raw = meta.traffic_history;
+  if (!Array.isArray(raw)) return [];
+  const out: TimeSeriesPoint[] = [];
+  for (const item of raw) {
+    if (!item || typeof item !== "object") continue;
+    const row = item as { label?: string; timestamp?: string; value?: number };
+    if (typeof row.value !== "number") continue;
+    out.push({
+      label: row.label ?? row.timestamp ?? "",
+      timestamp: row.timestamp ?? row.label ?? "",
+      value: Math.max(0, Math.round(row.value)),
+    });
   }
-
-  for (let index = 0; index < months; index++) {
-    const base = (weights[index] / totalWeight) * currentValue * months;
-    values.push(base);
-  }
-
-  const normalized = roundSeries(values, currentValue * months);
-  return normalized.map((value, index) => {
-    const date = startOfMonthOffset(index - (months - 1));
-    return {
-      label: monthLabel(date),
-      timestamp: date.toISOString(),
-      value,
-    };
-  });
+  return out;
 }
 
 function inferNicheTags(startup: Startup): string[] {
@@ -112,64 +73,101 @@ export function calculateGrowthPct(revenueHistory: TimeSeriesPoint[]): number {
   return Math.round(((last - prev) / prev) * 100);
 }
 
-function buildVerification(
-  startup: Startup,
-): MarketplaceListing["verification"] {
-  const now = new Date().toISOString();
+function dimensionStatus(
+  dimensions: { dimension: string; status: string }[] | undefined,
+  dimension: string,
+): "verified" | "unverified" | "pending" | "failed" {
+  const row = dimensions?.find((d) => d.dimension === dimension);
+  if (!row) return "unverified";
+  if (row.status === "pass") return "verified";
+  if (row.status === "pending" || row.status === "partial") return "pending";
+  if (row.status === "fail") return "failed";
+  return "unverified";
+}
+
+export function buildVerificationFromServer(input: {
+  slug: string;
+  dimensions?: {
+    dimension: string;
+    status: string;
+    computed_at?: string;
+    summary?: Record<string, unknown>;
+  }[];
+  connections?: { provider: string; status: string }[];
+}): MarketplaceListing["verification"] {
+  const dims = input.dimensions ?? [];
+  const revPass = dimensionStatus(dims, "revenue") === "verified";
+  const domainPass = dimensionStatus(dims, "domain") === "verified";
+  const trafficPass = dimensionStatus(dims, "traffic") === "verified";
+  const revConn = input.connections?.find((c) =>
+    [
+      "stripe",
+      "paddle",
+      "lemonsqueezy",
+      "revenuecat",
+      "razorpay",
+      "shopify",
+    ].includes(c.provider),
+  );
   return {
     revenue: {
-      status: startup.revenueVerified ? "verified" : "unverified",
-      provider: startup.revenueProvider,
-      updatedAt: startup.revenueVerified ? now : null,
-      requestedAt: startup.revenueVerified ? now : null,
-      note: startup.revenueVerified
-        ? `Revenue connected via ${startup.revenueProvider ?? "provider"}`
-        : "No revenue provider connected yet",
-      sourceLabel: startup.revenueProvider ?? "Manual revenue data",
+      status: revPass ? "verified" : "unverified",
+      provider: revConn?.provider ?? null,
+      updatedAt:
+        dims.find((d) => d.dimension === "revenue")?.computed_at ?? null,
+      requestedAt: null,
+      note: revPass
+        ? "Revenue verified from provider sync"
+        : "Connect a revenue provider to verify",
+      sourceLabel: revConn?.provider ?? "Provider integration",
     },
     domain: {
-      status: startup.domainVerified ? "verified" : "unverified",
-      provider: "DNS TXT",
-      updatedAt: startup.domainVerified ? now : null,
-      requestedAt: startup.domainVerified ? now : null,
-      note: startup.domainVerified
-        ? "DNS ownership confirmed"
-        : "DNS check not started",
+      status: domainPass ? "verified" : "unverified",
+      provider: "DNS",
+      updatedAt:
+        dims.find((d) => d.dimension === "domain")?.computed_at ?? null,
+      requestedAt: null,
+      note: domainPass ? "DNS ownership confirmed" : "Add TXT or CNAME record",
       mode: "dns_txt",
-      sourceLabel: "TXT record",
-      expectedValue: `ownerr-verification=${startup.slug}-${Math.abs(hash(startup.slug)).toString(36)}`,
+      sourceLabel: "TXT / CNAME",
+      expectedValue: `ownerr-verification=${input.slug}`,
     },
     traffic: {
-      status: startup.trafficVerified ? "verified" : "unverified",
-      provider: startup.trafficVerified ? "Google Analytics" : null,
-      updatedAt: startup.trafficVerified ? now : null,
-      requestedAt: startup.trafficVerified ? now : null,
-      note: startup.trafficVerified
-        ? "Analytics property connected"
-        : "Analytics not connected",
-      mode: startup.trafficVerified ? "google_analytics" : "manual",
-      sourceLabel: startup.trafficVerified
-        ? "Google Analytics connected (mock)"
-        : "Manual upload",
+      status: trafficPass ? "verified" : "unverified",
+      provider: trafficPass ? "Analytics" : null,
+      updatedAt:
+        dims.find((d) => d.dimension === "traffic")?.computed_at ?? null,
+      requestedAt: null,
+      note: trafficPass
+        ? "Traffic verified from analytics provider"
+        : "Connect GA4 or traffic provider",
+      mode: "google_analytics",
+      sourceLabel: "Analytics integration",
     },
   };
 }
 
+function buildVerification(
+  startup: Startup,
+): MarketplaceListing["verification"] {
+  return buildVerificationFromServer({ slug: startup.slug, dimensions: [] });
+}
+
+/** @deprecated Trust score is server-authoritative; pass overrides.trustScore from RPC. */
 export function computeTrustScore(
   listing: Pick<
     MarketplaceListing,
-    "revenueVerified" | "domainVerified" | "trafficVerified"
+    "revenueVerified" | "domainVerified" | "trafficVerified" | "trustScore"
   >,
 ): number {
-  const score =
-    (listing.revenueVerified ? 40 : 0) +
-    (listing.domainVerified ? 30 : 0) +
-    (listing.trafficVerified ? 30 : 0);
-  return Math.max(0, Math.min(100, score));
+  if (typeof listing.trustScore === "number" && listing.trustScore > 0) {
+    return listing.trustScore;
+  }
+  return 0;
 }
 
 export function trustLabelFromScore(score: number): TrustLabel {
-  if (score >= 70) return "High Trust";
+  if (score >= 65) return "High Trust";
   if (score >= 40) return "Medium Trust";
   return "Low Trust";
 }
@@ -179,6 +177,10 @@ function normalizeRevenueVerification(
   revenue: number,
   verification: MarketplaceListing["verification"]["revenue"],
 ): MarketplaceListing["verification"]["revenue"] {
+  // Server verification (provider sync) wins — do not downgrade with local heuristics.
+  if (verification.status === "verified") {
+    return verification;
+  }
   const historyIsSufficient =
     revenueHistory.filter((point) => point.value > 0).length >= 3;
   const hasMrr = revenue > 0;
@@ -197,34 +199,21 @@ export function buildMarketplaceListingFromStartup(
   overrides?: Partial<MarketplaceListing>,
 ): MarketplaceListing {
   const revenueHistory =
-    overrides?.revenueHistory ??
-    buildHistorySeries(
-      `${startup.slug}:revenue`,
-      Math.max(1, Math.round(startup.revenue)),
-      12,
-      0.18,
-    );
-  const growthPct = overrides?.growthPct ?? calculateGrowthPct(revenueHistory);
-  const trafficBase =
-    startup.trafficMonthlyVisitors ??
-    Math.max(400, Math.round(startup.customers * 2.2) || startup.revenue * 2);
+    overrides?.revenueHistory ?? revenueHistoryFromStartup(startup);
+  const growthPct =
+    overrides?.growthPct ??
+    (revenueHistory.length >= 2
+      ? calculateGrowthPct(revenueHistory)
+      : (startup.momGrowth ?? 0));
   const trafficHistory =
-    overrides?.trafficHistory ??
-    buildHistorySeries(
-      `${startup.slug}:traffic`,
-      Math.max(1, Math.round(trafficBase)),
-      12,
-      0.22,
-    );
+    overrides?.trafficHistory ?? trafficHistoryFromStartup(startup);
   const nicheTags = overrides?.nicheTags ?? inferNicheTags(startup);
   const createdAt =
     overrides?.createdAt ??
-    new Date(
-      startup.foundedYear,
-      Math.min(hash(startup.slug) % 12, 11),
-      1,
-    ).toISOString();
-  const updatedAt = overrides?.updatedAt ?? new Date().toISOString();
+    startup.listingCreatedAt ??
+    new Date().toISOString();
+  const updatedAt =
+    overrides?.updatedAt ?? startup.listingUpdatedAt ?? createdAt;
   const verificationBase =
     overrides?.verification ?? buildVerification(startup);
   const verification = {
@@ -238,7 +227,8 @@ export function buildMarketplaceListingFromStartup(
 
   const enriched: MarketplaceListing = {
     ...startup,
-    ownerUserId: overrides?.ownerUserId ?? startup.founderHandle,
+    ownerUserId:
+      overrides?.ownerUserId ?? startup.founderUserId ?? startup.founderHandle,
     createdAt,
     updatedAt,
     nicheTags,
@@ -249,15 +239,19 @@ export function buildMarketplaceListingFromStartup(
     trustScore: 0,
     trustLabel: "Low Trust",
     trafficMonthlyVisitors:
-      trafficHistory.at(-1)?.value ?? startup.trafficMonthlyVisitors ?? null,
+      startup.trafficMonthlyVisitors ??
+      (trafficHistory.length > 0
+        ? (trafficHistory.at(-1)?.value ?? null)
+        : null),
     trafficTrend:
-      trafficHistory.length >= 2
+      startup.trafficTrend ??
+      (trafficHistory.length >= 2
         ? trafficHistory.at(-1)!.value > trafficHistory.at(-2)!.value
           ? "up"
           : trafficHistory.at(-1)!.value < trafficHistory.at(-2)!.value
             ? "down"
             : "flat"
-        : startup.trafficTrend,
+        : null),
     revenueGrowth30dPct: growthPct,
     verification,
   };
@@ -269,8 +263,9 @@ export function buildMarketplaceListingFromStartup(
       : null;
   enriched.domainVerified = verification.domain.status === "verified";
   enriched.trafficVerified = verification.traffic.status === "verified";
-  enriched.trustScore = computeTrustScore(enriched);
-  enriched.trustLabel = trustLabelFromScore(enriched.trustScore);
+  enriched.trustScore = overrides?.trustScore ?? 0;
+  enriched.trustLabel =
+    overrides?.trustLabel ?? trustLabelFromScore(enriched.trustScore);
   return enriched;
 }
 export function bestDealScore(

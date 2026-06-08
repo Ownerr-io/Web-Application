@@ -6,6 +6,7 @@ import {
   listInboxForUser,
   listMessages,
   markConversationRead,
+  repairBuyerInterestConversations,
   sendMessage,
 } from "@/lib/marketplace/messageService";
 import { marketplaceKeys } from "@/lib/marketplace/queryKeys";
@@ -17,7 +18,15 @@ export function useInbox() {
   const authUserId = session?.user?.id;
   return useQuery({
     queryKey: marketplaceKeys.inbox(authUserId ?? ""),
-    queryFn: () => listInboxForUser(authUserId!),
+    queryFn: async () => {
+      if (!authUserId) return [];
+      try {
+        await repairBuyerInterestConversations();
+      } catch {
+        /* best-effort backfill for interests missing threads */
+      }
+      return listInboxForUser(authUserId);
+    },
     enabled: !!authUserId,
   });
 }
@@ -27,6 +36,7 @@ export function useConversationMessages(conversationId: string | undefined) {
     queryKey: marketplaceKeys.messages(conversationId ?? ""),
     queryFn: () => listMessages(conversationId!),
     enabled: !!conversationId,
+    refetchInterval: 8_000,
   });
 }
 

@@ -1,0 +1,21 @@
+{
+  "name": "@workspace/verification-automation",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/index.ts"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
+    "@workspace/db-schema": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "typescript": "~5.9.2"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit",
+    "test": "node --import tsx/esm --test src/stripeIdentityWebhookHttp.test.ts"
+  }
+}

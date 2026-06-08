@@ -27,6 +27,21 @@ export function MarketplaceTrendChart({
   const tickFill = isDark ? "#737373" : "#52525b";
   const latestValue = points.at(-1)?.value ?? 0;
 
+  if (points.length === 0) {
+    return (
+      <section className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
+        <div className="flex flex-col gap-1">
+          <div className="mp-label text-[10px]">{title}</div>
+          <p className="mp-body text-sm text-muted-foreground">{subtitle}</p>
+        </div>
+        <p className="mt-6 text-sm text-muted-foreground">
+          No history yet — data appears after provider sync or when you add it
+          to the listing.
+        </p>
+      </section>
+    );
+  }
+
   return (
     <section className="rounded-xl border border-border bg-card p-4 shadow-sm sm:p-6">
       <div className="flex flex-col gap-1">

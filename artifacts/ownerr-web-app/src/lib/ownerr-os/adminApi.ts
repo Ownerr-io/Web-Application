@@ -1,4 +1,5 @@
 import { getSupabase } from "@/lib/supabase/client";
+import { SchemaTables as T } from "@/lib/supabase/schemaTables";
 import { fetchFounderAnalytics } from "@/lib/founderService";
 import type { FounderAnalytics } from "@/lib/founderTypes";
 
@@ -19,7 +20,7 @@ export type AdminOsListingRow = {
 export async function fetchAllOsListings(): Promise<AdminOsListingRow[]> {
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from("listings")
+    .from(T.catalog.listings)
     .select(
       "id, owner_user_id, listing_type, title, description, industry, price_range, status, visibility, created_at, updated_at",
     )
@@ -42,16 +43,19 @@ export async function updateOsListing(
   input: UpdateOsListingInput,
 ): Promise<void> {
   const supabase = getSupabase();
-  const { error } = await supabase.from("listings").update(input).eq("id", id);
+  const { error } = await supabase.rpc("admin_update_catalog_listing", {
+    p_id: id,
+    p_patch: input,
+  });
   if (error) throw new Error(`updateOsListing: ${error.message}`);
 }
 
 export async function deleteOsListing(id: string): Promise<void> {
   const supabase = getSupabase();
-  const { error } = await supabase
-    .from("listings")
-    .update({ status: "archived", visibility: "unlisted" })
-    .eq("id", id);
+  const { error } = await supabase.rpc("admin_update_catalog_listing", {
+    p_id: id,
+    p_patch: { status: "archived", visibility: "unlisted" },
+  });
   if (error) throw new Error(`deleteOsListing: ${error.message}`);
 }
 
@@ -68,7 +72,7 @@ export async function createOsListing(
 ): Promise<AdminOsListingRow> {
   const supabase = getSupabase();
   const { data, error } = await supabase
-    .from("listings")
+    .from(T.catalog.listings)
     .insert({
       owner_user_id: input.owner_user_id,
       title: input.title,

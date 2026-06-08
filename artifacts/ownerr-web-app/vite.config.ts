@@ -62,6 +62,19 @@ export default defineConfig({
     fs: {
       strict: true,
     },
+    proxy: {
+      "/api/sync-worker": {
+        target:
+          process.env.VITE_SYNC_WORKER_PROXY_TARGET ?? "http://127.0.0.1:8787",
+        changeOrigin: true,
+        rewrite: (p) => p.replace(/^\/api\/sync-worker/, ""),
+      },
+      "/api/webhooks": {
+        target:
+          process.env.VITE_SYNC_WORKER_PROXY_TARGET ?? "http://127.0.0.1:8787",
+        changeOrigin: true,
+      },
+    },
   },
   preview: {
     port,

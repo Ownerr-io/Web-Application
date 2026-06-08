@@ -2,35 +2,70 @@
 
 BEGIN;
 
-DROP POLICY IF EXISTS marketplace_profiles_admin_manage ON public.marketplace_profiles;
-CREATE POLICY marketplace_profiles_admin_manage ON public.marketplace_profiles
-  FOR ALL TO authenticated
-  USING (public.is_platform_admin())
-  WITH CHECK (public.is_platform_admin());
+DO $$
+BEGIN
+  IF to_regclass('public.marketplace_profiles') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS marketplace_profiles_admin_manage ON public.marketplace_profiles';
+    EXECUTE $p$
+      CREATE POLICY marketplace_profiles_admin_manage ON public.marketplace_profiles
+        FOR ALL TO authenticated
+        USING (public.is_platform_admin())
+        WITH CHECK (public.is_platform_admin())
+    $p$;
+  END IF;
+END $$;
 
-DROP POLICY IF EXISTS startup_interests_admin_manage ON public.startup_interests;
-CREATE POLICY startup_interests_admin_manage ON public.startup_interests
-  FOR ALL TO authenticated
-  USING (public.is_platform_admin())
-  WITH CHECK (public.is_platform_admin());
+DO $$
+BEGIN
+  IF to_regclass('public.startup_interests') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS startup_interests_admin_manage ON public.startup_interests';
+    EXECUTE $p$
+      CREATE POLICY startup_interests_admin_manage ON public.startup_interests
+        FOR ALL TO authenticated
+        USING (public.is_platform_admin())
+        WITH CHECK (public.is_platform_admin())
+    $p$;
+  END IF;
+END $$;
 
-DROP POLICY IF EXISTS bids_admin_manage ON public.bids;
-CREATE POLICY bids_admin_manage ON public.bids
-  FOR ALL TO authenticated
-  USING (public.is_platform_admin())
-  WITH CHECK (public.is_platform_admin());
+DO $$
+BEGIN
+  IF to_regclass('public.bids') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS bids_admin_manage ON public.bids';
+    EXECUTE $p$
+      CREATE POLICY bids_admin_manage ON public.bids
+        FOR ALL TO authenticated
+        USING (public.is_platform_admin())
+        WITH CHECK (public.is_platform_admin())
+    $p$;
+  END IF;
+END $$;
 
-DROP POLICY IF EXISTS conversations_admin_manage ON public.conversations;
-CREATE POLICY conversations_admin_manage ON public.conversations
-  FOR ALL TO authenticated
-  USING (public.is_platform_admin())
-  WITH CHECK (public.is_platform_admin());
+DO $$
+BEGIN
+  IF to_regclass('public.conversations') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS conversations_admin_manage ON public.conversations';
+    EXECUTE $p$
+      CREATE POLICY conversations_admin_manage ON public.conversations
+        FOR ALL TO authenticated
+        USING (public.is_platform_admin())
+        WITH CHECK (public.is_platform_admin())
+    $p$;
+  END IF;
+END $$;
 
-DROP POLICY IF EXISTS seller_listings_admin_manage ON public.seller_listings;
-CREATE POLICY seller_listings_admin_manage ON public.seller_listings
-  FOR ALL TO authenticated
-  USING (public.is_platform_admin())
-  WITH CHECK (public.is_platform_admin());
+DO $$
+BEGIN
+  IF to_regclass('public.seller_listings') IS NOT NULL THEN
+    EXECUTE 'DROP POLICY IF EXISTS seller_listings_admin_manage ON public.seller_listings';
+    EXECUTE $p$
+      CREATE POLICY seller_listings_admin_manage ON public.seller_listings
+        FOR ALL TO authenticated
+        USING (public.is_platform_admin())
+        WITH CHECK (public.is_platform_admin())
+    $p$;
+  END IF;
+END $$;
 
 DO $$
 BEGIN

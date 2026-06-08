@@ -9,6 +9,10 @@ import {
   MarketplaceDeskStatGrid,
   marketplaceDeskKpiValueClass,
 } from "@/components/marketplace/MarketplaceDeskUi";
+import { OpenConversationButton } from "@/components/marketplace/OpenConversationButton";
+import { offerStatusLabel } from "@/lib/marketplace/offerStatusUi";
+import { Link } from "wouter";
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
 
 export default function BuyerInterestsPage() {
   const interestsQuery = useMyInterests();
@@ -21,13 +25,7 @@ export default function BuyerInterestsPage() {
       (listing) => [listing.slug, listing] as const,
     ),
   );
-  const rows = (interestsQuery.data ?? []) as Array<{
-    id: string;
-    listingId: string;
-    stage: string;
-    offerAmount: number | null;
-    messages: Array<{ body: string }>;
-  }>;
+  const rows = interestsQuery.data ?? [];
 
   return (
     <MarketplaceDeskPanel title="My interests">
@@ -65,6 +63,18 @@ export default function BuyerInterestsPage() {
                 {record.offerAmount
                   ? `Offer: ${formatCurrency(record.offerAmount)}`
                   : "Offer pending"}
+                {record.offerBidStatus ? (
+                  <>
+                    {" "}
+                    ·{" "}
+                    <Link
+                      href={MARKETPLACE_ROUTES.buyerOffers}
+                      className="text-brand-orange hover:underline"
+                    >
+                      {offerStatusLabel(record.offerBidStatus)}
+                    </Link>
+                  </>
+                ) : null}
               </p>
               <p className="mt-1 text-sm text-foreground/90">
                 {record.messages.at(-1)?.body ?? "No messages yet."}
@@ -78,6 +88,13 @@ export default function BuyerInterestsPage() {
                     {tag}
                   </span>
                 ))}
+              </div>
+              <div className="mt-3">
+                <OpenConversationButton
+                  mode="buyer"
+                  conversationId={record.conversationId}
+                  startupSlug={record.listingId}
+                />
               </div>
             </MarketplaceDeskListItem>
           );

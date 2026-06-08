@@ -11,7 +11,9 @@ export const marketplaceAppRoutes = {
   founderListings: MARKETPLACE_ROUTES.founderListings,
   founderInbox: MARKETPLACE_ROUTES.founderInbox,
   founderProfile: MARKETPLACE_ROUTES.founderProfile,
-  founderVerification: MARKETPLACE_ROUTES.founderVerification,
+  founderVerification: MARKETPLACE_ROUTES.sellerVerification,
+  sellerVerification: MARKETPLACE_ROUTES.sellerVerification,
+  sellerStartup: MARKETPLACE_ROUTES.sellerStartup,
 } as const;
 
 /** @deprecated Use marketplaceAppRoutes */
@@ -24,7 +26,7 @@ export const appRoutes = {
   seller: MARKETPLACE_ROUTES.founderHub,
   sellerListings: MARKETPLACE_ROUTES.founderListings,
   sellerInbox: MARKETPLACE_ROUTES.founderInbox,
-  sellerVerification: MARKETPLACE_ROUTES.founderListings,
+  sellerVerification: MARKETPLACE_ROUTES.sellerVerification,
   sellerProfile: MARKETPLACE_ROUTES.sellerProfile,
   buyerProfile: MARKETPLACE_ROUTES.buyer,
 } as const;

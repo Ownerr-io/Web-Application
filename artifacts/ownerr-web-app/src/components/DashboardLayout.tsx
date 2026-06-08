@@ -38,6 +38,7 @@ import {
   MARKETPLACE_APP_HEADER_INNER_CLASS,
   MARKETPLACE_APP_MAIN_PADDING_CLASS,
 } from "@/lib/marketplaceAppLayout";
+import { AUTH_APP_PAGE_ROOT } from "@/lib/appDeskLayout";
 import { OWNERR_OS_APP_MAIN_PADDING_CLASS } from "@/lib/ownerrOsAppLayout";
 
 type DashboardLayoutProps = {
@@ -256,14 +257,23 @@ export function DashboardLayout({
       ? OWNERR_OS_APP_MAIN_PADDING_CLASS
       : isMarketplaceDesk
         ? MARKETPLACE_APP_MAIN_PADDING_CLASS
-        : "px-3 py-4 sm:p-6";
+        : "min-w-0 px-3 py-4 sm:px-4 sm:p-6";
   const mobileChrome = !fullBleedMain;
 
   return (
-    <div className="desk-app-shell flex min-h-screen w-full flex-col">
-      {showDemoBanner ? <DemoAccountBanner /> : null}
+    <div
+      className={cn(
+        "desk-app-shell flex w-full max-w-[100vw] flex-col overflow-hidden",
+        "h-[100dvh] max-h-[100dvh]",
+      )}
+    >
+      {showDemoBanner ? (
+        <div className="shrink-0">
+          <DemoAccountBanner />
+        </div>
+      ) : null}
       {mobileChrome ? (
-        <header className="brand-header-bar sticky top-0 z-40 flex min-h-14 shrink-0 items-center justify-between gap-2 px-3 pt-[env(safe-area-inset-top,0px)] sm:px-4 lg:hidden">
+        <header className="brand-header-bar z-40 flex min-h-14 shrink-0 items-center justify-between gap-2 border-b border-border px-3 pt-[env(safe-area-inset-top,0px)] sm:px-4 lg:hidden">
           <div className="flex min-w-0 flex-1 items-center gap-2">
             <img
               src="/Ownerr%20Logo.svg"
@@ -281,7 +291,7 @@ export function DashboardLayout({
       ) : null}
       <div
         className={cn(
-          "grid min-h-0 w-full flex-1",
+          "grid min-h-0 w-full flex-1 overflow-hidden",
           fullBleedMain ? "grid-cols-1" : "lg:grid-cols-[240px_1fr]",
         )}
       >
@@ -290,19 +300,22 @@ export function DashboardLayout({
             <DashboardSidebar />
           </aside>
         )}
-        <div className="flex min-h-0 min-w-0 flex-1 flex-col">
+        <div className="flex min-h-0 min-w-0 flex-1 flex-col overflow-hidden">
           {!fullBleedMain && (
-            <AuthenticatedAppHeader className="hidden lg:flex" />
+            <AuthenticatedAppHeader className="hidden shrink-0 lg:flex" />
           )}
           <main
             data-scroll-reset
-            className="flex min-h-0 min-w-0 flex-1 flex-col overflow-x-hidden"
+            className={cn(
+              "min-h-0 min-w-0 flex-1 overflow-x-hidden overflow-y-auto overscroll-y-contain touch-pan-y",
+              mobileChrome && DASHBOARD_MOBILE_BOTTOM_NAV_SPACER_CLASS,
+            )}
           >
             <div
               className={cn(
-                "brand-app-page flex-1",
+                "brand-app-page",
+                AUTH_APP_PAGE_ROOT,
                 mainPaddingClass,
-                mobileChrome && DASHBOARD_MOBILE_BOTTOM_NAV_SPACER_CLASS,
               )}
             >
               {children}

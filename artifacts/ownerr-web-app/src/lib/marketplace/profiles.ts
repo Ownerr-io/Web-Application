@@ -2,6 +2,10 @@ import type { User } from "@supabase/supabase-js";
 import { getSupabase, isSupabaseConfigured } from "@/lib/supabase/client";
 import type { DeskMarketplaceRole } from "@/lib/marketplace/types";
 import type { AuthRole } from "@/lib/auth/types";
+import {
+  ensureMarketplaceTablesDetected,
+  getMarketplaceTables,
+} from "@/lib/marketplace/dbTables";
 
 export type MarketplaceProfileRow = {
   id: string;
@@ -27,8 +31,10 @@ export async function fetchMarketplaceProfilesForUser(
   authUserId: string,
 ): Promise<MarketplaceProfileRow[]> {
   if (!isSupabaseConfigured()) return [];
+  await ensureMarketplaceTablesDetected();
+  const MP = getMarketplaceTables().accounts;
   const { data, error } = await getSupabase()
-    .from("marketplace_profiles")
+    .from(MP)
     .select(
       "id, auth_user_id, desk_role, status, metadata, created_at, updated_at",
     )
@@ -61,6 +67,8 @@ async function upsertMarketplaceProfileRow(
   deskRole: "buyer" | "seller",
   metadata: Record<string, unknown>,
 ): Promise<MarketplaceProfileRow> {
+  await ensureMarketplaceTablesDetected();
+  const MP = getMarketplaceTables().accounts;
   const supabase = getSupabase();
   const row = {
     auth_user_id: authUserId,
@@ -70,7 +78,7 @@ async function upsertMarketplaceProfileRow(
   };
 
   const { data, error } = await supabase
-    .from("marketplace_profiles")
+    .from(MP)
     .upsert(row, { onConflict: "auth_user_id,desk_role" })
     .select(PROFILE_SELECT)
     .single();
@@ -79,7 +87,7 @@ async function upsertMarketplaceProfileRow(
   if (!isUpsertConstraintMismatch(error)) throw error;
 
   const { data: rows, error: listErr } = await supabase
-    .from("marketplace_profiles")
+    .from(MP)
     .select(PROFILE_SELECT)
     .eq("auth_user_id", authUserId);
   if (listErr) throw listErr;
@@ -88,7 +96,7 @@ async function upsertMarketplaceProfileRow(
   const matching = list.find((r) => r.desk_role === deskRole);
   if (matching) {
     const { data: updated, error: upErr } = await supabase
-      .from("marketplace_profiles")
+      .from(MP)
       .update({ status: "active", metadata })
       .eq("id", matching.id)
       .select(PROFILE_SELECT)
@@ -97,11 +105,12 @@ async function upsertMarketplaceProfileRow(
     return updated as MarketplaceProfileRow;
   }
 
-  if (list.length === 1) {
+  const lone = list.length === 1 ? list[0]! : null;
+  if (lone && (lone.desk_role == null || lone.desk_role === "")) {
     const { data: updated, error: upErr } = await supabase
-      .from("marketplace_profiles")
+      .from(MP)
       .update({ status: "active", desk_role: deskRole, metadata })
-      .eq("id", list[0]!.id)
+      .eq("id", lone.id)
       .select(PROFILE_SELECT)
       .single();
     if (upErr) throw upErr;
@@ -109,20 +118,23 @@ async function upsertMarketplaceProfileRow(
   }
 
   const { data: inserted, error: insErr } = await supabase
-    .from("marketplace_profiles")
+    .from(MP)
     .insert(row)
     .select(PROFILE_SELECT)
     .single();
   if (insErr) {
-    if (isUpsertConstraintMismatch(insErr) && list[0]) {
-      const { data: updated, error: upErr } = await supabase
-        .from("marketplace_profiles")
-        .update({ status: "active", desk_role: deskRole, metadata })
-        .eq("id", list[0].id)
-        .select(PROFILE_SELECT)
-        .single();
-      if (upErr) throw upErr;
-      return updated as MarketplaceProfileRow;
+    if (isUpsertConstraintMismatch(insErr)) {
+      const retry = list.find((r) => r.desk_role === deskRole);
+      if (retry) {
+        const { data: updated, error: upErr } = await supabase
+          .from(MP)
+          .update({ status: "active", metadata })
+          .eq("id", retry.id)
+          .select(PROFILE_SELECT)
+          .single();
+        if (upErr) throw upErr;
+        return updated as MarketplaceProfileRow;
+      }
     }
     throw insErr;
   }
@@ -167,12 +179,27 @@ export async function getBuyerProfileId(
   return rows.find((r) => r.desk_role === "buyer")?.id ?? null;
 }
 
+/** All active desk profiles for bid/interest lookups when desk role changed. */
+export async function getMarketplaceProfileIdsForUser(
+  authUserId: string,
+): Promise<string[]> {
+  const rows = await fetchMarketplaceProfilesForUser(authUserId);
+  return rows.map((r) => r.id);
+}
+
 export async function getSellerProfileId(
   authUserId: string,
 ): Promise<string | null> {
+  const ids = await getSellerProfileIds(authUserId);
+  return ids[0] ?? null;
+}
+
+/** All seller/founder desk profiles for inbox + conversation matching. */
+export async function getSellerProfileIds(
+  authUserId: string,
+): Promise<string[]> {
   const rows = await fetchMarketplaceProfilesForUser(authUserId);
-  return (
-    rows.find((r) => r.desk_role === "seller" || r.desk_role === "founder")
-      ?.id ?? null
-  );
+  return rows
+    .filter((r) => r.desk_role === "seller" || r.desk_role === "founder")
+    .map((r) => r.id);
 }

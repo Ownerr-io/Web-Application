@@ -2,11 +2,11 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useAuth } from "@/context/AuthContext";
 import { getSupabase } from "@/lib/supabase/client";
 import {
-  createBid,
   listBidsForBuyer,
   listBidsForStartupSlug,
   updateBidStatus,
 } from "@/lib/marketplace/bidService";
+import { submitOffer } from "@/lib/marketplace/offerService";
 import { marketplaceKeys } from "@/lib/marketplace/queryKeys";
 import type { BidStatus } from "@/lib/marketplace/types";
 import { useToast } from "@/hooks/use-toast";
@@ -45,12 +45,13 @@ export function useCreateBid() {
         data: { user },
       } = await getSupabase().auth.getUser();
       if (!user) throw new MarketplaceError("Sign in required", "forbidden");
-      return createBid({
+      const id = await submitOffer({
         user,
         startupSlug: input.startupSlug,
         amount: input.amount,
         message: input.message,
       });
+      return { id };
     },
     onSuccess: (_data, vars) => {
       if (currentUser) {
@@ -61,7 +62,15 @@ export function useCreateBid() {
       void qc.invalidateQueries({
         queryKey: marketplaceKeys.bids.startup(vars.startupSlug),
       });
-      toast({ title: "Bid submitted" });
+      if (currentUser) {
+        void qc.invalidateQueries({
+          queryKey: marketplaceKeys.offers.buyer(currentUser.id),
+        });
+        void qc.invalidateQueries({
+          queryKey: marketplaceKeys.offers.seller(currentUser.id),
+        });
+      }
+      toast({ title: "Offer submitted" });
     },
     onError: (err: Error) => {
       toast({

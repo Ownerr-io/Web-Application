@@ -5,6 +5,7 @@ import { useAuth } from "@/context/AuthContext";
 import { PUBLIC_ROUTES } from "@/routing/routeRegistry";
 import type { AuthenticatedWorkspace } from "@/routing/routeRegistry";
 import { OWNERR_OS_APP_CONTENT_CLASS } from "@/lib/ownerrOsAppLayout";
+import { cn } from "@/lib/utils";
 
 type Props = {
   product: AuthenticatedWorkspace;
@@ -28,12 +29,14 @@ export function ProductSettingsShell({
     email.split("@")[0] ??
     "User";
 
-  const shellClass =
+  const shellClass = cn(
+    "min-w-0 w-full",
     product === "ownerr-os" || product === "ownerr-network"
       ? OWNERR_OS_APP_CONTENT_CLASS
       : wide
         ? "mx-auto max-w-3xl space-y-6 pb-8"
-        : "mx-auto max-w-lg space-y-8";
+        : "mx-auto max-w-lg space-y-8",
+  );
 
   return (
     <div className={shellClass}>

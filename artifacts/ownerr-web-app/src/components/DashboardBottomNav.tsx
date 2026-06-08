@@ -23,7 +23,7 @@ const SHORT_LABELS: Record<string, string> = {
   "ownerr-network.dashboard": "Home",
   "marketplace.buyer.browse": "Browse",
   "marketplace.buyer.interests": "Interests",
-  "marketplace.buyer.bids": "Bids",
+  "marketplace.buyer.offers": "Offers",
   "marketplace.seller.listings": "Listings",
   "marketplace.seller.inbox": "Inbox",
   "marketplace.seller.verification": "Verify",
@@ -177,7 +177,7 @@ export function DashboardBottomNav() {
       style={{ paddingBottom: "env(safe-area-inset-bottom, 0px)" }}
       aria-label="App navigation"
     >
-      <div className="mx-auto flex h-[3.25rem] max-w-lg items-stretch gap-0.5 px-1 pt-0.5">
+      <div className="flex min-h-[3.5rem] max-w-lg items-stretch gap-0.5 px-1 pt-0.5 sm:max-w-none">
         {primary.map((item) => (
           <BottomNavTab
             key={item.id}
@@ -196,4 +196,4 @@ export function DashboardBottomNav() {
 
 /** Reserve space above the fixed bottom bar so content is not covered. */
 export const DASHBOARD_MOBILE_BOTTOM_NAV_SPACER_CLASS =
-  "pb-[calc(3.25rem+env(safe-area-inset-bottom,0px))] lg:pb-0";
+  "pb-[calc(3.5rem+env(safe-area-inset-bottom,0px))] lg:pb-0";

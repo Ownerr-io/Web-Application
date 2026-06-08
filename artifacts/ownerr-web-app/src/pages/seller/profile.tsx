@@ -1,29 +1,53 @@
+import { useQuery } from "@tanstack/react-query";
+import { Link } from "wouter";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { MarketplaceAppPageShell } from "@/components/marketplace/MarketplaceAppPageShell";
 import { MarketplaceProfileAccountSection } from "@/components/marketplace/MarketplaceProfileAccountSection";
 import { AccountChangePasswordSection } from "@/components/auth/AccountChangePasswordSection";
+import { ListCompanyButton } from "@/components/marketplace/ListCompanyButton";
 import {
   MarketplaceDeskKpiCard,
+  MarketplaceDeskListItem,
   MarketplaceDeskStat,
   marketplaceDeskCardClass,
   marketplaceDeskKpiValueClass,
 } from "@/components/marketplace/MarketplaceDeskUi";
 import { useAuth } from "@/context/AuthContext";
+import { getUserListings } from "@/lib/marketplace/service";
+import { marketplaceSellerListingPath } from "@/lib/appPaths";
+import { MARKETPLACE_ROUTES } from "@/routing/routeRegistry";
 import { founderAvatarUrl, cn } from "@/lib/utils";
+import { Skeleton } from "@/components/ui/skeleton";
 
 export default function SellerProfilePage() {
-  const { currentUser } = useAuth();
+  const { currentUser, session } = useAuth();
+  const authUserId = session?.user?.id;
   const email = currentUser?.email ?? "";
   const displayName = currentUser?.name ?? "Account";
   const avatarSrc = founderAvatarUrl(
     currentUser?.avatarSeed ?? currentUser?.id ?? "founder",
   );
 
+  const { data: listings = [], isLoading } = useQuery({
+    queryKey: ["seller-profile-listings", authUserId],
+    queryFn: () => getUserListings(authUserId!),
+    enabled: !!authUserId,
+  });
+
+  const fullyVerified = listings.filter(
+    (l) => l.revenueVerified && l.domainVerified && l.trafficVerified,
+  ).length;
+  const verificationRate =
+    listings.length > 0
+      ? `${Math.round((fullyVerified / listings.length) * 100)}%`
+      : "—";
+
   return (
     <MarketplaceAppPageShell
       kicker="Seller desk"
       title="Profile"
       description="Your seller desk identity and account"
+      headerActions={<ListCompanyButton size="sm" />}
     >
       <section
         className={cn(
@@ -55,41 +79,68 @@ export default function SellerProfilePage() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-3 sm:grid-cols-3">
-              <MarketplaceDeskStat
-                label="Open listings"
-                value="2"
-                valueClassName={marketplaceDeskKpiValueClass(0)}
-              />
-              <MarketplaceDeskStat
-                label="Avg reply time"
-                value="6h"
-                valueClassName={marketplaceDeskKpiValueClass(1)}
-              />
-              <MarketplaceDeskStat
-                label="Verification rate"
-                value="83%"
-                valueClassName={marketplaceDeskKpiValueClass(2)}
-              />
-            </div>
+            {isLoading ? (
+              <Skeleton className="h-16 w-full" />
+            ) : (
+              <div className="grid gap-3 sm:grid-cols-3">
+                <MarketplaceDeskStat
+                  label="Open listings"
+                  value={listings.length}
+                  valueClassName={marketplaceDeskKpiValueClass(0)}
+                />
+                <MarketplaceDeskStat
+                  label="Fully verified"
+                  value={fullyVerified}
+                  valueClassName={marketplaceDeskKpiValueClass(1)}
+                />
+                <MarketplaceDeskStat
+                  label="Verification rate"
+                  value={verificationRate}
+                  valueClassName={marketplaceDeskKpiValueClass(2)}
+                />
+              </div>
+            )}
           </CardContent>
         </Card>
-        <MarketplaceDeskKpiCard title="Founder details">
-          <div className="space-y-2 text-sm">
-            {[
-              "Primary vertical: AI SaaS",
-              "Current stage: Negotiation-ready",
-              "Preferred buyer type: Strategic",
-              "Due diligence window: 2-3 weeks",
-            ].map((line) => (
-              <p
-                key={line}
-                className="brand-panel-card overflow-hidden rounded-xl border px-3 py-2 shadow-none"
-              >
-                {line}
+        <MarketplaceDeskKpiCard title="Your listings">
+          {isLoading ? (
+            <Skeleton className="h-24 w-full" />
+          ) : listings.length === 0 ? (
+            <div className="space-y-3">
+              <p className="text-sm text-muted-foreground">
+                No companies listed yet. Add your first startup to verify
+                revenue and appear on the marketplace.
               </p>
-            ))}
-          </div>
+              <ListCompanyButton size="sm" className="w-full" />
+            </div>
+          ) : (
+            <div className="space-y-2">
+              {listings.slice(0, 4).map((l) => (
+                <MarketplaceDeskListItem key={l.slug}>
+                  <Link
+                    href={marketplaceSellerListingPath(l.slug)}
+                    className="font-medium hover:underline"
+                  >
+                    {l.name}
+                  </Link>
+                  <p className="text-xs text-muted-foreground">
+                    Trust {l.trustScore ?? 0} ·{" "}
+                    {l.revenueVerified
+                      ? "Revenue verified"
+                      : "Verification pending"}
+                  </p>
+                </MarketplaceDeskListItem>
+              ))}
+              {listings.length > 4 ? (
+                <Link
+                  href={MARKETPLACE_ROUTES.sellerListings}
+                  className="text-xs font-medium text-brand-lime hover:underline"
+                >
+                  View all {listings.length} listings
+                </Link>
+              ) : null}
+            </div>
+          )}
         </MarketplaceDeskKpiCard>
       </div>
 

@@ -62,11 +62,22 @@ function AdminSidebar() {
             </p>
             <div className="space-y-1">
               {section.items.map((item) => {
-                const isActive = location === item.path;
+                const isActive =
+                  location === item.path ||
+                  (item.path !== "/admin" &&
+                    location.startsWith(`${item.path}/`));
                 return (
                   <div
                     key={item.path}
+                    role="button"
+                    tabIndex={0}
                     onClick={() => navigate(item.path)}
+                    onKeyDown={(e) => {
+                      if (e.key === "Enter" || e.key === " ") {
+                        e.preventDefault();
+                        navigate(item.path);
+                      }
+                    }}
                     className={cn(
                       "brand-nav-item cursor-pointer px-4 py-2 text-sm font-medium transition",
                       isActive

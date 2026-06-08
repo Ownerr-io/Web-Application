@@ -1,0 +1,16 @@
+{
+  "name": "@workspace/db-schema",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "exports": {
+    ".": "./src/tables.ts",
+    "./physicalTables.mjs": "./physicalTables.mjs"
+  },
+  "scripts": {
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "devDependencies": {
+    "typescript": "~5.9.2"
+  }
+}

@@ -25,11 +25,13 @@ export function MarketplaceDeskStat({
   valueClassName,
 }: StatProps) {
   return (
-    <div className="brand-kpi-card overflow-hidden rounded-xl p-3">
-      <p className="brand-eyebrow text-[10px]">{label}</p>
+    <div className="brand-kpi-card overflow-hidden rounded-xl p-2.5 sm:p-3">
+      <p className="brand-eyebrow text-[9px] leading-tight sm:text-[10px]">
+        {label}
+      </p>
       <p
         className={cn(
-          "mt-1 text-xl font-bold tabular-nums text-brand-lime",
+          "mt-1 text-lg font-bold tabular-nums text-brand-lime sm:text-xl",
           valueClassName,
         )}
       >
@@ -40,7 +42,11 @@ export function MarketplaceDeskStat({
 }
 
 export function MarketplaceDeskStatGrid({ children }: { children: ReactNode }) {
-  return <div className="mb-4 grid gap-3 sm:grid-cols-3">{children}</div>;
+  return (
+    <div className="mb-4 grid grid-cols-2 gap-2 sm:gap-3 md:grid-cols-3 lg:grid-cols-4">
+      {children}
+    </div>
+  );
 }
 
 export function MarketplaceDeskListItem({
@@ -73,12 +79,16 @@ export function MarketplaceDeskPanel({
 }: PanelProps) {
   return (
     <Card className={cn(marketplaceDeskCardClass, "rounded-xl", className)}>
-      <CardHeader className="pb-3">
+      <CardHeader className="px-4 pb-2 pt-4 sm:px-6 sm:pb-3">
         <CardTitle className="brand-eyebrow text-xs font-bold tracking-widest">
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent className={contentClassName}>{children}</CardContent>
+      <CardContent
+        className={cn("px-4 pb-4 pt-0 sm:px-6 sm:pb-6", contentClassName)}
+      >
+        {children}
+      </CardContent>
     </Card>
   );
 }
@@ -102,12 +112,14 @@ export function MarketplaceDeskKpiCard({
         className,
       )}
     >
-      <CardHeader className="pb-2">
+      <CardHeader className="px-4 pb-2 pt-4 sm:px-6">
         <CardTitle className="brand-eyebrow text-[10px] font-bold tracking-widest">
           {title}
         </CardTitle>
       </CardHeader>
-      <CardContent>{children}</CardContent>
+      <CardContent className="px-4 pb-4 pt-0 sm:px-6 sm:pb-6">
+        {children}
+      </CardContent>
     </Card>
   );
 }

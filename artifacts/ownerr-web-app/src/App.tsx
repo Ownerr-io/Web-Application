@@ -30,6 +30,8 @@ import {
   LazyMarketplaceAdminSellersPage,
   LazyMarketplaceAdminListingsPage,
   LazyMarketplaceAdminSubmissionsPage,
+  LazyMarketplaceAdminVerificationPage,
+  LazyMarketplaceAdminOffersPage,
   LazyOwnerrOsAdminDashboard,
   LazyOwnerrOsAdminFoundersPage,
   LazyOwnerrOsAdminListingsPage,
@@ -86,10 +88,20 @@ import { ProductShellEnforcer } from "@/components/routing/ProductShellEnforcer"
 import BuyerDashboard from "@/pages/buyer";
 import BuyerInterestsPage from "@/pages/buyer/interests";
 import BuyerBidsPage from "@/pages/buyer/bids";
+import BuyerOffersPage from "@/pages/buyer/offers";
 import BuyerProfilePage from "@/pages/buyer/profile";
+import BuyerInboxPage from "@/pages/buyer/inbox";
+import BuyerInboxConversationPage from "@/pages/buyer/inbox-conversation";
+import BuyerVerificationPage from "@/pages/buyer/verification";
 import SellerListingsPage from "@/pages/seller/listings";
 import SellerInboxPage from "@/pages/seller/inbox";
-import SellerVerificationPage from "@/pages/seller/verification";
+import SellerOffersPage from "@/pages/seller/offers";
+import SellerInboxConversationPage from "@/pages/seller/inbox-conversation";
+import SellerPersonVerificationPage from "@/pages/seller/verification";
+import SellerCompaniesPage from "@/pages/seller/companies/index";
+import SellerAddStartupPage from "@/pages/seller/companies/new";
+import SellerCompanyDetailPage from "@/pages/seller/companies/detail";
+import SellerVerificationDetailRedirect from "@/pages/seller/verification-detail";
 import SellerProfilePage from "@/pages/seller/profile";
 import SellerDashboard from "@/pages/seller";
 import { applyTheme } from "@/components/ThemeToggle";
@@ -98,6 +110,7 @@ import { FounderOsProvider } from "@/context/FounderOsContext";
 import { AuthProvider } from "@/context/AuthContext";
 import { ActiveProductProvider } from "@/context/ActiveProductContext";
 import MarketplaceAppEntryPage from "@/pages/marketplace/app/index";
+import VerifyBusinessEmailPage from "@/pages/marketplace/verify-business-email";
 import AuthStartPage from "@/pages/auth/start";
 import ResetPasswordPage from "@/pages/auth/reset-password";
 import VerifyEmailPage from "@/pages/auth/verify-email";
@@ -245,12 +258,28 @@ function Router() {
           </Suspense>
         </RouteGuard>
       </Route>
+      <Route path={ADMIN_ROUTES.marketplaceVerification}>
+        <RouteGuard pathname={ADMIN_ROUTES.marketplaceVerification}>
+          <Suspense
+            fallback={<RouteLoadingFallback label="Loading verification…" />}
+          >
+            <LazyMarketplaceAdminVerificationPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
       <Route path={ADMIN_ROUTES.marketplaceSubmissions}>
         <RouteGuard pathname={ADMIN_ROUTES.marketplaceSubmissions}>
           <Suspense
             fallback={<RouteLoadingFallback label="Loading submissions…" />}
           >
             <LazyMarketplaceAdminSubmissionsPage />
+          </Suspense>
+        </RouteGuard>
+      </Route>
+      <Route path={ADMIN_ROUTES.marketplaceOffers}>
+        <RouteGuard pathname={ADMIN_ROUTES.marketplaceOffers}>
+          <Suspense fallback={<RouteLoadingFallback label="Loading offers…" />}>
+            <LazyMarketplaceAdminOffersPage />
           </Suspense>
         </RouteGuard>
       </Route>
@@ -609,6 +638,11 @@ function Router() {
         <FounderSharePage />
       </Route>
 
+      <Route path="/marketplace/verify-business-email">
+        <MarketplaceLayout>
+          <VerifyBusinessEmailPage />
+        </MarketplaceLayout>
+      </Route>
       <Route path="/marketplace/startup/:slug">
         <MarketplaceLayout>
           <Suspense
@@ -697,6 +731,46 @@ function Router() {
           </DeskRoleGuard>
         </AuthenticatedShellRoute>
       </Route>
+      <Route path={MARKETPLACE_ROUTES.buyerOffers}>
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname={MARKETPLACE_ROUTES.buyerOffers}
+        >
+          <DeskRoleGuard role="buyer">
+            <BuyerOffersPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path="/marketplace/app/buyer/inbox/:conversationId">
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname="/marketplace/app/buyer/inbox/:conversationId"
+        >
+          <DeskRoleGuard role="buyer">
+            <BuyerInboxConversationPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.buyerInbox}>
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname={MARKETPLACE_ROUTES.buyerInbox}
+        >
+          <DeskRoleGuard role="buyer">
+            <BuyerInboxPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.buyerVerification}>
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname={MARKETPLACE_ROUTES.buyerVerification}
+        >
+          <DeskRoleGuard role="buyer">
+            <BuyerVerificationPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
       <Route path={MARKETPLACE_ROUTES.buyerProfile}>
         <AuthenticatedShellRoute
           product="marketplace"
@@ -718,13 +792,53 @@ function Router() {
         </AuthenticatedShellRoute>
       </Route>
 
-      <Route path={MARKETPLACE_ROUTES.founderVerification}>
+      <Route path={MARKETPLACE_ROUTES.sellerCompanyNew}>
         <AuthenticatedShellRoute
           product="marketplace"
-          pathname={MARKETPLACE_ROUTES.founderVerification}
+          pathname={MARKETPLACE_ROUTES.sellerCompanyNew}
         >
           <DeskRoleGuard role="founder">
-            <SellerVerificationPage />
+            <SellerAddStartupPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={`${MARKETPLACE_ROUTES.seller}/companies/:slug`}>
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname={`${MARKETPLACE_ROUTES.seller}/companies/:slug`}
+        >
+          <DeskRoleGuard role="founder">
+            <SellerCompanyDetailPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.sellerCompanies}>
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname={MARKETPLACE_ROUTES.sellerCompanies}
+        >
+          <DeskRoleGuard role="founder">
+            <SellerCompaniesPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.sellerPersonVerification}>
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname={MARKETPLACE_ROUTES.sellerPersonVerification}
+        >
+          <DeskRoleGuard role="founder">
+            <SellerPersonVerificationPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={`${MARKETPLACE_ROUTES.seller}/verification/:slug`}>
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname={`${MARKETPLACE_ROUTES.seller}/verification/:slug`}
+        >
+          <DeskRoleGuard role="founder">
+            <SellerVerificationDetailRedirect />
           </DeskRoleGuard>
         </AuthenticatedShellRoute>
       </Route>
@@ -735,6 +849,26 @@ function Router() {
         >
           <DeskRoleGuard role="founder">
             <SellerProfilePage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path="/marketplace/app/seller/inbox/:conversationId">
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname="/marketplace/app/seller/inbox/:conversationId"
+        >
+          <DeskRoleGuard role="founder">
+            <SellerInboxConversationPage />
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
+      <Route path={MARKETPLACE_ROUTES.sellerOffers}>
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname={MARKETPLACE_ROUTES.sellerOffers}
+        >
+          <DeskRoleGuard role="founder">
+            <SellerOffersPage />
           </DeskRoleGuard>
         </AuthenticatedShellRoute>
       </Route>
@@ -836,6 +970,20 @@ function Router() {
           </DeskRoleGuard>
         </AuthenticatedShellRoute>
       </Route>
+      <Route path={`${MARKETPLACE_ROUTES.seller}/startup/:slug`}>
+        <AuthenticatedShellRoute
+          product="marketplace"
+          pathname={`${MARKETPLACE_ROUTES.seller}/startup/:slug`}
+        >
+          <DeskRoleGuard role="founder">
+            <Suspense
+              fallback={<RouteLoadingFallback label="Loading listing…" />}
+            >
+              <LazyStartupDetailPage />
+            </Suspense>
+          </DeskRoleGuard>
+        </AuthenticatedShellRoute>
+      </Route>
       <Route path={MARKETPLACE_ROUTES.sellerInbox}>
         <AuthenticatedShellRoute
           product="marketplace"
@@ -843,16 +991,6 @@ function Router() {
         >
           <DeskRoleGuard role="founder">
             <SellerInboxPage />
-          </DeskRoleGuard>
-        </AuthenticatedShellRoute>
-      </Route>
-      <Route path={MARKETPLACE_ROUTES.sellerVerification}>
-        <AuthenticatedShellRoute
-          product="marketplace"
-          pathname={MARKETPLACE_ROUTES.sellerVerification}
-        >
-          <DeskRoleGuard role="founder">
-            <SellerVerificationPage />
           </DeskRoleGuard>
         </AuthenticatedShellRoute>
       </Route>

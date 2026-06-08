@@ -175,6 +175,40 @@ CREATE TRIGGER wallets_set_updated_at
   BEFORE UPDATE ON public.wallets
   FOR EACH ROW EXECUTE FUNCTION public.set_updated_at();
 
+-- Pre-existing wallets (partial/legacy schema) may omit aggregate columns.
+ALTER TABLE public.wallets
+  ADD COLUMN IF NOT EXISTS user_id uuid REFERENCES public.users (id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS balance bigint NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_earned bigint NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS total_spent bigint NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS locked_balance bigint NOT NULL DEFAULT 0,
+  ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now(),
+  ADD COLUMN IF NOT EXISTS updated_at timestamptz NOT NULL DEFAULT now();
+
+UPDATE public.wallets
+SET
+  balance = COALESCE(balance, 0),
+  total_earned = COALESCE(total_earned, 0),
+  total_spent = COALESCE(total_spent, 0),
+  locked_balance = COALESCE(locked_balance, 0)
+WHERE balance IS NULL
+   OR total_earned IS NULL
+   OR total_spent IS NULL
+   OR locked_balance IS NULL;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'wallets_user_id_key' AND conrelid = 'public.wallets'::regclass
+  ) THEN
+    ALTER TABLE public.wallets ADD CONSTRAINT wallets_user_id_key UNIQUE (user_id);
+  END IF;
+EXCEPTION
+  WHEN unique_violation THEN
+    NULL;
+END $$;
+
 CREATE TABLE IF NOT EXISTS public.wallet_transactions (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   wallet_id uuid NOT NULL REFERENCES public.wallets (id) ON DELETE CASCADE,
@@ -188,8 +222,66 @@ CREATE TABLE IF NOT EXISTS public.wallet_transactions (
   CONSTRAINT wallet_transactions_idempotency UNIQUE (wallet_id, source_reference)
 );
 
+-- Pre-existing wallet_transactions (partial/legacy schema) may omit enterprise columns.
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'wallet_transactions' AND column_name = 'type'
+  ) AND NOT EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'wallet_transactions' AND column_name = 'transaction_type'
+  ) THEN
+    ALTER TABLE public.wallet_transactions RENAME COLUMN type TO transaction_type;
+  END IF;
+END $$;
+
+ALTER TABLE public.wallet_transactions
+  ADD COLUMN IF NOT EXISTS wallet_id uuid REFERENCES public.wallets (id) ON DELETE CASCADE,
+  ADD COLUMN IF NOT EXISTS transaction_type text,
+  ADD COLUMN IF NOT EXISTS amount bigint,
+  ADD COLUMN IF NOT EXISTS source text,
+  ADD COLUMN IF NOT EXISTS source_reference text,
+  ADD COLUMN IF NOT EXISTS notes text,
+  ADD COLUMN IF NOT EXISTS metadata jsonb NOT NULL DEFAULT '{}'::jsonb,
+  ADD COLUMN IF NOT EXISTS created_at timestamptz NOT NULL DEFAULT now();
+
+UPDATE public.wallet_transactions
+SET transaction_type = COALESCE(transaction_type, 'legacy')
+WHERE transaction_type IS NULL;
+
 CREATE INDEX IF NOT EXISTS wallet_transactions_wallet_id_idx ON public.wallet_transactions (wallet_id, created_at DESC);
-CREATE INDEX IF NOT EXISTS wallet_transactions_type_idx ON public.wallet_transactions (transaction_type);
+
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.columns
+    WHERE table_schema = 'public' AND table_name = 'wallet_transactions' AND column_name = 'transaction_type'
+  ) THEN
+    CREATE INDEX IF NOT EXISTS wallet_transactions_type_idx ON public.wallet_transactions (transaction_type);
+  END IF;
+END $$;
+
+DO $$
+BEGIN
+  IF NOT EXISTS (
+    SELECT 1 FROM pg_constraint
+    WHERE conname = 'wallet_transactions_idempotency'
+      AND conrelid = 'public.wallet_transactions'::regclass
+  ) THEN
+    UPDATE public.wallet_transactions
+    SET source_reference = 'legacy:' || id::text
+    WHERE source_reference IS NULL;
+
+    BEGIN
+      ALTER TABLE public.wallet_transactions
+        ADD CONSTRAINT wallet_transactions_idempotency UNIQUE (wallet_id, source_reference);
+    EXCEPTION
+      WHEN unique_violation THEN
+        RAISE NOTICE 'wallet_transactions_idempotency not added: duplicate (wallet_id, source_reference) in legacy rows';
+    END;
+  END IF;
+END $$;
 
 -- ---------------------------------------------------------------------------
 -- 6–7. referrals + referral_events
@@ -722,7 +814,11 @@ BEGIN
       l.created_at
     FROM public.ownerr_network_points_ledger l
     JOIN public.wallets w ON w.user_id = l.user_id
-    ON CONFLICT (wallet_id, source_reference) DO NOTHING;
+    WHERE NOT EXISTS (
+      SELECT 1 FROM public.wallet_transactions wt
+      WHERE wt.wallet_id = w.id
+        AND wt.source_reference IS NOT DISTINCT FROM l.idempotency_key
+    );
   ELSIF to_regclass('public.unemployed_points_ledger') IS NOT NULL THEN
     INSERT INTO public.wallet_transactions (
       wallet_id, transaction_type, amount, source, source_reference, metadata, created_at
@@ -730,7 +826,11 @@ BEGIN
     SELECT w.id, l.type, l.amount, 'ownerr_network', l.idempotency_key, coalesce(l.metadata, '{}'::jsonb), l.created_at
     FROM public.unemployed_points_ledger l
     JOIN public.wallets w ON w.user_id = l.user_id
-    ON CONFLICT (wallet_id, source_reference) DO NOTHING;
+    WHERE NOT EXISTS (
+      SELECT 1 FROM public.wallet_transactions wt
+      WHERE wt.wallet_id = w.id
+        AND wt.source_reference IS NOT DISTINCT FROM l.idempotency_key
+    );
   END IF;
 END $$;
 

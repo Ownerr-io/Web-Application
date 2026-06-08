@@ -1,0 +1,23 @@
+{
+  "name": "@workspace/sync-worker",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node --env-file=../../.env.local --import tsx/esm src/runner.ts",
+    "start:http": "SYNC_WORKER_HTTP=1 node --env-file=../../.env.local --import tsx/esm src/runner.ts",
+    "typecheck": "tsc -p tsconfig.json --noEmit"
+  },
+  "dependencies": {
+    "@supabase/supabase-js": "^2.106.1",
+    "@workspace/db-schema": "*",
+    "@workspace/integrations-core": "*",
+    "@workspace/integrations-sync": "*",
+    "@workspace/verification-automation": "*"
+  },
+  "devDependencies": {
+    "@types/node": "^25.3.3",
+    "tsx": "^4.21.0",
+    "typescript": "~5.9.2"
+  }
+}

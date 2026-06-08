@@ -2,6 +2,7 @@ import type { ReactNode } from "react";
 import { MARKETPLACE_APP_CONTENT_CLASS } from "@/lib/marketplaceAppLayout";
 import { BrandAppPageShell } from "@/components/brand/BrandAppPageShell";
 import { cn } from "@/lib/utils";
+import { AUTH_APP_PAGE_ROOT } from "@/lib/appDeskLayout";
 
 type Props = {
   kicker?: string;
@@ -29,7 +30,14 @@ export function MarketplaceAppPageShell({
 }: Props) {
   if (layout === "compact") {
     return (
-      <div className={cn(MARKETPLACE_APP_CONTENT_CLASS, "w-full", className)}>
+      <div
+        className={cn(
+          MARKETPLACE_APP_CONTENT_CLASS,
+          AUTH_APP_PAGE_ROOT,
+          "w-full",
+          className,
+        )}
+      >
         <BrandAppPageShell
           kicker={kicker}
           title={title}
@@ -44,7 +52,14 @@ export function MarketplaceAppPageShell({
   }
 
   return (
-    <div className={cn(MARKETPLACE_APP_CONTENT_CLASS, "w-full", className)}>
+    <div
+      className={cn(
+        MARKETPLACE_APP_CONTENT_CLASS,
+        AUTH_APP_PAGE_ROOT,
+        "w-full",
+        className,
+      )}
+    >
       <BrandAppPageShell
         kicker={kicker}
         title={title}

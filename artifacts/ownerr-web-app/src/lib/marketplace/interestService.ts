@@ -4,13 +4,26 @@ import { MarketplaceError, mapSupabaseError } from "@/lib/marketplace/errors";
 import {
   ensureBuyerProfile,
   getBuyerProfileId,
+  getMarketplaceProfileIdsForUser,
   getSellerProfileId,
 } from "@/lib/marketplace/profiles";
 import type {
   DealRelationshipStage,
   MarketplaceInterestRecord,
+  BidStatus,
 } from "@/lib/marketplace/types";
 import type { AuthRole } from "@/lib/auth/types";
+import { SchemaTables as T } from "@/lib/supabase/schemaTables";
+
+const MC = T.marketplace.companies;
+const MInt = T.marketplace.buyerInterests;
+const MOff = T.marketplace.offers;
+const MConv = T.marketplace.conversations;
+const MSell = T.marketplace.sellerPublications;
+import {
+  ensureConversationWithOpeningMessage,
+  repairBuyerInterestConversations,
+} from "@/lib/marketplace/messageService";
 
 function requireSupabase() {
   if (!isSupabaseConfigured())
@@ -73,14 +86,14 @@ async function startupIdsForSellerAuthUser(
   const sellerProfileId = await getSellerProfileId(authUserId);
   if (sellerProfileId) {
     const { data: links, error: linkErr } = await requireSupabase()
-      .from("seller_listings")
+      .from(MSell)
       .select("startup_id")
       .eq("seller_profile_id", sellerProfileId);
     if (linkErr) throw mapSupabaseError(linkErr);
     for (const row of links ?? []) ids.add(row.startup_id as string);
   }
   const { data: founderRows, error: founderErr } = await requireSupabase()
-    .from("startups")
+    .from(MC)
     .select("id")
     .eq("founder_user_id", authUserId);
   if (founderErr) throw mapSupabaseError(founderErr);
@@ -92,7 +105,7 @@ async function startupIdForSlug(
   slug: string,
 ): Promise<{ id: string; slug: string }> {
   const { data, error } = await requireSupabase()
-    .from("startups")
+    .from(MC)
     .select("id, slug")
     .eq("slug", slug)
     .maybeSingle();
@@ -110,7 +123,7 @@ export async function expressInterest(input: {
   const profile = await ensureBuyerProfile(input.user);
   const startup = await startupIdForSlug(input.listingSlug);
   const { data: interest, error } = await requireSupabase()
-    .from("startup_interests")
+    .from(MInt)
     .upsert(
       {
         startup_id: startup.id,
@@ -121,13 +134,13 @@ export async function expressInterest(input: {
       { onConflict: "startup_id,buyer_profile_id" },
     )
     .select(
-      "id, startup_id, status, message, created_at, updated_at, startups(slug)",
+      "id, startup_id, status, message, created_at, updated_at, marketplace_companies(slug)",
     )
     .single();
   if (error) throw mapSupabaseError(error);
 
   if (input.offerAmount != null && input.offerAmount > 0) {
-    await requireSupabase().from("bids").insert({
+    await requireSupabase().from(MOff).insert({
       startup_id: startup.id,
       buyer_profile_id: profile.id,
       amount: input.offerAmount,
@@ -137,7 +150,13 @@ export async function expressInterest(input: {
     });
   }
 
-  return mapRow(
+  const conversationId = await ensureConversationWithOpeningMessage({
+    startupSlug: startup.slug,
+    buyerUser: input.user,
+    body: input.message,
+  });
+
+  const record = mapRow(
     { ...interest, startups: { slug: startup.slug } },
     {
       auth_user_id: input.user.id,
@@ -150,11 +169,12 @@ export async function expressInterest(input: {
     },
     input.offerAmount ?? null,
   );
+  return { ...record, conversationId };
 }
 
 export async function withdrawInterest(interestId: string): Promise<void> {
   const { error } = await requireSupabase()
-    .from("startup_interests")
+    .from(MInt)
     .update({ status: "withdrawn", updated_at: new Date().toISOString() })
     .eq("id", interestId);
   if (error) throw mapSupabaseError(error);
@@ -163,33 +183,96 @@ export async function withdrawInterest(interestId: string): Promise<void> {
 export async function listBuyerInterests(
   authUserId: string,
 ): Promise<MarketplaceInterestRecord[]> {
+  try {
+    await repairBuyerInterestConversations();
+  } catch {
+    /* RPC may be unavailable before migration */
+  }
+
+  const profileIds = await getMarketplaceProfileIdsForUser(authUserId);
   const buyerProfileId = await getBuyerProfileId(authUserId);
-  if (!buyerProfileId) return [];
+  const interestProfileIds = profileIds.length
+    ? profileIds
+    : buyerProfileId
+      ? [buyerProfileId]
+      : [];
+  if (!interestProfileIds.length) return [];
   const { data, error } = await requireSupabase()
-    .from("startup_interests")
+    .from(MInt)
     .select(
-      "id, startup_id, status, message, created_at, updated_at, startups(slug)",
+      "id, startup_id, status, message, created_at, updated_at, marketplace_companies(slug)",
     )
-    .eq("buyer_profile_id", buyerProfileId)
+    .in("buyer_profile_id", interestProfileIds)
     .neq("status", "withdrawn")
     .order("updated_at", { ascending: false });
   if (error) throw mapSupabaseError(error);
 
+  const startupIds = (data ?? []).map((r) => r.startup_id as string);
+  const convByStartup = new Map<string, string>();
+  if (startupIds.length) {
+    const { data: convRows, error: convErr } = await requireSupabase()
+      .from(MConv)
+      .select("id, startup_id")
+      .in("buyer_profile_id", interestProfileIds)
+      .in("startup_id", startupIds);
+    if (convErr) throw mapSupabaseError(convErr);
+    for (const c of convRows ?? []) {
+      convByStartup.set(c.startup_id as string, c.id as string);
+    }
+  }
+
+  const {
+    data: { user },
+  } = await requireSupabase().auth.getUser();
+
   const { data: bids } = await requireSupabase()
-    .from("bids")
-    .select("startup_id, amount")
-    .eq("buyer_profile_id", buyerProfileId);
+    .from(MOff)
+    .select("startup_id, amount, status, updated_at")
+    .in("buyer_profile_id", interestProfileIds);
   const offerByStartup = new Map(
     (bids ?? []).map((b) => [b.startup_id as string, Number(b.amount)]),
   );
-
-  return (data ?? []).map((row) =>
-    mapRow(
-      row as Parameters<typeof mapRow>[0],
-      { auth_user_id: authUserId, metadata: {} },
-      offerByStartup.get(row.startup_id as string) ?? null,
-    ),
+  const bidStatusByStartup = new Map(
+    (bids ?? []).map((b) => [
+      b.startup_id as string,
+      { status: b.status as string, updatedAt: b.updated_at as string },
+    ]),
   );
+
+  const rows = await Promise.all(
+    (data ?? []).map(async (row) => {
+      let conversationId = convByStartup.get(row.startup_id as string);
+      const slug = slugFromRow(row as Parameters<typeof mapRow>[0]);
+      const interestMessage = (row.message as string | null)?.trim() ?? "";
+      if (!conversationId && user && interestMessage.length >= 20 && slug) {
+        try {
+          conversationId = await ensureConversationWithOpeningMessage({
+            startupSlug: slug,
+            buyerUser: user,
+            body: interestMessage,
+          });
+        } catch {
+          /* leave unset if listing/seller profile unavailable */
+        }
+      }
+      const record = mapRow(
+        row as Parameters<typeof mapRow>[0],
+        { auth_user_id: authUserId, metadata: {} },
+        offerByStartup.get(row.startup_id as string) ?? null,
+      );
+      const bidMeta = bidStatusByStartup.get(row.startup_id as string);
+      const withBid = bidMeta
+        ? {
+            ...record,
+            offerBidStatus: (bidMeta.status === "rejected"
+              ? "declined"
+              : bidMeta.status) as BidStatus,
+          }
+        : record;
+      return conversationId ? { ...withBid, conversationId } : withBid;
+    }),
+  );
+  return rows;
 }
 
 export async function listInterestsForStartupSlug(
@@ -197,9 +280,9 @@ export async function listInterestsForStartupSlug(
 ): Promise<MarketplaceInterestRecord[]> {
   const startup = await startupIdForSlug(slug);
   const { data, error } = await requireSupabase()
-    .from("startup_interests")
+    .from(MInt)
     .select(
-      "id, startup_id, status, message, created_at, updated_at, startups(slug), marketplace_profiles!inner(auth_user_id, metadata)",
+      "id, startup_id, status, message, created_at, updated_at, marketplace_companies(slug), marketplace_accounts!inner(auth_user_id, metadata)",
     )
     .eq("startup_id", startup.id)
     .neq("status", "withdrawn");
@@ -207,13 +290,13 @@ export async function listInterestsForStartupSlug(
 
   return (data ?? []).map((row) => {
     const raw = row as {
-      marketplace_profiles:
+      marketplace_accounts:
         | { auth_user_id: string; metadata: Record<string, unknown> }
         | { auth_user_id: string; metadata: Record<string, unknown> }[];
     };
-    const mp = Array.isArray(raw.marketplace_profiles)
-      ? raw.marketplace_profiles[0]
-      : raw.marketplace_profiles;
+    const mp = Array.isArray(raw.marketplace_accounts)
+      ? raw.marketplace_accounts[0]
+      : raw.marketplace_accounts;
     return mapRow(row as Parameters<typeof mapRow>[0], mp, null);
   });
 }
@@ -225,9 +308,9 @@ export async function listSellerInterestsForOwner(
   if (!ids.length) return [];
 
   const { data, error } = await requireSupabase()
-    .from("startup_interests")
+    .from(MInt)
     .select(
-      "id, startup_id, status, message, created_at, updated_at, startups(slug), marketplace_profiles!inner(auth_user_id, metadata)",
+      "id, startup_id, status, message, created_at, updated_at, marketplace_companies(slug), marketplace_accounts!inner(auth_user_id, metadata)",
     )
     .in("startup_id", ids)
     .neq("status", "withdrawn");
@@ -235,13 +318,13 @@ export async function listSellerInterestsForOwner(
 
   return (data ?? []).map((row) => {
     const raw = row as {
-      marketplace_profiles:
+      marketplace_accounts:
         | { auth_user_id: string; metadata: Record<string, unknown> }
         | { auth_user_id: string; metadata: Record<string, unknown> }[];
     };
-    const mp = Array.isArray(raw.marketplace_profiles)
-      ? raw.marketplace_profiles[0]
-      : raw.marketplace_profiles;
+    const mp = Array.isArray(raw.marketplace_accounts)
+      ? raw.marketplace_accounts[0]
+      : raw.marketplace_accounts;
     return mapRow(row as Parameters<typeof mapRow>[0], mp, null);
   });
 }
@@ -251,7 +334,7 @@ export async function updateInterestStage(
   stage: DealRelationshipStage,
 ): Promise<void> {
   const { error } = await requireSupabase()
-    .from("startup_interests")
+    .from(MInt)
     .update({ status: stage, updated_at: new Date().toISOString() })
     .eq("id", interestId);
   if (error) throw mapSupabaseError(error);

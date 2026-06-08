@@ -22,6 +22,16 @@ Environment files (repo root):
 
 `postgresql://postgres:YOUR_PASSWORD@db.bnzvpkgffeappfxatuyu.supabase.co:5432/postgres`
 
+### `npm run supabase:migrate` connection errors
+
+| Symptom                                              | Fix                                                                                                                                                   |
+| ---------------------------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Timeout** to `db.*.supabase.co:5432`               | Your network may block Postgres. Add **`DATABASE_URL_POOLER`** from **Dashboard → Database → Connection pooling → Session mode** (copy the full URI). |
+| **`tenant/user postgres.[ref] not found`** on pooler | **Wrong pooler region** in the hostname (`aws-0-us-east-1` vs your project’s region). Re-copy the URI from the dashboard — do not guess the region.   |
+| Worked before, now IPv6 issues                       | Set `DATABASE_IPV4_ONLY=1` in `.env.local` only if IPv6 to Supabase is broken (not the default).                                                      |
+
+You can set **`DATABASE_URL_MIGRATE`** to a single working URI (direct or pooler) so migrate ignores the others.
+
 **Local dev:** `npm run dev` (Vite only). No Express API required.
 
 ## `supabase link` — “does not have the necessary privileges”

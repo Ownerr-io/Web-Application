@@ -742,6 +742,15 @@ BEGIN
   END IF;
 END $$;
 
+-- Marketplace desk FKs and RPCs still use public.marketplace_profiles until schema v2 (202607025100).
+DO $$
+BEGIN
+  IF to_regclass('public.marketplace_profiles') IS NULL
+     AND to_regclass('public._legacy_marketplace_profiles') IS NOT NULL THEN
+    ALTER TABLE public._legacy_marketplace_profiles RENAME TO marketplace_profiles;
+  END IF;
+END $$;
+
 -- ---------------------------------------------------------------------------
 -- Compatibility views (client code uses ownerr_network_* names)
 -- ---------------------------------------------------------------------------
