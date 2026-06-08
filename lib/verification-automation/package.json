@@ -8,7 +8,7 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",
-    "@workspace/db-schema": "*"
+    "@workspace/db-schema": "workspace:*"
   },
   "devDependencies": {
     "@types/node": "^25.3.3",
