@@ -120,10 +120,10 @@ importers:
         specifier: ^2.106.1
         version: 2.107.0
       '@workspace/db-schema':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../../lib/db-schema
       '@workspace/verification-automation':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../../lib/verification-automation
       idb:
         specifier: ^8.0.3
@@ -259,7 +259,7 @@ importers:
         specifier: ^5.0.4
         version: 5.1.4(vite@7.3.2(@types/node@25.3.5)(jiti@2.6.1)(lightningcss@1.31.1)(tsx@4.21.0)(yaml@2.8.2))
       '@workspace/api-client-react':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../../lib/api-client-react
       class-variance-authority:
         specifier: ^0.7.1
@@ -352,16 +352,16 @@ importers:
         specifier: ^2.106.1
         version: 2.107.0
       '@workspace/db-schema':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../../lib/db-schema
       '@workspace/integrations-core':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../../lib/integrations-core
       '@workspace/integrations-sync':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../../lib/integrations-sync
       '@workspace/verification-automation':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../../lib/verification-automation
     devDependencies:
       '@types/node':
@@ -441,10 +441,10 @@ importers:
         specifier: ^2.106.1
         version: 2.107.0
       '@workspace/db-schema':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../db-schema
       '@workspace/integrations-core':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../integrations-core
     devDependencies:
       '@types/node':
@@ -460,7 +460,7 @@ importers:
         specifier: ^2.106.1
         version: 2.107.0
       '@workspace/db-schema':
-        specifier: workspace:*
+        specifier: '*'
         version: link:../db-schema
     devDependencies:
       '@types/node':

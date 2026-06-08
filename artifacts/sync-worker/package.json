@@ -10,10 +10,10 @@
   },
   "dependencies": {
     "@supabase/supabase-js": "^2.106.1",
-    "@workspace/db-schema": "workspace:*",
-    "@workspace/integrations-core": "workspace:*",
-    "@workspace/integrations-sync": "workspace:*",
-    "@workspace/verification-automation": "workspace:*"
+    "@workspace/db-schema": "*",
+    "@workspace/integrations-core": "*",
+    "@workspace/integrations-sync": "*",
+    "@workspace/verification-automation": "*"
   },
   "devDependencies": {
     "@types/node": "^25.3.3",
