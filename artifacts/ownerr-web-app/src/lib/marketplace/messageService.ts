@@ -18,6 +18,11 @@ import {
   ensureMarketplaceTablesDetected,
   getMarketplaceTables,
 } from "@/lib/marketplace/dbTables";
+import {
+  isRpcUnavailableError,
+  shouldSkipDirectTableFallback,
+  shouldUseDirectTableFallback,
+} from "@/lib/marketplace/postgrestRpc";
 
 function requireSupabase() {
   if (!isSupabaseConfigured())
@@ -83,10 +88,7 @@ async function bootstrapConversationViaRpc(
     },
   );
   if (error) {
-    const code = (error as { code?: string }).code;
-    if (code === "PGRST202" || error.message?.includes("Could not find")) {
-      return null;
-    }
+    if (isRpcUnavailableError(error)) return null;
     throw mapSupabaseError(error);
   }
   return typeof data === "string" ? data : null;
@@ -301,6 +303,12 @@ export async function listMessages(
   if (!error && data != null) {
     return mapRpc(data);
   }
+  if (error && shouldSkipDirectTableFallback(error)) {
+    return [];
+  }
+  if (error && !shouldUseDirectTableFallback(error)) {
+    throw mapSupabaseError(error);
+  }
 
   const { messages: MMsg } = await mpTables();
   const { data: rows, error: qErr } = await requireSupabase()
@@ -331,6 +339,10 @@ export async function markConversationRead(
     },
   );
   if (!error) return;
+  if (shouldSkipDirectTableFallback(error)) return;
+  if (!shouldUseDirectTableFallback(error)) {
+    throw mapSupabaseError(error);
+  }
 
   const { messages: MMsg } = await mpTables();
   const { error: upErr } = await requireSupabase()
@@ -412,10 +424,7 @@ export async function repairBuyerInterestConversations(): Promise<number> {
     "marketplace_repair_buyer_interest_conversations",
   );
   if (error) {
-    const code = (error as { code?: string }).code;
-    if (code === "PGRST202" || error.message?.includes("Could not find")) {
-      return 0;
-    }
+    if (isRpcUnavailableError(error)) return 0;
     throw mapSupabaseError(error);
   }
   return typeof data === "number" ? data : Number(data ?? 0);
@@ -455,6 +464,13 @@ export async function listInboxForUser(
             : "open",
       };
     });
+  }
+
+  if (error && shouldSkipDirectTableFallback(error)) {
+    return [];
+  }
+  if (error && !shouldUseDirectTableFallback(error)) {
+    throw mapSupabaseError(error);
   }
 
   const buyerId = await getBuyerProfileId(authUserId);

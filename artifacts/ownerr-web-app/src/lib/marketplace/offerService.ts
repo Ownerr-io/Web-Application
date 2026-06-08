@@ -9,6 +9,7 @@ import type {
   BuyerOfferRow,
   SellerOfferStartupGroup,
 } from "@/lib/marketplace/types";
+import { isRpcUnavailableError } from "@/lib/marketplace/postgrestRpc";
 import { SchemaTables as T } from "@/lib/supabase/schemaTables";
 
 function requireSupabase() {
@@ -98,9 +99,7 @@ export async function listBuyerOffers(): Promise<BuyerOfferRow[]> {
     "marketplace_list_offers_buyer",
   );
   if (error) {
-    if (error.code === "PGRST202") {
-      return [];
-    }
+    if (isRpcUnavailableError(error)) return [];
     throw mapSupabaseError(error);
   }
 

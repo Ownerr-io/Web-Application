@@ -26,6 +26,8 @@ export function useBuyerOffers() {
     queryFn: () => listBuyerOffers(),
     enabled: !!session?.user?.id,
     refetchInterval: 30_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
   });
 }
 

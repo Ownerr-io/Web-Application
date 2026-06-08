@@ -130,7 +130,18 @@ if (typeof document !== "undefined") {
   applyTheme();
 }
 
-const queryClient = new QueryClient();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: {
+      refetchOnWindowFocus: false,
+      retry: 1,
+      staleTime: 20_000,
+    },
+    mutations: {
+      retry: false,
+    },
+  },
+});
 
 function Router() {
   return (
