@@ -45,7 +45,7 @@ export async function instrumentedRpc<T>(
   };
   structuredLog(logBase);
 
-  if (options.logToServer !== false) {
+  if (import.meta.env.DEV && options.logToServer !== false) {
     void supabase
       .rpc("api_log_client_request", {
         p_request_id: requestId,

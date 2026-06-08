@@ -9,9 +9,16 @@ import {
   repairBuyerInterestConversations,
   sendMessage,
 } from "@/lib/marketplace/messageService";
+import { runOncePerSession } from "@/lib/marketplace/oncePerSession";
+import type { ConversationMessage, InboxThread } from "@/lib/marketplace/types";
 import { marketplaceKeys } from "@/lib/marketplace/queryKeys";
 import { useToast } from "@/hooks/use-toast";
 import { MarketplaceError } from "@/lib/marketplace/errors";
+
+const inboxQueryOptions = {
+  staleTime: 30_000,
+  refetchOnWindowFocus: false,
+} as const;
 
 export function useInbox() {
   const { session } = useAuth();
@@ -21,13 +28,16 @@ export function useInbox() {
     queryFn: async () => {
       if (!authUserId) return [];
       try {
-        await repairBuyerInterestConversations();
+        await runOncePerSession(`repair-inbox:${authUserId}`, () =>
+          repairBuyerInterestConversations().then(() => undefined),
+        );
       } catch {
         /* best-effort backfill for interests missing threads */
       }
       return listInboxForUser(authUserId);
     },
     enabled: !!authUserId,
+    ...inboxQueryOptions,
   });
 }
 
@@ -36,7 +46,10 @@ export function useConversationMessages(conversationId: string | undefined) {
     queryKey: marketplaceKeys.messages(conversationId ?? ""),
     queryFn: () => listMessages(conversationId!),
     enabled: !!conversationId,
-    refetchInterval: 8_000,
+    staleTime: 5_000,
+    refetchInterval: 15_000,
+    refetchIntervalInBackground: false,
+    refetchOnWindowFocus: false,
   });
 }
 
@@ -57,14 +70,25 @@ export function useSendMessage() {
         body: input.body,
       });
     },
-    onSuccess: (_data, vars) => {
-      void qc.invalidateQueries({
-        queryKey: marketplaceKeys.messages(vars.conversationId),
-      });
+    onSuccess: (message, vars) => {
+      qc.setQueryData(
+        marketplaceKeys.messages(vars.conversationId),
+        (prev: ConversationMessage[] | undefined) => [...(prev ?? []), message],
+      );
       if (currentUser) {
-        void qc.invalidateQueries({
-          queryKey: marketplaceKeys.inbox(currentUser.id),
-        });
+        qc.setQueryData(
+          marketplaceKeys.inbox(currentUser.id),
+          (prev: InboxThread[] | undefined) =>
+            prev?.map((t) =>
+              t.conversationId === vars.conversationId
+                ? {
+                    ...t,
+                    lastMessage: message.body,
+                    updatedAt: message.createdAt,
+                  }
+                : t,
+            ),
+        );
       }
     },
     onError: (err: Error) => {
@@ -99,12 +123,16 @@ export function useMarkConversationRead() {
         throw new MarketplaceError("Sign in required", "forbidden");
       return markConversationRead(conversationId, currentUser.id);
     },
-    onSuccess: () => {
-      if (currentUser) {
-        void qc.invalidateQueries({
-          queryKey: marketplaceKeys.inbox(currentUser.id),
-        });
-      }
+    retry: false,
+    onSuccess: (_data, conversationId) => {
+      if (!currentUser) return;
+      qc.setQueryData(
+        marketplaceKeys.inbox(currentUser.id),
+        (prev: InboxThread[] | undefined) =>
+          prev?.map((t) =>
+            t.conversationId === conversationId ? { ...t, unreadCount: 0 } : t,
+          ),
+      );
     },
   });
 }

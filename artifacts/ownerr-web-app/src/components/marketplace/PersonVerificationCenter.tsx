@@ -64,7 +64,9 @@ export function PersonVerificationCenter({ deskRole }: Props) {
     setLinkedin(profile.linkedin_url ?? "");
     setTwitter(profile.twitter_url ?? "");
     setEmail(profile.email ?? "");
-  }, [profile]);
+    // Sync form when profile row changes, not on every refetch object identity
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [profile?.id]);
 
   const profilePayload = () => ({
     full_name: fullName.trim(),

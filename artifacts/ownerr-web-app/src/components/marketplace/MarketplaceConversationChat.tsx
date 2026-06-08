@@ -41,11 +41,16 @@ export function MarketplaceConversationChat({
     useConversationMessages(conversationId);
   const sendMut = useSendMessage();
   const readMut = useMarkConversationRead();
+  const markedReadForConversationRef = useRef<string | null>(null);
 
   useEffect(() => {
     if (!conversationId || !authUserId) return;
-    void readMut.mutate(conversationId);
-  }, [conversationId, authUserId, readMut]);
+    if (markedReadForConversationRef.current === conversationId) return;
+    markedReadForConversationRef.current = conversationId;
+    readMut.mutate(conversationId);
+    // readMut object is unstable; ref ensures one mark-read per conversation open
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- intentional
+  }, [conversationId, authUserId]);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
