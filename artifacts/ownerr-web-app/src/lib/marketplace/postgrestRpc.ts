@@ -6,7 +6,9 @@ export function isRpcUnavailableError(error: PostgrestError | null): boolean {
   const code = error.code;
   if (code === "PGRST202" || code === "PGRST205") return true;
   const msg = error.message ?? "";
-  return msg.includes("Could not find") || msg.includes("function is not unique");
+  return (
+    msg.includes("Could not find") || msg.includes("function is not unique")
+  );
 }
 
 /**

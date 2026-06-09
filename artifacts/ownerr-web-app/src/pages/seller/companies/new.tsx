@@ -11,15 +11,19 @@ export default function SellerAddStartupPage() {
       kicker="Seller desk"
       title="Add startup"
       description="Submit accurate profile details. Verification checks run separately before publish."
-      headerActions={
-        <Button asChild variant="outline" size="sm">
-          <Link href={MARKETPLACE_ROUTES.sellerCompanies}>
-            <ArrowLeft className="mr-2 h-4 w-4" aria-hidden />
-            Companies
-          </Link>
-        </Button>
-      }
+      layout="compact"
     >
+      <Button
+        asChild
+        variant="ghost"
+        size="sm"
+        className="-mt-1 mb-1 w-fit px-0 text-muted-foreground hover:text-foreground"
+      >
+        <Link href={MARKETPLACE_ROUTES.sellerCompanies}>
+          <ArrowLeft className="mr-1.5 h-4 w-4" aria-hidden />
+          Back to companies
+        </Link>
+      </Button>
       <SellerAddStartupWizard />
     </MarketplaceAppPageShell>
   );

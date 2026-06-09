@@ -54,11 +54,9 @@ const CATEGORIES: Category[] = [
   "Social Media",
 ];
 
-function ApiHint() {
+function FieldHint({ children }: { children: string }) {
   return (
-    <span className="text-[10px] font-medium uppercase tracking-wide text-muted-foreground">
-      API-ready field
-    </span>
+    <p className="text-[11px] leading-snug text-muted-foreground">{children}</p>
   );
 }
 
@@ -72,12 +70,15 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section className="rounded-xl border border-border bg-card p-4 sm:p-5 space-y-4">
-      <div className="flex items-baseline gap-2">
-        <span className="text-xs font-bold text-primary tabular-nums">
+    <section className="rounded-xl border border-border bg-card p-4 sm:p-6 space-y-4">
+      <div className="flex items-center gap-3 border-b border-border/60 pb-3">
+        <span
+          className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/15 text-xs font-bold tabular-nums text-primary"
+          aria-hidden
+        >
           {step}
         </span>
-        <h2 className="text-sm font-bold tracking-tight sm:text-base">
+        <h2 className="text-base font-bold tracking-tight text-foreground">
           {title}
         </h2>
       </div>
@@ -248,18 +249,20 @@ export function SellerAddStartupWizard({ className }: Props) {
 
   return (
     <form
-      className={cn("mx-auto flex max-w-3xl flex-col gap-5 pb-8", className)}
+      className={cn("flex w-full min-w-0 flex-col gap-6", className)}
       onSubmit={(ev) => void submitForValidation(ev)}
     >
-      <div className="rounded-xl border border-primary/20 bg-primary/5 p-4 text-sm leading-relaxed">
-        <div className="flex gap-2 font-medium text-foreground">
-          <ShieldCheck className="h-4 w-4 shrink-0 text-primary" aria-hidden />
-          Submit accurate details. Verification builds trust — buyers only see
-          verified gates.
-        </div>
-        <p className="mt-2 text-muted-foreground">
-          Fields marked as self-reported are profile data. Domain, identity, and
-          revenue sync are verified on the checklist.
+      <div className="flex gap-3 rounded-xl border border-border bg-muted/30 p-4 text-sm leading-relaxed">
+        <ShieldCheck
+          className="mt-0.5 h-4 w-4 shrink-0 text-primary"
+          aria-hidden
+        />
+        <p className="text-muted-foreground">
+          <span className="font-medium text-foreground">
+            Self-reported fields
+          </span>{" "}
+          save to your company profile. Domain, identity, and revenue are
+          checked on the verification tab after submit.
         </p>
       </div>
 
@@ -276,10 +279,7 @@ export function SellerAddStartupWizard({ className }: Props) {
             />
           </div>
           <div className="grid gap-2">
-            <div className="flex items-center justify-between gap-2">
-              <Label htmlFor="founder_email">Email</Label>
-              <ApiHint />
-            </div>
+            <Label htmlFor="founder_email">Email</Label>
             <Input
               id="founder_email"
               type="email"
@@ -288,6 +288,9 @@ export function SellerAddStartupWizard({ className }: Props) {
               placeholder="jane@example.com"
               required
             />
+            <FieldHint>
+              Used for listing notifications and verification.
+            </FieldHint>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="founder_linkedin">LinkedIn (optional)</Label>
@@ -322,12 +325,9 @@ export function SellerAddStartupWizard({ className }: Props) {
       <Section title="Traffic & users" step={2}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="monthly_visitors">
-                Monthly visitors (self-reported)
-              </Label>
-              <ApiHint />
-            </div>
+            <Label htmlFor="monthly_visitors">
+              Monthly visitors (self-reported)
+            </Label>
             <Input
               id="monthly_visitors"
               inputMode="numeric"
@@ -369,10 +369,7 @@ export function SellerAddStartupWizard({ className }: Props) {
       <Section title="Domain & DNS (declaration)" step={3}>
         <div className="grid gap-4 sm:grid-cols-2">
           <div className="grid gap-2 sm:col-span-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="declared_domain">Domain name</Label>
-              <ApiHint />
-            </div>
+            <Label htmlFor="declared_domain">Domain name</Label>
             <Input
               id="declared_domain"
               value={intake.declared_domain}
@@ -380,6 +377,7 @@ export function SellerAddStartupWizard({ className }: Props) {
               placeholder="yourstartup.com"
               required
             />
+            <FieldHint>Verified with a DNS TXT record after submit.</FieldHint>
           </div>
           <div className="grid gap-2">
             <Label htmlFor="domain_registrar">Domain registrar</Label>
@@ -735,16 +733,16 @@ export function SellerAddStartupWizard({ className }: Props) {
             />
           </div>
           <div className="grid gap-2 sm:col-span-2">
-            <div className="flex items-center justify-between">
-              <Label htmlFor="revenue_api">Revenue API URL (optional)</Label>
-              <ApiHint />
-            </div>
+            <Label htmlFor="revenue_api">Revenue API URL (optional)</Label>
             <Input
               id="revenue_api"
               value={intake.revenue_api_url ?? ""}
               onChange={(e) => patch({ revenue_api_url: e.target.value })}
               placeholder="https://api.yourstartup.com/revenue"
             />
+            <FieldHint>
+              For automated revenue sync when your API is ready.
+            </FieldHint>
           </div>
         </div>
       </Section>
@@ -843,7 +841,7 @@ export function SellerAddStartupWizard({ className }: Props) {
         </div>
       </Section>
 
-      <div className="flex flex-col-reverse gap-2 sm:flex-row sm:justify-end sm:gap-3 sticky bottom-0 border-t border-border bg-background/95 py-4 backdrop-blur supports-[backdrop-filter]:bg-background/80">
+      <div className="flex flex-col-reverse gap-2 border-t border-border pt-5 sm:flex-row sm:justify-end sm:gap-3">
         <Button
           type="button"
           variant="outline"

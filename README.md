@@ -69,13 +69,13 @@ This document describes **what the system is for**, **who uses it**, **how major
 
 ## Products and use cases
 
-| Product | Who | Primary use cases |
-| -------- | ----- | ----------------- |
+| Product                   | Who                        | Primary use cases                                                                                                                           |
+| ------------------------- | -------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------- |
 | **Marketplace (Acquire)** | Buyers, sellers (founders) | Discover listings, express interest, negotiate in inbox, submit/counter/accept **offers**, person + listing **verification**, trust signals |
-| **Ownerr OS** | Founders | Founder workspace: listings, analytics, profile (product app under `/ownerr-os/app`) |
-| **Ownerr Network** | Members | Onboarding, discover, referrals, wallet/ledger, leaderboard, public member profiles |
-| **Platform admin** | Internal operators | Marketplace buyers/sellers/listings/verification/offers; Network members/ledger; OS founders; ops/system health |
-| **Public marketing** | Visitors | Landing, products, valuation tool, market intelligence, public listing pages |
+| **Ownerr OS**             | Founders                   | Founder workspace: listings, analytics, profile (product app under `/ownerr-os/app`)                                                        |
+| **Ownerr Network**        | Members                    | Onboarding, discover, referrals, wallet/ledger, leaderboard, public member profiles                                                         |
+| **Platform admin**        | Internal operators         | Marketplace buyers/sellers/listings/verification/offers; Network members/ledger; OS founders; ops/system health                             |
+| **Public marketing**      | Visitors                   | Landing, products, valuation tool, market intelligence, public listing pages                                                                |
 
 **Dual desk:** One authenticated user can hold **both** a **buyer** and a **seller** marketplace profile. The app infers desk role from the URL path (`/marketplace/app/buyer/...` vs `/marketplace/app/seller/...`) and syncs provisioning accordingly.
 
@@ -96,16 +96,16 @@ Before opening a PR: `npm run check` and `npm run build` from the repo root ([lo
 
 ## Glossary
 
-| Term | Meaning |
-| ------ | -------- |
-| **Desk** | Buyer or seller role in the Marketplace **app** shell (URL path + `marketplace_profiles.desk_role`) |
+| Term                  | Meaning                                                                                                                          |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- |
+| **Desk**              | Buyer or seller role in the Marketplace **app** shell (URL path + `marketplace_profiles.desk_role`)                              |
 | **Profile / account** | Marketplace identity row(s) for a user; schema v2 may expose `marketplace_accounts` with legacy aliases reconciled in migrations |
-| **Gate** | Verification requirement (domain, revenue, email, identity, etc.) that must pass before publish |
-| **Lifecycle** | Listing state (draft → in verification → published, etc.) driven by gates and RPCs |
-| **Interest** | Buyer expression of interest on a listing; may link to inbox repair/bootstrap |
-| **Conversation** | Buyer–seller message thread tied to a listing (and optionally an offer) |
-| **Offer / bid** | Formal acquisition offer with DB-enforced status (see offers state diagram below) |
-| **Provision** | Creating/updating product membership and desk profiles after auth (`provisionMarketplaceProduct`, Network/OS analogs) |
+| **Gate**              | Verification requirement (domain, revenue, email, identity, etc.) that must pass before publish                                  |
+| **Lifecycle**         | Listing state (draft → in verification → published, etc.) driven by gates and RPCs                                               |
+| **Interest**          | Buyer expression of interest on a listing; may link to inbox repair/bootstrap                                                    |
+| **Conversation**      | Buyer–seller message thread tied to a listing (and optionally an offer)                                                          |
+| **Offer / bid**       | Formal acquisition offer with DB-enforced status (see offers state diagram below)                                                |
+| **Provision**         | Creating/updating product membership and desk profiles after auth (`provisionMarketplaceProduct`, Network/OS analogs)            |
 
 ---
 
@@ -170,14 +170,14 @@ flowchart LR
   LIB --> DB[db-schema / db]
 ```
 
-| Path | Role |
-| ------ | ------ |
-| `artifacts/ownerr-web-app` | Vite app, routing, UI, client services calling Supabase |
-| `lib/verification-automation` | Stripe identity webhook handling, verification helpers |
-| `lib/integrations-*` | Revenue/domain provider catalog and sync |
-| `artifacts/sync-worker` | Local/optional HTTP worker for async verification jobs |
-| `supabase/migrations` | Source of truth for tables, RLS, RPCs |
-| `scripts/` | Migrations apply, QA seed, smoke tests |
+| Path                          | Role                                                    |
+| ----------------------------- | ------------------------------------------------------- |
+| `artifacts/ownerr-web-app`    | Vite app, routing, UI, client services calling Supabase |
+| `lib/verification-automation` | Stripe identity webhook handling, verification helpers  |
+| `lib/integrations-*`          | Revenue/domain provider catalog and sync                |
+| `artifacts/sync-worker`       | Local/optional HTTP worker for async verification jobs  |
+| `supabase/migrations`         | Source of truth for tables, RLS, RPCs                   |
+| `scripts/`                    | Migrations apply, QA seed, smoke tests                  |
 
 ---
 
@@ -522,24 +522,24 @@ flowchart LR
 
 ### Required environment variables
 
-| Context | Variables |
-| -------- | ----------- |
+| Context                     | Variables                                                             |
+| --------------------------- | --------------------------------------------------------------------- |
 | **Vercel (production SPA)** | `VITE_SUPABASE_URL`, `VITE_SUPABASE_ANON_KEY`, `VITE_PUBLIC_SITE_URL` |
-| **Local dev** | Same three in `.env.local` at repo root (Vite loads via workspace) |
-| **Migration scripts** | `DATABASE_URL` or pooler URI in `.env.local` |
-| **Platform admin** | `public.users.role = 'admin'` in Postgres (not a Vite env var) |
+| **Local dev**               | Same three in `.env.local` at repo root (Vite loads via workspace)    |
+| **Migration scripts**       | `DATABASE_URL` or pooler URI in `.env.local`                          |
+| **Platform admin**          | `public.users.role = 'admin'` in Postgres (not a Vite env var)        |
 
 ### Secrets matrix (where things live)
 
-| Secret / config | Where | Notes |
-| ---------------- | ------- | ------ |
-| Supabase anon + URL | Vercel + `.env.local` | Safe in browser |
-| Supabase service role | **Never** in Vite | Scripts, webhooks, worker only |
-| Seller Stripe / revenue API keys | Postgres (`integration_credentials`) | Entered in UI; encrypted via `integration_connect_api_key` |
-| Platform encryption key / pepper | `platform_internal_config` | `npm run platform:set-integration-secrets` |
-| Stripe **Identity** webhook secret | Vercel serverless env | For `/api/webhooks/stripe/identity` |
-| Sync worker invoke URLs | `platform_internal_config` or Vercel env | Optional; async verification jobs |
-| Demo passwords | Seed scripts only | `demo-marketplace.constants.mjs` — not in env |
+| Secret / config                    | Where                                    | Notes                                                      |
+| ---------------------------------- | ---------------------------------------- | ---------------------------------------------------------- |
+| Supabase anon + URL                | Vercel + `.env.local`                    | Safe in browser                                            |
+| Supabase service role              | **Never** in Vite                        | Scripts, webhooks, worker only                             |
+| Seller Stripe / revenue API keys   | Postgres (`integration_credentials`)     | Entered in UI; encrypted via `integration_connect_api_key` |
+| Platform encryption key / pepper   | `platform_internal_config`               | `npm run platform:set-integration-secrets`                 |
+| Stripe **Identity** webhook secret | Vercel serverless env                    | For `/api/webhooks/stripe/identity`                        |
+| Sync worker invoke URLs            | `platform_internal_config` or Vercel env | Optional; async verification jobs                          |
+| Demo passwords                     | Seed scripts only                        | `demo-marketplace.constants.mjs` — not in env              |
 
 ### Vercel project settings
 
@@ -547,33 +547,33 @@ Configure the project with **Root Directory** = `artifacts/ownerr-web-app` (or u
 
 From [`artifacts/ownerr-web-app/vercel.json`](artifacts/ownerr-web-app/vercel.json):
 
-| Setting | Value |
-| -------- | -------- |
-| Install Command | `cd ../.. && npm install` |
-| Build Command | `npm run build` |
-| Output Directory | `dist/public` |
-| Framework | Vite |
+| Setting          | Value                     |
+| ---------------- | ------------------------- |
+| Install Command  | `cd ../.. && npm install` |
+| Build Command    | `npm run build`           |
+| Output Directory | `dist/public`             |
+| Framework        | Vite                      |
 
 The repo root keeps `pnpm-lock.yaml` in sync for Vercel’s post-build serverless dependency step; **do not** use `workspace:*` in `package.json` without updating the lockfile (npm install does not support that protocol).
 
 ### Migration playbook
 
-| Action | Command | When |
-| -------- | --------- | ------ |
-| Apply pending SQL migrations (script) | `npm run db:migrate` | Local/CI against linked DB |
-| Push via Supabase CLI | `npm run supabase:push` or `supabase db push` | When CLI project is linked |
-| Link CLI | `npm run supabase:link` | One-time per machine |
-| Schema v2 cutover helper | `npm run schema-v2:cutover` | Rare; generates + applies cutover migration |
+| Action                                | Command                                       | When                                        |
+| ------------------------------------- | --------------------------------------------- | ------------------------------------------- |
+| Apply pending SQL migrations (script) | `npm run db:migrate`                          | Local/CI against linked DB                  |
+| Push via Supabase CLI                 | `npm run supabase:push` or `supabase db push` | When CLI project is linked                  |
+| Link CLI                              | `npm run supabase:link`                       | One-time per machine                        |
+| Schema v2 cutover helper              | `npm run schema-v2:cutover`                   | Rare; generates + applies cutover migration |
 
 Always apply migrations to **staging before production**. Partial applies are recovered with reconcile migrations under `supabase/migrations/` (see [schema-v2.md](docs/architecture/schema-v2.md)). There is no automatic down-migration.
 
 ### Webhook and Edge checklist (production)
 
-| Integration | Endpoint / deploy | Purpose |
-| ------------- | ------------------- | -------- |
-| Stripe Identity | `POST https://<site>/api/webhooks/stripe/identity` | Apply identity verification results |
-| Auth email (optional) | Supabase Edge `send-auth-email` | `npm run supabase:deploy-auth-email` |
-| Verification jobs (optional) | `/api/sync-worker/...` proxy or Edge invoke URL | Revenue/domain async sync |
+| Integration                  | Endpoint / deploy                                  | Purpose                              |
+| ---------------------------- | -------------------------------------------------- | ------------------------------------ |
+| Stripe Identity              | `POST https://<site>/api/webhooks/stripe/identity` | Apply identity verification results  |
+| Auth email (optional)        | Supabase Edge `send-auth-email`                    | `npm run supabase:deploy-auth-email` |
+| Verification jobs (optional) | `/api/sync-worker/...` proxy or Edge invoke URL    | Revenue/domain async sync            |
 
 If async URLs are unset, seller **desk** flows still work; launch/sync RPCs return `configured: false` where documented.
 
@@ -649,16 +649,16 @@ npm run build
 
 ## Client ↔ Supabase map
 
-| Concern | Location in repo |
-| -------- | ----------------- |
-| Inbox, messages, mark-read | [`messageService.ts`](artifacts/ownerr-web-app/src/lib/marketplace/messageService.ts), [`useInbox.ts`](artifacts/ownerr-web-app/src/hooks/marketplace/useInbox.ts) |
-| Offers | [`offerService.ts`](artifacts/ownerr-web-app/src/lib/marketplace/offerService.ts), [`useOffers.ts`](artifacts/ownerr-web-app/src/hooks/marketplace/useOffers.ts) |
-| Profiles / dual desk | [`profiles.ts`](artifacts/ownerr-web-app/src/lib/marketplace/profiles.ts), [`MarketplaceProvider.tsx`](artifacts/ownerr-web-app/src/context/marketplace/MarketplaceProvider.tsx), [`syncMarketplaceDeskRole.ts`](artifacts/ownerr-web-app/src/lib/auth/syncMarketplaceDeskRole.ts) |
-| Listing verification UI | [`listingVerificationApi.ts`](artifacts/ownerr-web-app/src/lib/intelligence/listingVerificationApi.ts), `ListingVerificationHub.tsx` |
-| Table name v1/v2 | [`dbTables.ts`](artifacts/ownerr-web-app/src/lib/marketplace/dbTables.ts) |
-| RPC telemetry (admin/search) | [`rpcTelemetry.ts`](artifacts/ownerr-web-app/src/lib/api/rpcTelemetry.ts), [`marketplaceApi.ts`](artifacts/ownerr-web-app/src/lib/api/marketplaceApi.ts) |
-| RPC fallback policy | [`postgrestRpc.ts`](artifacts/ownerr-web-app/src/lib/marketplace/postgrestRpc.ts) — no double REST fallback on 400/403 |
-| Routes / guards | [`routeRegistry.ts`](artifacts/ownerr-web-app/src/routing/routeRegistry.ts), `RouteGuard`, `DeskRoleGuard` |
+| Concern                      | Location in repo                                                                                                                                                                                                                                                                   |
+| ---------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Inbox, messages, mark-read   | [`messageService.ts`](artifacts/ownerr-web-app/src/lib/marketplace/messageService.ts), [`useInbox.ts`](artifacts/ownerr-web-app/src/hooks/marketplace/useInbox.ts)                                                                                                                 |
+| Offers                       | [`offerService.ts`](artifacts/ownerr-web-app/src/lib/marketplace/offerService.ts), [`useOffers.ts`](artifacts/ownerr-web-app/src/hooks/marketplace/useOffers.ts)                                                                                                                   |
+| Profiles / dual desk         | [`profiles.ts`](artifacts/ownerr-web-app/src/lib/marketplace/profiles.ts), [`MarketplaceProvider.tsx`](artifacts/ownerr-web-app/src/context/marketplace/MarketplaceProvider.tsx), [`syncMarketplaceDeskRole.ts`](artifacts/ownerr-web-app/src/lib/auth/syncMarketplaceDeskRole.ts) |
+| Listing verification UI      | [`listingVerificationApi.ts`](artifacts/ownerr-web-app/src/lib/intelligence/listingVerificationApi.ts), `ListingVerificationHub.tsx`                                                                                                                                               |
+| Table name v1/v2             | [`dbTables.ts`](artifacts/ownerr-web-app/src/lib/marketplace/dbTables.ts)                                                                                                                                                                                                          |
+| RPC telemetry (admin/search) | [`rpcTelemetry.ts`](artifacts/ownerr-web-app/src/lib/api/rpcTelemetry.ts), [`marketplaceApi.ts`](artifacts/ownerr-web-app/src/lib/api/marketplaceApi.ts)                                                                                                                           |
+| RPC fallback policy          | [`postgrestRpc.ts`](artifacts/ownerr-web-app/src/lib/marketplace/postgrestRpc.ts) — no double REST fallback on 400/403                                                                                                                                                             |
+| Routes / guards              | [`routeRegistry.ts`](artifacts/ownerr-web-app/src/routing/routeRegistry.ts), `RouteGuard`, `DeskRoleGuard`                                                                                                                                                                         |
 
 Prefer **RPCs** for marketplace desk writes; direct PostgREST reads are fallbacks when RPCs are missing (`PGRST202`), not when RPC returns client errors.
 
@@ -675,12 +675,12 @@ Prefer **RPCs** for marketplace desk writes; direct PostgREST reads are fallback
 
 ## Observability
 
-| Mechanism | Behavior |
-| --------- | ---------- |
-| Production browser console | Minimal branding only (`initProductionConsole`) — no dev provision spam |
-| Structured dev logs | [`structuredLog.ts`](artifacts/ownerr-web-app/src/lib/observability/structuredLog.ts), [`devLog.ts`](artifacts/ownerr-web-app/src/lib/observability/devLog.ts) gated in prod |
-| PostHog | Optional `VITE_POSTHOG_*` in [`.env.example`](.env.example) |
-| `api_log_client_request` | Fired from `instrumentedRpc` in **development only** (not doubled in prod) |
+| Mechanism                  | Behavior                                                                                                                                                                     |
+| -------------------------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Production browser console | Minimal branding only (`initProductionConsole`) — no dev provision spam                                                                                                      |
+| Structured dev logs        | [`structuredLog.ts`](artifacts/ownerr-web-app/src/lib/observability/structuredLog.ts), [`devLog.ts`](artifacts/ownerr-web-app/src/lib/observability/devLog.ts) gated in prod |
+| PostHog                    | Optional `VITE_POSTHOG_*` in [`.env.example`](.env.example)                                                                                                                  |
+| `api_log_client_request`   | Fired from `instrumentedRpc` in **development only** (not doubled in prod)                                                                                                   |
 
 ---
 
@@ -692,20 +692,20 @@ Postgres may use v2 physical names (`marketplace_accounts`, `marketplace_convers
 
 ## Feature matrix (by surface)
 
-| Capability | Public | Buyer | Seller | Admin | Notes |
-| ----------- | :----: | :---: | :----: | :---: | ------ |
-| Browse / startup detail | ✓ | ✓ | ✓ | ✓ | Search RPC where enabled |
-| Express interest | | ✓ | | | |
-| Inbox / messaging | | ✓ | ✓ | | RPC + bounded poll |
-| Offers pipeline | | ✓ | ✓ | ✓ | Decline closes thread UI |
-| Bids | | ✓ | | | Where listing supports bids |
-| Person verification | | ✓ | ✓ | | |
-| Listing verification hub | | | ✓ | ✓ | Gates + provider connect |
-| Revenue/domain async sync | | | ✓ | | Optional worker/Edge |
-| Valuation (public tool) | ✓ | | | | `/valuation` |
-| Ownerr Network app | | | | | Separate product shell |
-| Ownerr OS app | | | | | Separate product shell |
-| Platform admin CRUD | | | | ✓ | `users.role = admin` |
+| Capability                | Public | Buyer | Seller | Admin | Notes                       |
+| ------------------------- | :----: | :---: | :----: | :---: | --------------------------- |
+| Browse / startup detail   |   ✓    |   ✓   |   ✓    |   ✓   | Search RPC where enabled    |
+| Express interest          |        |   ✓   |        |       |                             |
+| Inbox / messaging         |        |   ✓   |   ✓    |       | RPC + bounded poll          |
+| Offers pipeline           |        |   ✓   |   ✓    |   ✓   | Decline closes thread UI    |
+| Bids                      |        |   ✓   |        |       | Where listing supports bids |
+| Person verification       |        |   ✓   |   ✓    |       |                             |
+| Listing verification hub  |        |       |   ✓    |   ✓   | Gates + provider connect    |
+| Revenue/domain async sync |        |       |   ✓    |       | Optional worker/Edge        |
+| Valuation (public tool)   |   ✓    |       |        |       | `/valuation`                |
+| Ownerr Network app        |        |       |        |       | Separate product shell      |
+| Ownerr OS app             |        |       |        |       | Separate product shell      |
+| Platform admin CRUD       |        |       |        |   ✓   | `users.role = admin`        |
 
 ---
 
@@ -733,41 +733,41 @@ Postgres may use v2 physical names (`marketplace_accounts`, `marketplace_convers
 
 ## Troubleshooting
 
-| Symptom | Likely cause | What to do |
-| -------- | ------------- | ----------- |
-| Vercel `EUNSUPPORTEDPROTOCOL workspace:*` | npm install on `workspace:*` deps | Use `*` for workspace packages + root `npm install`; keep `pnpm-lock.yaml` in sync |
-| Vercel `pnpm-lock.yaml` out of date | Root `package.json` changed without lockfile | `pnpm install --lockfile-only` at repo root, commit lockfile |
-| `identity.js` vs `identity.ts` conflict on Vercel | Committed emitted JS under `api/` | Delete `api/**/*.js`; `api/tsconfig.json` uses `noEmit: true` |
-| Inbox API storm / `ERR_INSUFFICIENT_RESOURCES` | Old client looping mark-read | Deploy latest; one RPC per thread open |
-| RPC 400 on mark-read | DB function / `api_guard` / RLS | Fix migration; client won’t PATCH-loop |
-| Empty inbox with interests | Missing conversation rows | Run repair RPC once; check `marketplace_repair_buyer_interest_conversations` |
-| Seller key connect fails | Missing platform encryption config | `npm run platform:set-integration-secrets` |
-| Migrations fail mid-way | Partial DB | Apply reconcile migrations; see schema-v2 docs |
+| Symptom                                           | Likely cause                                 | What to do                                                                         |
+| ------------------------------------------------- | -------------------------------------------- | ---------------------------------------------------------------------------------- |
+| Vercel `EUNSUPPORTEDPROTOCOL workspace:*`         | npm install on `workspace:*` deps            | Use `*` for workspace packages + root `npm install`; keep `pnpm-lock.yaml` in sync |
+| Vercel `pnpm-lock.yaml` out of date               | Root `package.json` changed without lockfile | `pnpm install --lockfile-only` at repo root, commit lockfile                       |
+| `identity.js` vs `identity.ts` conflict on Vercel | Committed emitted JS under `api/`            | Delete `api/**/*.js`; `api/tsconfig.json` uses `noEmit: true`                      |
+| Inbox API storm / `ERR_INSUFFICIENT_RESOURCES`    | Old client looping mark-read                 | Deploy latest; one RPC per thread open                                             |
+| RPC 400 on mark-read                              | DB function / `api_guard` / RLS              | Fix migration; client won’t PATCH-loop                                             |
+| Empty inbox with interests                        | Missing conversation rows                    | Run repair RPC once; check `marketplace_repair_buyer_interest_conversations`       |
+| Seller key connect fails                          | Missing platform encryption config           | `npm run platform:set-integration-secrets`                                         |
+| Migrations fail mid-way                           | Partial DB                                   | Apply reconcile migrations; see schema-v2 docs                                     |
 
 ---
 
 ## Key marketplace routes (reference)
 
-| Area | Path prefix |
-| ------ |-------------|
-| Public acquire | `/marketplace/acquire`, `/marketplace/startup/:slug` |
-| Buyer desk | `/marketplace/app/buyer/dashboard`, `.../browse`, `.../inbox`, `.../offers`, `.../verification` |
-| Seller desk | `/marketplace/app/seller/dashboard`, `.../companies`, `.../inbox`, `.../offers`, `.../verification` |
-| Admin | `/admin`, `/admin/marketplace/*`, `/admin/ownerr-network/*`, `/admin/ownerr-os/*` |
+| Area           | Path prefix                                                                                         |
+| -------------- | --------------------------------------------------------------------------------------------------- |
+| Public acquire | `/marketplace/acquire`, `/marketplace/startup/:slug`                                                |
+| Buyer desk     | `/marketplace/app/buyer/dashboard`, `.../browse`, `.../inbox`, `.../offers`, `.../verification`     |
+| Seller desk    | `/marketplace/app/seller/dashboard`, `.../companies`, `.../inbox`, `.../offers`, `.../verification` |
+| Admin          | `/admin`, `/admin/marketplace/*`, `/admin/ownerr-network/*`, `/admin/ownerr-os/*`                   |
 
 ---
 
 ## Architecture docs (detail)
 
-| Document | Contents |
-| -------- | -------- |
-| [production-supabase-baas.md](docs/architecture/production-supabase-baas.md) | Deploy model, env vars |
-| [api-catalog.md](docs/architecture/api-catalog.md) | RPC inventory by domain |
-| [marketplace-offers-platform.md](docs/architecture/marketplace-offers-platform.md) | Offers design |
-| [verification-first-listings.md](docs/architecture/verification-first-listings.md) | Listing lifecycle + gates |
-| [automated-verification-platform.md](docs/architecture/automated-verification-platform.md) | Worker, webhooks, Stripe |
-| [schema-v2.md](docs/architecture/schema-v2.md) | Marketplace schema evolution |
-| [supabase/README.md](supabase/README.md) | Supabase project ops |
+| Document                                                                                   | Contents                     |
+| ------------------------------------------------------------------------------------------ | ---------------------------- |
+| [production-supabase-baas.md](docs/architecture/production-supabase-baas.md)               | Deploy model, env vars       |
+| [api-catalog.md](docs/architecture/api-catalog.md)                                         | RPC inventory by domain      |
+| [marketplace-offers-platform.md](docs/architecture/marketplace-offers-platform.md)         | Offers design                |
+| [verification-first-listings.md](docs/architecture/verification-first-listings.md)         | Listing lifecycle + gates    |
+| [automated-verification-platform.md](docs/architecture/automated-verification-platform.md) | Worker, webhooks, Stripe     |
+| [schema-v2.md](docs/architecture/schema-v2.md)                                             | Marketplace schema evolution |
+| [supabase/README.md](supabase/README.md)                                                   | Supabase project ops         |
 
 ---
 
@@ -782,10 +782,10 @@ Postgres may use v2 physical names (`marketplace_accounts`, `marketplace_convers
 
 ## Demo accounts (after seed)
 
-| Desk | Email | Password (default in seed script) |
-| ------ | ------- | ----------------------------------- |
-| Buyer | `demo-buyer@marketplace.app` | `DemoBuyer123!` |
-| Seller | `demo-seller@marketplace.app` | `DemoSeller123!` |
+| Desk   | Email                         | Password (default in seed script) |
+| ------ | ----------------------------- | --------------------------------- |
+| Buyer  | `demo-buyer@marketplace.app`  | `DemoBuyer123!`                   |
+| Seller | `demo-seller@marketplace.app` | `DemoSeller123!`                  |
 
 Seeded seller listing slugs (when present): `stan`, `sorio-ai`, `rezi`.
 

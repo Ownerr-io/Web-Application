@@ -114,31 +114,34 @@ export default function SellerProfilePage() {
               <ListCompanyButton size="sm" className="w-full" />
             </div>
           ) : (
-            <div className="space-y-2">
-              {listings.slice(0, 4).map((l) => (
-                <MarketplaceDeskListItem key={l.slug}>
+            <div className="space-y-3">
+              <ListCompanyButton size="sm" className="w-full sm:w-auto" />
+              <div className="space-y-2">
+                {listings.slice(0, 4).map((l) => (
+                  <MarketplaceDeskListItem key={l.slug}>
+                    <Link
+                      href={marketplaceSellerListingPath(l.slug)}
+                      className="font-medium hover:underline"
+                    >
+                      {l.name}
+                    </Link>
+                    <p className="text-xs text-muted-foreground">
+                      Trust {l.trustScore ?? 0} ·{" "}
+                      {l.revenueVerified
+                        ? "Revenue verified"
+                        : "Verification pending"}
+                    </p>
+                  </MarketplaceDeskListItem>
+                ))}
+                {listings.length > 4 ? (
                   <Link
-                    href={marketplaceSellerListingPath(l.slug)}
-                    className="font-medium hover:underline"
+                    href={MARKETPLACE_ROUTES.sellerListings}
+                    className="text-xs font-medium text-brand-lime hover:underline"
                   >
-                    {l.name}
+                    View all {listings.length} listings
                   </Link>
-                  <p className="text-xs text-muted-foreground">
-                    Trust {l.trustScore ?? 0} ·{" "}
-                    {l.revenueVerified
-                      ? "Revenue verified"
-                      : "Verification pending"}
-                  </p>
-                </MarketplaceDeskListItem>
-              ))}
-              {listings.length > 4 ? (
-                <Link
-                  href={MARKETPLACE_ROUTES.sellerListings}
-                  className="text-xs font-medium text-brand-lime hover:underline"
-                >
-                  View all {listings.length} listings
-                </Link>
-              ) : null}
+                ) : null}
+              </div>
             </div>
           )}
         </MarketplaceDeskKpiCard>

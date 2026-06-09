@@ -571,6 +571,27 @@ export function resolveAuthenticatedPageNavContext(
   let deskLabel: string | undefined;
 
   if (group === "marketplace") {
+    const sellerCompaniesBase = normalizePathname(
+      MARKETPLACE_ROUTES.sellerCompanies,
+    );
+    if (path === normalizePathname(MARKETPLACE_ROUTES.sellerCompanyNew)) {
+      return {
+        pageTitle: "Add startup",
+        workspaceLabel,
+        deskLabel: "Seller",
+      };
+    }
+    if (
+      path.startsWith(`${sellerCompaniesBase}/`) &&
+      path !== normalizePathname(MARKETPLACE_ROUTES.sellerCompanyNew)
+    ) {
+      return {
+        pageTitle: "Company",
+        workspaceLabel,
+        deskLabel: "Seller",
+      };
+    }
+
     let active: SidebarNavItemDef | null = null;
     for (const section of getMarketplaceSidebarSections(subject)) {
       const match = pickActiveSidebarItem(location, section.items);

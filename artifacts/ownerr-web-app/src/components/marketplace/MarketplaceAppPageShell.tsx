@@ -66,6 +66,7 @@ export function MarketplaceAppPageShell({
         description={description}
         backHref={backHref}
         backLabel={backLabel}
+        headerActions={headerActions}
       >
         {children}
       </BrandAppPageShell>

@@ -75,7 +75,12 @@ export default function SellerCompaniesPage() {
           <ListCompanyButton className="mx-auto" />
         </div>
       ) : (
-        <SellerCompaniesTable companies={companies} />
+        <div className="space-y-3">
+          <div className="flex justify-end">
+            <ListCompanyButton size="sm" />
+          </div>
+          <SellerCompaniesTable companies={companies} />
+        </div>
       )}
     </MarketplaceAppPageShell>
   );

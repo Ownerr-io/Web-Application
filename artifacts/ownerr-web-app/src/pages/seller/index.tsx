@@ -53,6 +53,13 @@ export default function SellerDashboard() {
           </div>
           <ListCompanyButton />
         </div>
+      ) : !listingsLoading && companies.length > 0 ? (
+        <div className="flex flex-col gap-3 rounded-xl border border-border bg-muted/20 p-4 sm:flex-row sm:items-center sm:justify-between">
+          <p className="text-sm text-muted-foreground">
+            Add another company draft anytime. Verification runs per listing.
+          </p>
+          <ListCompanyButton size="sm" className="shrink-0" />
+        </div>
       ) : null}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <MarketplaceDeskKpiCard title="Companies">

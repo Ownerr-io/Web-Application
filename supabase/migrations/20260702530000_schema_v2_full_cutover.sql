@@ -61,6 +61,7 @@ BEGIN
     newdef := replace(newdef, 'public.verification_providers%ROWTYPE', 'public.trust_providers%ROWTYPE');
     newdef := replace(newdef, 'public.listing_seller_intake', 'public.marketplace_seller_intake');
     newdef := replace(newdef, 'public.listing_seller_intake%ROWTYPE', 'public.marketplace_seller_intake%ROWTYPE');
+    newdef := replace(newdef, 'listing_seller_intake.', 'marketplace_seller_intake.');
     newdef := replace(newdef, 'public.verification_requests', 'public.marketplace_verification_requests');
     newdef := replace(newdef, 'public.verification_requests%ROWTYPE', 'public.marketplace_verification_requests%ROWTYPE');
     newdef := replace(newdef, 'public.integration_sync_jobs', 'public.trust_integration_jobs');
