@@ -1,7 +1,7 @@
 /**
  * Same-origin routes for optional async verification (identity, email, jobs).
  * Marketplace desk does not use these — Supabase RPC/RLS only.
- * Dev with verification: npm run dev:with-verification-worker (Vite proxies /api/sync-worker).
+ * Verification jobs: same-origin /api/sync-worker (Vite inline middleware or Vercel serverless).
  */
 export function resolveSyncWorkerPublicBase(serverEndpoint: string): string {
   const override = import.meta.env.VITE_SYNC_WORKER_PUBLIC_URL?.trim();

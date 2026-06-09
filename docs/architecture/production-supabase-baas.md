@@ -38,7 +38,7 @@ Production requirement for storing seller keys:
 
 | Where                               | What                                                                                                                                                           |
 | ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| Supabase `platform_internal_config` | `integration_encryption_key` (+ recommended `integration_encryption_pepper`) via `npm run platform:set-integration-secrets` from a machine with `DATABASE_URL` |
+| Supabase `sys_platform_config` | `integration_encryption_key` (+ recommended `integration_encryption_pepper`) and sync worker URLs via `npm run platform:set-integration-secrets` from a machine with `DATABASE_URL` |
 
 That encryption material is **Ownerr’s** key for Postgres ciphertext — not Stripe.
 
@@ -48,7 +48,7 @@ Identity, business-email magic links, domain/revenue **job runners** need HTTP t
 
 Options:
 
-1. **Supabase Edge Functions** — store invoke URLs in `platform_internal_config` (`sync_worker_invoke_url` / `sync_worker_public_url` keys used as generic “verification invoke” URLs).
+1. **Same-origin serverless** (default) — store invoke URLs in `sys_platform_config` pointing at `https://<site>/api/sync-worker` (`sync_worker_invoke_url` / `sync_worker_public_url`). Optional: Supabase Edge Functions as an alternate invoke target.
 2. **Same Vercel project** — optional `/api/*` routes on the same deploy (not a second backend service).
 3. **Local only** — `npm run dev:with-verification-worker` for full verification dev.
 

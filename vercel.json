@@ -1,7 +1,7 @@
 {
   "buildCommand": "npm run build",
   "installCommand": "npm install",
-  "outputDirectory": "artifacts/ownerr-web-app/dist",
+  "outputDirectory": "artifacts/ownerr-web-app/dist/public",
   "framework": "vite",
   "root": "artifacts/ownerr-web-app",
   "rewrites": [

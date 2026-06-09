@@ -413,7 +413,7 @@ export async function invokeSyncWorkerProcessJobs(
     });
   } catch (e) {
     const message =
-      "Could not reach the verification endpoint. For local verification dev use npm run dev:with-verification-worker.";
+      "Could not reach the verification endpoint. Ensure SUPABASE_SERVICE_ROLE_KEY is set on the host and /api/sync-worker is deployed.";
     verificationDebugLog(
       "worker",
       "Fetch failed",

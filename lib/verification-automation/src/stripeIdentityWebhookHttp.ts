@@ -11,7 +11,10 @@ export const LEGACY_STRIPE_IDENTITY_WEBHOOK_PATH =
 
 export function isStripeIdentityWebhookPath(urlPath: string): boolean {
   const path = urlPath.split("?")[0];
-  return path === STRIPE_IDENTITY_WEBHOOK_PATH;
+  return (
+    path === STRIPE_IDENTITY_WEBHOOK_PATH ||
+    path === LEGACY_STRIPE_IDENTITY_WEBHOOK_PATH
+  );
 }
 
 export function isLegacyStripeIdentityWebhookPath(urlPath: string): boolean {

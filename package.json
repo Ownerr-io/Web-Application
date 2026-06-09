@@ -13,6 +13,9 @@
     "supabase:migrate": "npm run db:migrate",
     "platform:set-integration-key": "node --env-file=.env.local scripts/set-integration-encryption-key.mjs",
     "platform:set-integration-secrets": "node --env-file=.env.local scripts/set-platform-integration-secrets.mjs",
+    "platform:set-integration-secrets:production": "PLATFORM_CONFIG_TARGET=production node --env-file=.env.local scripts/set-platform-integration-secrets.mjs",
+    "verification:config-check": "node --env-file=.env.local scripts/verification-platform-config-check.mjs",
+    "verification:drain-jobs": "node --env-file=.env.local scripts/verification-drain-jobs.mjs",
     "supabase:push": "supabase db push",
     "supabase:link": "supabase link --project-ref bnzvpkgffeappfxatuyu",
     "supabase:deploy-auth-email": "supabase functions deploy send-auth-email --no-verify-jwt --project-ref bnzvpkgffeappfxatuyu",
@@ -47,7 +50,9 @@
     "typescript": "~5.9.2"
   },
   "dependencies": {
+    "cli": "^1.0.1",
     "framer-motion": "^12.35.1",
-    "idb": "^8.0.3"
+    "idb": "^8.0.3",
+    "supabase": "^2.105.0"
   }
 }

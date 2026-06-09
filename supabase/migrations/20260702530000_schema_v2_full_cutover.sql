@@ -41,6 +41,14 @@ BEGIN
     newdef := replace(newdef, 'public.listing_verification_gates%ROWTYPE', 'public.trust_listing_gates%ROWTYPE');
     newdef := replace(newdef, 'public.sync_worker_launch_tokens', 'public.sys_sync_worker_launch_tokens');
     newdef := replace(newdef, 'public.sync_worker_launch_tokens%ROWTYPE', 'public.sys_sync_worker_launch_tokens%ROWTYPE');
+    newdef := replace(newdef, 'sync_worker_launch_tokens', 'sys_sync_worker_launch_tokens');
+    newdef := replace(newdef, 'sys_sys_sync_worker_launch_tokens', 'sys_sync_worker_launch_tokens');
+    newdef := replace(newdef, 'platform_internal_config', 'sys_platform_config');
+    newdef := replace(newdef, 'sys_sys_platform_config', 'sys_platform_config');
+    newdef := replace(newdef, 'identity_launch_tokens', 'sys_identity_launch_tokens');
+    newdef := replace(newdef, 'sys_sys_identity_launch_tokens', 'sys_identity_launch_tokens');
+    newdef := replace(newdef, 'business_email_launch_tokens', 'sys_business_email_launch_tokens');
+    newdef := replace(newdef, 'sys_sys_business_email_launch_tokens', 'sys_business_email_launch_tokens');
     newdef := replace(newdef, 'public.marketplace_offer_events', 'public.marketplace_offer_notifications');
     newdef := replace(newdef, 'public.marketplace_offer_events%ROWTYPE', 'public.marketplace_offer_notifications%ROWTYPE');
     newdef := replace(newdef, 'public.platform_internal_config', 'public.sys_platform_config');
@@ -53,6 +61,7 @@ BEGIN
     newdef := replace(newdef, 'public.founder_referral_events%ROWTYPE', 'public.founder_campaign_referral_events%ROWTYPE');
     newdef := replace(newdef, 'public.integration_connections', 'public.trust_integrations');
     newdef := replace(newdef, 'public.integration_connections%ROWTYPE', 'public.trust_integrations%ROWTYPE');
+    newdef := replace(newdef, 'integration_connections.', 'trust_integrations.');
     newdef := replace(newdef, 'public.integration_credentials', 'public.trust_integration_secrets');
     newdef := replace(newdef, 'public.integration_credentials%ROWTYPE', 'public.trust_integration_secrets%ROWTYPE');
     newdef := replace(newdef, 'public.identity_launch_tokens', 'public.sys_identity_launch_tokens');

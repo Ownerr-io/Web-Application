@@ -1,6 +1,7 @@
 /**
  * Stores INTEGRATION_ENCRYPTION_KEY from .env.local into
- * public.platform_internal_config (required for integration_connect_api_key RPC).
+ * public.sys_platform_config (required for integration_connect_api_key RPC).
+ * Prefer: npm run platform:set-integration-secrets (encryption + worker URLs).
  *
  * Usage:
  *   openssl rand -base64 32   # add output to .env.local as INTEGRATION_ENCRYPTION_KEY=
@@ -51,13 +52,16 @@ const pool = new pg.Pool({
 const client = await pool.connect();
 try {
   await client.query(
-    `INSERT INTO public.platform_internal_config (key, value)
+    `INSERT INTO public.sys_platform_config (key, value)
      VALUES ('integration_encryption_key', $1)
      ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, updated_at = now()`,
     [key],
   );
   console.log(
-    "integration_encryption_key stored in platform_internal_config (Postgres).",
+    "integration_encryption_key stored in sys_platform_config (Postgres).",
+  );
+  console.warn(
+    "Run npm run platform:set-integration-secrets to also set sync worker URLs for domain/revenue jobs.",
   );
 } finally {
   client.release();

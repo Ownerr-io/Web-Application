@@ -27,7 +27,7 @@ export async function resolveClykurFounderEmail(databaseUrl) {
   try {
     const { rows } = await client.query(`
       SELECT u.email
-      FROM public.startups s
+      FROM public.marketplace_companies s
       JOIN auth.users u ON u.id = s.founder_user_id
       WHERE s.slug = 'clykur-f6724fa7'
       LIMIT 1`);
@@ -45,7 +45,7 @@ export async function resolveBuyerDeskEmail(databaseUrl) {
     const { rows } = await client.query(`
       SELECT u.email
       FROM auth.users u
-      JOIN marketplace_profiles mp ON mp.auth_user_id = u.id AND mp.desk_role = 'buyer'
+      JOIN public.marketplace_accounts mp ON mp.auth_user_id = u.id AND mp.desk_role = 'buyer'
       WHERE u.raw_user_meta_data->>'role' = 'buyer' AND mp.status = 'active'
       ORDER BY u.updated_at DESC NULLS LAST
       LIMIT 1`);

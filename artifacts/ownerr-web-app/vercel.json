@@ -3,5 +3,16 @@
   "installCommand": "cd ../.. && npm install",
   "outputDirectory": "dist/public",
   "framework": "vite",
-  "rewrites": [{ "source": "/(.*)", "destination": "/index.html" }]
+  "rewrites": [
+    { "source": "/api/(.*)", "destination": "/api/$1" },
+    { "source": "/((?!api/).*)", "destination": "/index.html" }
+  ],
+  "functions": {
+    "api/sync-worker/v1/process-jobs.ts": {
+      "maxDuration": 60
+    },
+    "api/sync-worker/[...path].ts": {
+      "maxDuration": 60
+    }
+  }
 }

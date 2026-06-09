@@ -67,8 +67,8 @@ try {
   const { rows } = await pg.query(
     `SELECT s.slug, s.listing_lifecycle, g.identity_status, g.domain_status,
             g.business_email_status, g.revenue_status
-     FROM startups s
-     LEFT JOIN listing_verification_gates g ON g.startup_id = s.id
+     FROM public.marketplace_companies s
+     LEFT JOIN public.trust_listing_gates g ON g.startup_id = s.id
      WHERE s.id = $1`,
     [startupId],
   );

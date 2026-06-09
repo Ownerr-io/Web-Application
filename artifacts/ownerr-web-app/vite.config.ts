@@ -2,6 +2,7 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
+import { viteSyncWorkerDevPlugin } from "./viteSyncWorkerDevPlugin";
 // import runtimeErrorOverlay from "@replit/vite-plugin-runtime-error-modal";
 
 const portFromEnv = process.env.PORT;
@@ -15,6 +16,8 @@ if (Number.isNaN(port) || port <= 0) {
 const basePath = process.env.BASE_PATH ?? "/";
 const strictPort = portFromEnv !== undefined;
 const repoRoot = path.resolve(import.meta.dirname, "..", "..");
+/** Default on: /api/sync-worker runs in Vite (no separate sync-worker process). Set SYNC_WORKER_INLINE=0 to use proxy. */
+const inlineSyncWorker = process.env.SYNC_WORKER_INLINE !== "0";
 
 export default defineConfig({
   envDir: repoRoot,
@@ -36,6 +39,7 @@ export default defineConfig({
           ),
         ]
       : []),
+    ...(inlineSyncWorker ? [viteSyncWorkerDevPlugin()] : []),
   ],
   resolve: {
     alias: {
@@ -48,6 +52,14 @@ export default defineConfig({
       ),
     },
     dedupe: ["react", "react-dom"],
+  },
+  ssr: {
+    noExternal: [
+      "@workspace/integrations-sync",
+      "@workspace/integrations-core",
+      "@workspace/verification-automation",
+      "@workspace/db-schema",
+    ],
   },
   root: path.resolve(import.meta.dirname),
   build: {
@@ -62,19 +74,23 @@ export default defineConfig({
     fs: {
       strict: true,
     },
-    proxy: {
-      "/api/sync-worker": {
-        target:
-          process.env.VITE_SYNC_WORKER_PROXY_TARGET ?? "http://127.0.0.1:8787",
-        changeOrigin: true,
-        rewrite: (p) => p.replace(/^\/api\/sync-worker/, ""),
-      },
-      "/api/webhooks": {
-        target:
-          process.env.VITE_SYNC_WORKER_PROXY_TARGET ?? "http://127.0.0.1:8787",
-        changeOrigin: true,
-      },
-    },
+    proxy: inlineSyncWorker
+      ? undefined
+      : {
+          "/api/sync-worker": {
+            target:
+              process.env.VITE_SYNC_WORKER_PROXY_TARGET ??
+              "http://127.0.0.1:8787",
+            changeOrigin: true,
+            rewrite: (p) => p.replace(/^\/api\/sync-worker/, ""),
+          },
+          "/api/webhooks": {
+            target:
+              process.env.VITE_SYNC_WORKER_PROXY_TARGET ??
+              "http://127.0.0.1:8787",
+            changeOrigin: true,
+          },
+        },
   },
   preview: {
     port,
