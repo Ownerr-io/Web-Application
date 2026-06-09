@@ -122,6 +122,9 @@ importers:
       '@workspace/db-schema':
         specifier: '*'
         version: link:../../lib/db-schema
+      '@workspace/integrations-sync':
+        specifier: '*'
+        version: link:../../lib/integrations-sync
       '@workspace/verification-automation':
         specifier: '*'
         version: link:../../lib/verification-automation

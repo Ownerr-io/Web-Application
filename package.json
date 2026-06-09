@@ -16,9 +16,9 @@
     "platform:set-integration-secrets:production": "PLATFORM_CONFIG_TARGET=production node --env-file=.env.local scripts/set-platform-integration-secrets.mjs",
     "verification:config-check": "node --env-file=.env.local scripts/verification-platform-config-check.mjs",
     "verification:drain-jobs": "node --env-file=.env.local scripts/verification-drain-jobs.mjs",
-    "supabase:push": "supabase db push",
-    "supabase:link": "supabase link --project-ref bnzvpkgffeappfxatuyu",
-    "supabase:deploy-auth-email": "supabase functions deploy send-auth-email --no-verify-jwt --project-ref bnzvpkgffeappfxatuyu",
+    "supabase:push": "npx supabase@2.105.0 db push",
+    "supabase:link": "npx supabase@2.105.0 link --project-ref bnzvpkgffeappfxatuyu",
+    "supabase:deploy-auth-email": "npx supabase@2.105.0 functions deploy send-auth-email --no-verify-jwt --project-ref bnzvpkgffeappfxatuyu",
     "marketplace:ensure-schema": "node --env-file=.env.local scripts/ensure-marketplace-schema.mjs",
     "marketplace:seed-demo": "node --env-file=.env.local artifacts/ownerr-web-app/scripts/seed-demo-marketplace-users.mjs",
     "marketplace:reset-demo": "node --env-file=.env.local artifacts/ownerr-web-app/scripts/reset-demo-marketplace-users.mjs",
@@ -50,9 +50,7 @@
     "typescript": "~5.9.2"
   },
   "dependencies": {
-    "cli": "^1.0.1",
     "framer-motion": "^12.35.1",
-    "idb": "^8.0.3",
-    "supabase": "^2.105.0"
+    "idb": "^8.0.3"
   }
 }
