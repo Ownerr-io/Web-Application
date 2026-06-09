@@ -1,11 +1,11 @@
 import path from "node:path";
-import { fileURLToPath } from "node:url";
-import type { Plugin, ViteDevServer } from "vite";
+import { fileURLToPath, pathToFileURL } from "node:url";
+import { loadEnv, type Plugin } from "vite";
 import type { IncomingMessage } from "node:http";
 
-const syncHandlersId = path.resolve(
+const bundleFile = path.resolve(
   fileURLToPath(new URL(".", import.meta.url)),
-  "api/_lib/syncWorkerHandlers.ts",
+  "api/_lib/syncWorkerHandlers.bundle.mjs",
 );
 
 async function readBody(req: IncomingMessage): Promise<string> {
@@ -16,31 +16,43 @@ async function readBody(req: IncomingMessage): Promise<string> {
   return Buffer.concat(chunks).toString("utf8");
 }
 
-type SyncHandlerModule = typeof import("./api/_lib/syncWorkerHandlers");
+type HandlerModule = {
+  handleSyncWorkerHttpRequest: (input: {
+    path: string;
+    method: string;
+    authorization?: string;
+    body: string;
+    origin?: string;
+  }) => Promise<{ status: number; headers: Record<string, string>; body: string }>;
+};
+
+let handlerModule: HandlerModule | undefined;
+
+async function loadHandlers(): Promise<HandlerModule> {
+  if (handlerModule) return handlerModule;
+  try {
+    handlerModule = (await import(pathToFileURL(bundleFile).href)) as HandlerModule;
+    return handlerModule;
+  } catch (e) {
+    const hint =
+      "Run: npm run bundle:api --workspace=@workspace/ownerr-web-app (or npm run dev from ownerr-web-app which bundles first)";
+    throw new Error(
+      `${hint}. ${e instanceof Error ? e.message : String(e)}`,
+    );
+  }
+}
 
 /**
- * Dev-only: serve /api/sync-worker/* without a separate sync-worker process.
- * Requires SUPABASE_URL + SUPABASE_SERVICE_ROLE_KEY in .env.local (loaded by Vite).
+ * Dev-only: serve /api/sync-worker/* using the same esbuild bundle as Vercel.
  */
 export function viteSyncWorkerDevPlugin(): Plugin {
-  let serverRef: ViteDevServer | undefined;
-  let handlerModule: SyncHandlerModule | undefined;
-
-  async function loadHandlers(): Promise<SyncHandlerModule> {
-    if (handlerModule) return handlerModule;
-    if (!serverRef) {
-      throw new Error("Vite dev server not ready for sync worker");
-    }
-    handlerModule = (await serverRef.ssrLoadModule(
-      syncHandlersId,
-    )) as SyncHandlerModule;
-    return handlerModule;
-  }
-
   return {
     name: "ownerr-inline-sync-worker",
     configureServer(server) {
-      serverRef = server;
+      const env = loadEnv(server.config.mode, server.config.envDir, "");
+      for (const [k, v] of Object.entries(env)) {
+        if (process.env[k] === undefined) process.env[k] = v;
+      }
       server.middlewares.use(async (req, res, next) => {
         const url = req.url ?? "";
         if (!url.startsWith("/api/sync-worker")) {

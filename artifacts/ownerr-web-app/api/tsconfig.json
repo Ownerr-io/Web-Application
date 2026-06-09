@@ -8,5 +8,5 @@
     "types": ["node"],
     "composite": false
   },
-  "include": ["**/*.ts"]
+  "include": ["**/*.ts", "_lib/*.bundle.mjs.d.ts"]
 }

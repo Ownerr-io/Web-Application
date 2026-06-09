@@ -1,5 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { handleStripeIdentityWebhookHttp } from "../../../../../lib/verification-automation/src/stripeIdentityWebhookHttp.js";
+// @ts-expect-error .mjs bundle (see stripeIdentityWebhookHttp.bundle.mjs.d.ts)
+import { handleStripeIdentityWebhookHttp } from "../../_lib/stripeIdentityWebhookHttp.bundle.mjs";
 import { getSupabaseServiceClient } from "../../_lib/supabaseService.js";
 import { readRawBody } from "../../_lib/readRawBody.js";
 

@@ -4,7 +4,10 @@
     "rootDir": "src",
     "noEmit": true,
     "types": ["node"],
-    "lib": ["es2022"]
+    "lib": ["es2022"],
+    "paths": {
+      "@supabase/supabase-js": ["../../node_modules/@supabase/supabase-js"]
+    }
   },
   "include": ["src/**/*"]
 }

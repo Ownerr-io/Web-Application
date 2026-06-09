@@ -1,6 +1,6 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
 import { readRawBody } from "./readRawBody.js";
-import { handleSyncWorkerHttpRequest } from "./syncWorkerHandlers.js";
+import { handleBundledSyncWorkerRequest } from "./loadBundledSyncWorker.js";
 
 export const syncWorkerApiConfig = {
   api: {
@@ -62,7 +62,6 @@ async function proxyToExternalWorker(
   }
 }
 
-/** Logical path passed to handleSyncWorkerHttpRequest (e.g. `/v1/process-jobs`). */
 export async function serveSyncWorkerRoute(
   req: VercelRequest,
   res: VercelResponse,
@@ -80,7 +79,7 @@ export async function serveSyncWorkerRoute(
       ? await readRawBody(req)
       : "";
 
-  const result = await handleSyncWorkerHttpRequest({
+  const result = await handleBundledSyncWorkerRequest({
     path: logicalPath.startsWith("/") ? logicalPath : `/${logicalPath}`,
     method: req.method ?? "GET",
     authorization:

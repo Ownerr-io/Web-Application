@@ -83,6 +83,10 @@ export async function handleSyncWorkerHttpRequest(input: {
     return { status: 204, headers: corsHeaders(input.origin), body: "" };
   }
 
+  if (path === "/health" && method === "GET") {
+    return json(200, { ok: true }, { origin: input.origin });
+  }
+
   let supabase: SupabaseClient;
   try {
     supabase = getSupabaseServiceClient();
@@ -96,10 +100,6 @@ export async function handleSyncWorkerHttpRequest(input: {
       },
       { origin: input.origin },
     );
-  }
-
-  if (path === "/health" && method === "GET") {
-    return json(200, { ok: true }, { origin: input.origin });
   }
 
   if (path === "/v1/process-jobs" && method === "POST") {

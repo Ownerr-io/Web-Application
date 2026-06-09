@@ -8,11 +8,12 @@
     { "source": "/((?!api/).*)", "destination": "/index.html" }
   ],
   "functions": {
-    "api/sync-worker/v1/process-jobs.ts": {
-      "maxDuration": 60
+    "api/sync-worker/**/*.ts": {
+      "maxDuration": 60,
+      "includeFiles": "api/_lib/*.bundle.mjs"
     },
-    "api/sync-worker/[...path].ts": {
-      "maxDuration": 60
+    "api/webhooks/**/*.ts": {
+      "includeFiles": "api/_lib/*.bundle.mjs"
     }
   }
 }
