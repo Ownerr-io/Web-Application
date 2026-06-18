@@ -354,6 +354,10 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
+  v_headers jsonb;
+  v_idem_key text;
+  v_req_hash text;
+  v_cached jsonb;
   v_buyer uuid;
   v_startup record;
   v_bid_id uuid;
@@ -364,6 +368,43 @@ BEGIN
   END IF;
   IF p_amount IS NULL OR p_amount <= 0 THEN
     RAISE EXCEPTION 'Invalid offer amount';
+  END IF;
+
+  -- Idempotency (financial-grade): read Idempotency-Key from PostgREST headers if present.
+  -- No signature changes.
+  BEGIN
+    v_headers := nullif(current_setting('request.headers', true), '')::jsonb;
+  EXCEPTION WHEN others THEN
+    v_headers := NULL;
+  END;
+  v_idem_key := COALESCE(v_headers->>'idempotency-key', v_headers->>'Idempotency-Key');
+  v_idem_key := nullif(trim(coalesce(v_idem_key,'')), '');
+  IF v_idem_key IS NOT NULL THEN
+    v_req_hash := encode(digest(
+      jsonb_build_object(
+        'rpc','marketplace_submit_offer',
+        'startup_slug', lower(trim(p_startup_slug)),
+        'amount', p_amount,
+        'currency', coalesce(nullif(trim(p_currency),''),'USD'),
+        'message', nullif(trim(p_message),''),
+        'proof_of_funds', nullif(trim(p_proof_of_funds),''),
+        'expires_at', p_expires_at,
+        'conversation_id', p_conversation_id
+      )::text,
+      'sha256'
+    ), 'hex');
+
+    SELECT response INTO v_cached
+    FROM public.offer_idempotency_keys
+    WHERE user_id = auth.uid() AND idempotency_key = v_idem_key;
+
+    IF v_cached IS NOT NULL THEN
+      IF (v_cached->>'request_hash') IS DISTINCT FROM v_req_hash THEN
+        RAISE EXCEPTION 'IDEMPOTENCY_KEY_REUSE_WITH_DIFFERENT_REQUEST'
+          USING ERRCODE = '22023', DETAIL = 'idempotency_hash_mismatch';
+      END IF;
+      RETURN (v_cached->>'bid_id')::uuid;
+    END IF;
   END IF;
 
   v_buyer := public._marketplace_buyer_profile_id();
@@ -404,6 +445,18 @@ BEGIN
     jsonb_build_object('amount', p_amount, 'currency', p_currency, 'startup_title', v_startup.title)
   );
 
+  -- Persist idempotency response if key present
+  IF v_idem_key IS NOT NULL THEN
+    INSERT INTO public.offer_idempotency_keys (idempotency_key, user_id, request_hash, response)
+    VALUES (
+      v_idem_key,
+      auth.uid(),
+      v_req_hash,
+      jsonb_build_object('bid_id', v_bid_id, 'request_hash', v_req_hash)
+    )
+    ON CONFLICT (user_id, idempotency_key) DO NOTHING;
+  END IF;
+
   RETURN v_bid_id;
 END;
 $$;
@@ -420,6 +473,10 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
+  v_headers jsonb;
+  v_idem_key text;
+  v_req_hash text;
+  v_cached jsonb;
   v_bid public.bids%ROWTYPE;
   v_actor text;
   v_buyer_user uuid;
@@ -428,6 +485,37 @@ DECLARE
 BEGIN
   IF auth.uid() IS NULL THEN RAISE EXCEPTION 'Authentication required'; END IF;
   IF p_amount IS NULL OR p_amount <= 0 THEN RAISE EXCEPTION 'Invalid amount'; END IF;
+
+  BEGIN
+    v_headers := nullif(current_setting('request.headers', true), '')::jsonb;
+  EXCEPTION WHEN others THEN
+    v_headers := NULL;
+  END;
+  v_idem_key := COALESCE(v_headers->>'idempotency-key', v_headers->>'Idempotency-Key');
+  v_idem_key := nullif(trim(coalesce(v_idem_key,'')), '');
+  IF v_idem_key IS NOT NULL THEN
+    v_req_hash := encode(digest(
+      jsonb_build_object(
+        'rpc','marketplace_counter_offer',
+        'bid_id', p_bid_id,
+        'amount', p_amount,
+        'message', nullif(trim(p_message),'')
+      )::text,
+      'sha256'
+    ), 'hex');
+
+    SELECT response INTO v_cached
+    FROM public.offer_idempotency_keys
+    WHERE user_id = auth.uid() AND idempotency_key = v_idem_key;
+
+    IF v_cached IS NOT NULL THEN
+      IF (v_cached->>'request_hash') IS DISTINCT FROM v_req_hash THEN
+        RAISE EXCEPTION 'IDEMPOTENCY_KEY_REUSE_WITH_DIFFERENT_REQUEST'
+          USING ERRCODE = '22023', DETAIL = 'idempotency_hash_mismatch';
+      END IF;
+      RETURN (v_cached->>'bid_id')::uuid;
+    END IF;
+  END IF;
 
   SELECT * INTO v_bid FROM public.bids WHERE id = p_bid_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Offer not found'; END IF;
@@ -468,6 +556,17 @@ BEGIN
     p_bid_id, v_bid.startup_id, v_recipient, 'counter_offer',
     jsonb_build_object('amount', p_amount, 'actor', v_actor)
   );
+
+  IF v_idem_key IS NOT NULL THEN
+    INSERT INTO public.offer_idempotency_keys (idempotency_key, user_id, request_hash, response)
+    VALUES (
+      v_idem_key,
+      auth.uid(),
+      v_req_hash,
+      jsonb_build_object('bid_id', p_bid_id, 'request_hash', v_req_hash)
+    )
+    ON CONFLICT (user_id, idempotency_key) DO NOTHING;
+  END IF;
 
   RETURN p_bid_id;
 END;
@@ -511,11 +610,38 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
+  v_headers jsonb;
+  v_idem_key text;
+  v_req_hash text;
+  v_cached jsonb;
   v_bid public.bids%ROWTYPE;
   v_startup record;
   v_buyer_user uuid;
   v_seller_profile uuid;
 BEGIN
+  BEGIN
+    v_headers := nullif(current_setting('request.headers', true), '')::jsonb;
+  EXCEPTION WHEN others THEN
+    v_headers := NULL;
+  END;
+  v_idem_key := COALESCE(v_headers->>'idempotency-key', v_headers->>'Idempotency-Key');
+  v_idem_key := nullif(trim(coalesce(v_idem_key,'')), '');
+  IF v_idem_key IS NOT NULL THEN
+    v_req_hash := encode(digest(
+      jsonb_build_object('rpc','marketplace_accept_offer','bid_id',p_bid_id)::text,
+      'sha256'
+    ), 'hex');
+    SELECT response INTO v_cached
+    FROM public.offer_idempotency_keys
+    WHERE user_id = auth.uid() AND idempotency_key = v_idem_key;
+    IF v_cached IS NOT NULL THEN
+      IF (v_cached->>'request_hash') IS DISTINCT FROM v_req_hash THEN
+        RAISE EXCEPTION 'IDEMPOTENCY_KEY_REUSE_WITH_DIFFERENT_REQUEST'
+          USING ERRCODE = '22023', DETAIL = 'idempotency_hash_mismatch';
+      END IF;
+      RETURN (v_cached->>'bid_id')::uuid;
+    END IF;
+  END IF;
   SELECT b.* INTO v_bid FROM public.bids b WHERE b.id = p_bid_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Offer not found'; END IF;
 
@@ -568,6 +694,17 @@ BEGIN
     p_bid_id, v_bid.startup_id, v_buyer_user, 'due_diligence_started', '{}'::jsonb
   );
 
+  IF v_idem_key IS NOT NULL THEN
+    INSERT INTO public.offer_idempotency_keys (idempotency_key, user_id, request_hash, response)
+    VALUES (
+      v_idem_key,
+      auth.uid(),
+      v_req_hash,
+      jsonb_build_object('bid_id', p_bid_id, 'request_hash', v_req_hash)
+    )
+    ON CONFLICT (user_id, idempotency_key) DO NOTHING;
+  END IF;
+
   RETURN p_bid_id;
 END;
 $$;
@@ -582,9 +719,40 @@ SECURITY DEFINER
 SET search_path = public
 AS $$
 DECLARE
+  v_headers jsonb;
+  v_idem_key text;
+  v_req_hash text;
+  v_cached jsonb;
   v_bid public.bids%ROWTYPE;
   v_buyer_user uuid;
 BEGIN
+  BEGIN
+    v_headers := nullif(current_setting('request.headers', true), '')::jsonb;
+  EXCEPTION WHEN others THEN
+    v_headers := NULL;
+  END;
+  v_idem_key := COALESCE(v_headers->>'idempotency-key', v_headers->>'Idempotency-Key');
+  v_idem_key := nullif(trim(coalesce(v_idem_key,'')), '');
+  IF v_idem_key IS NOT NULL THEN
+    v_req_hash := encode(digest(
+      jsonb_build_object(
+        'rpc','marketplace_decline_offer',
+        'bid_id',p_bid_id,
+        'message',nullif(trim(p_message),'')
+      )::text,
+      'sha256'
+    ), 'hex');
+    SELECT response INTO v_cached
+    FROM public.offer_idempotency_keys
+    WHERE user_id = auth.uid() AND idempotency_key = v_idem_key;
+    IF v_cached IS NOT NULL THEN
+      IF (v_cached->>'request_hash') IS DISTINCT FROM v_req_hash THEN
+        RAISE EXCEPTION 'IDEMPOTENCY_KEY_REUSE_WITH_DIFFERENT_REQUEST'
+          USING ERRCODE = '22023', DETAIL = 'idempotency_hash_mismatch';
+      END IF;
+      RETURN (v_cached->>'bid_id')::uuid;
+    END IF;
+  END IF;
   SELECT * INTO v_bid FROM public.bids WHERE id = p_bid_id FOR UPDATE;
   IF NOT FOUND THEN RAISE EXCEPTION 'Offer not found'; END IF;
   PERFORM public._marketplace_assert_seller_startup(v_bid.startup_id);
@@ -597,6 +765,17 @@ BEGIN
   PERFORM public._marketplace_emit_offer_event(
     p_bid_id, v_bid.startup_id, v_buyer_user, 'offer_declined', '{}'::jsonb
   );
+
+  IF v_idem_key IS NOT NULL THEN
+    INSERT INTO public.offer_idempotency_keys (idempotency_key, user_id, request_hash, response)
+    VALUES (
+      v_idem_key,
+      auth.uid(),
+      v_req_hash,
+      jsonb_build_object('bid_id', p_bid_id, 'request_hash', v_req_hash)
+    )
+    ON CONFLICT (user_id, idempotency_key) DO NOTHING;
+  END IF;
 
   RETURN p_bid_id;
 END;

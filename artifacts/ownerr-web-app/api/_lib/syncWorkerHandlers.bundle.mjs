@@ -73,7 +73,9 @@ var SchemaTables = {
     identitySessions: "trust_identity_sessions",
     webhookEvents: "trust_webhook_events",
     personProfiles: "trust_person_profiles",
-    verifiedRevenueMetrics: "trust_verified_revenue_metrics"
+    verifiedRevenueMetrics: "trust_verified_revenue_metrics",
+    domainDnsDiagnostics: "trust_domain_dns_diagnostics",
+    domainRevalidationRuns: "trust_domain_revalidation_runs"
   },
   system: {
     platformConfig: "sys_platform_config",
@@ -81,6 +83,14 @@ var SchemaTables = {
     identityLaunchTokens: "sys_identity_launch_tokens",
     syncWorkerLaunchTokens: "sys_sync_worker_launch_tokens",
     businessEmailLaunchTokens: "sys_business_email_launch_tokens",
+    syncWorkerHealthSnapshots: "sys_sync_worker_health_snapshots",
+    mvRefreshRuns: "sys_mv_refresh_runs",
+    workerTasks: "sys_worker_tasks",
+    webhookEventRegistry: "webhook_event_registry",
+    platformAlerts: "platform_alerts",
+    platformBackupHealth: "platform_backup_health",
+    securityAbuseEvents: "security_abuse_events",
+    offerIdempotencyKeys: "offer_idempotency_keys",
     appliedMigrations: "ownerr_applied_migrations"
   }
 };
@@ -142,6 +152,53 @@ var legacyToPhysicalTable = {
   person_verification_profiles: SchemaTables.trust.personProfiles,
   verified_revenue_metrics: SchemaTables.trust.verifiedRevenueMetrics
 };
+
+// ../../lib/integrations-sync/src/domainDiagnosticsPersist.ts
+async function persistDomainDnsDiagnostic(supabase, input) {
+  const d = input.diagnostic;
+  const { error } = await supabase.from(SchemaTables.trust.domainDnsDiagnostics).insert({
+    startup_id: input.startupId,
+    challenge_id: input.challengeId,
+    entered_domain: input.enteredDomain,
+    verification_host: input.verificationHost,
+    status: d.status,
+    severity: d.severity,
+    title: d.title,
+    description: d.description,
+    next_action: d.next_action,
+    queried_host: d.queried_host,
+    expected_token: d.expected_token,
+    found_records: d.found_records,
+    nameservers: d.nameservers,
+    resolver_observations: {
+      ...input.resolverObservations,
+      sibling_host: d.sibling_host ?? null,
+      authoritative_found_records: d.authoritative_found_records ?? [],
+      public_found_records: d.public_found_records ?? []
+    },
+    worker_health: input.workerHealth ?? null,
+    checked_at: d.checked_at
+  });
+  if (error) {
+    throw new Error(`domain_dns_diagnostics insert failed: ${error.message}`);
+  }
+}
+async function captureSyncWorkerHealthSnapshot(supabase, input) {
+  const { count, error: countErr } = await supabase.from(SchemaTables.trust.integrationJobs).select("id", { count: "exact", head: true }).eq("status", "pending");
+  if (countErr) return;
+  const pending = count ?? 0;
+  const elapsedSec = input.processed > 0 ? (Date.now() - input.batchStartedAt) / 1e3 / input.processed : null;
+  let engineStatus = "online";
+  if (!input.batchOk) engineStatus = "degraded";
+  if (pending > 50) engineStatus = "degraded";
+  await supabase.from(SchemaTables.system.syncWorkerHealthSnapshots).insert({
+    engine_status: engineStatus,
+    queue_pending: pending,
+    avg_processing_seconds: elapsedSec,
+    last_success_at: input.processed > 0 ? (/* @__PURE__ */ new Date()).toISOString() : null,
+    details: { processed: input.processed, batch_ok: input.batchOk }
+  });
+}
 
 // ../../lib/integrations-core/src/verifiedRevenueMetrics.ts
 function buildVerifiedRevenueMetrics(input) {
@@ -503,8 +560,399 @@ var stripeAdapter = {
   }
 };
 
+// ../../lib/integrations-core/src/domainDnsIntelligence.ts
+import { lookup, Resolver, resolveNs, resolveTxt } from "node:dns/promises";
+
+// ../../lib/integrations-core/src/domainDnsHostUtils.ts
+function dnsNameNorm(name) {
+  return name.trim().replace(/\.$/, "").toLowerCase();
+}
+function apexFromHost(host) {
+  const h = dnsNameNorm(host);
+  const parts = h.split(".").filter(Boolean);
+  if (parts.length <= 2) return h;
+  return parts.slice(-2).join(".");
+}
+function siblingVerificationHost(host) {
+  const h = dnsNameNorm(host);
+  const parts = h.split(".").filter(Boolean);
+  if (parts.length < 2) return null;
+  if (parts[0] === "www" && parts.length >= 3) {
+    return parts.slice(1).join(".");
+  }
+  if (parts.length === 2) {
+    return `www.${h}`;
+  }
+  return null;
+}
+function hostNameFieldOptions(verificationHost) {
+  const h = dnsNameNorm(verificationHost);
+  const apex = apexFromHost(h);
+  const isApex = h === apex;
+  if (isApex) {
+    return { optionA: "@", optionB: h };
+  }
+  const label = h.endsWith(`.${apex}`) ? h.slice(0, -(apex.length + 1)) : h;
+  return { optionA: label || h, optionB: h };
+}
+function dnsHostNameFieldGuidance(verificationHost) {
+  const { optionA, optionB } = hostNameFieldOptions(verificationHost);
+  if (optionA === optionB) {
+    return `Set the DNS host/name field to "${optionA}".`;
+  }
+  return `Set the DNS host/name field to "${optionA}" or "${optionB}" (whichever your DNS provider expects for this hostname).`;
+}
+
+// ../../lib/integrations-core/src/domainDnsSsrfGuard.ts
+var HOST_LABEL = /^[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?(?:\.[a-z0-9](?:[a-z0-9-]{0,61}[a-z0-9])?)*$/i;
+var BLOCKED_HOST_SUFFIXES = [
+  ".localhost",
+  ".local",
+  ".internal",
+  ".corp",
+  ".home",
+  ".lan"
+];
+var BLOCKED_EXACT_HOSTS = /* @__PURE__ */ new Set([
+  "localhost",
+  "metadata.google.internal",
+  "metadata.goog",
+  "instance-data"
+]);
+var DomainVerificationHostRejectedError = class extends Error {
+  constructor(message) {
+    super(message);
+    this.name = "DomainVerificationHostRejectedError";
+  }
+};
+function parseIpv4(octets) {
+  if (octets.length !== 4) return null;
+  if (octets.some((n) => n < 0 || n > 255)) return null;
+  return (octets[0] << 24 >>> 0) + (octets[1] << 16) + (octets[2] << 8) + octets[3];
+}
+function isBlockedPublicIpv4(ip) {
+  const parts = ip.split(".").map((p) => Number.parseInt(p, 10));
+  const n = parseIpv4(parts);
+  if (n === null) return true;
+  const a = n >>> 24 & 255;
+  const b = n >>> 16 & 255;
+  if (a === 0) return true;
+  if (a === 10) return true;
+  if (a === 127) return true;
+  if (a === 169 && b === 254) return true;
+  if (a === 172 && b >= 16 && b <= 31) return true;
+  if (a === 192 && b === 168) return true;
+  if (a === 100 && b >= 64 && b <= 127) return true;
+  if (a >= 224) return true;
+  return false;
+}
+function assertPublicVerificationHost(host) {
+  const h = dnsNameNorm(host);
+  if (!h || h.length > 253) {
+    throw new DomainVerificationHostRejectedError("Invalid verification hostname.");
+  }
+  if (h.includes(":") || h.includes("/") || h.includes("@")) {
+    throw new DomainVerificationHostRejectedError(
+      "Only public domain names are allowed for verification."
+    );
+  }
+  if (/^\d{1,3}(\.\d{1,3}){3}$/.test(h) && isBlockedPublicIpv4(h)) {
+    throw new DomainVerificationHostRejectedError(
+      "IP addresses cannot be used for domain verification."
+    );
+  }
+  if (BLOCKED_EXACT_HOSTS.has(h)) {
+    throw new DomainVerificationHostRejectedError("Hostname is not allowed.");
+  }
+  for (const suffix of BLOCKED_HOST_SUFFIXES) {
+    if (h === suffix.slice(1) || h.endsWith(suffix)) {
+      throw new DomainVerificationHostRejectedError("Hostname is not allowed.");
+    }
+  }
+  if (!HOST_LABEL.test(h)) {
+    throw new DomainVerificationHostRejectedError("Invalid DNS hostname format.");
+  }
+  return h;
+}
+function filterPublicResolverIps(ips) {
+  return ips.filter((ip) => !isBlockedPublicIpv4(ip));
+}
+
+// ../../lib/integrations-core/src/domainDnsIntelligence.ts
+var TOKEN_PREFIX = "ownerr-verification=";
+function tokenMatches(txt, expectedToken) {
+  const expectedNorm = expectedToken.trim();
+  const t = txt.trim();
+  return t === expectedNorm || t.includes(expectedNorm) || t.replace(/\s+/g, "") === expectedNorm.replace(/\s+/g, "");
+}
+function extractOwnerrTokens(records) {
+  return records.filter((r) => r.includes(TOKEN_PREFIX));
+}
+function isSpfTxtRecord(record) {
+  return /^v=spf1/i.test(record.trim());
+}
+function nameserverGuidance(nameservers) {
+  if (nameservers.length === 0) return "";
+  return ` Authoritative nameservers: ${nameservers.join(", ")}. Add the TXT in the DNS zone served by those nameservers.`;
+}
+function verificationFailureNextAction(base, verificationHost, nameservers) {
+  return `${base} ${dnsHostNameFieldGuidance(verificationHost)}${nameserverGuidance(nameservers)}`;
+}
+async function resolveNsHostnames(apex) {
+  try {
+    const ns = await resolveNs(apex);
+    return ns.map((n) => dnsNameNorm(n));
+  } catch {
+    return [];
+  }
+}
+async function nameserverIps(nsHostnames) {
+  const ips = [];
+  for (const host of nsHostnames) {
+    try {
+      const { address } = await lookup(host, { family: 4 });
+      if (address) ips.push(address);
+    } catch {
+    }
+  }
+  return ips;
+}
+async function resolveTxtRecords(host, resolverIps) {
+  const hostNorm = dnsNameNorm(host);
+  if (resolverIps?.length) {
+    const resolver = new Resolver();
+    resolver.setServers(resolverIps);
+    const records2 = await resolver.resolveTxt(hostNorm);
+    return records2.map((r) => r.join("").trim());
+  }
+  const records = await resolveTxt(hostNorm);
+  return records.map((r) => r.join("").trim());
+}
+function cnameMatches(actual, expected) {
+  const a = dnsNameNorm(actual);
+  const e = dnsNameNorm(expected);
+  if (!e) return false;
+  return a === e || a.endsWith(`.${e}`) || a.includes(e);
+}
+async function probeDomainVerification(input) {
+  let hostNorm;
+  try {
+    hostNorm = assertPublicVerificationHost(input.host);
+  } catch (e) {
+    const msg = e instanceof DomainVerificationHostRejectedError ? e.message : "Invalid verification hostname.";
+    const checkedAt2 = (/* @__PURE__ */ new Date()).toISOString();
+    return {
+      pass: false,
+      host: dnsNameNorm(input.host),
+      expected: input.expected.trim(),
+      method: input.method,
+      evidence: { error: msg, diagnostic_status: "DOMAIN_TXT_NOT_FOUND" },
+      diagnostic: {
+        status: "DOMAIN_TXT_NOT_FOUND",
+        severity: "error",
+        title: "Invalid hostname",
+        description: msg,
+        next_action: "Enter a public domain you control (e.g. example.com).",
+        queried_host: dnsNameNorm(input.host),
+        expected_token: input.expected.trim(),
+        found_records: [],
+        nameservers: [],
+        checked_at: checkedAt2
+      }
+    };
+  }
+  const expected = input.expected.trim();
+  const apex = apexFromHost(hostNorm);
+  const checkedAt = (/* @__PURE__ */ new Date()).toISOString();
+  const nameservers = await resolveNsHostnames(apex);
+  const nsIps = filterPublicResolverIps(await nameserverIps(nameservers));
+  let pass = false;
+  let publicRecords = [];
+  let authoritativeRecords = [];
+  let cnames = [];
+  let error;
+  const sibling = siblingVerificationHost(hostNorm);
+  try {
+    if (input.method === "txt") {
+      publicRecords = await resolveTxtRecords(hostNorm);
+      if (nsIps.length) {
+        try {
+          authoritativeRecords = await resolveTxtRecords(hostNorm, nsIps);
+        } catch {
+          authoritativeRecords = [];
+        }
+      }
+      pass = publicRecords.some((txt) => tokenMatches(txt, expected));
+      if (!pass && authoritativeRecords.length) {
+        pass = authoritativeRecords.some((txt) => tokenMatches(txt, expected));
+      }
+    } else {
+      const { resolveCname } = await import("node:dns/promises");
+      try {
+        cnames = (await resolveCname(hostNorm)).map(dnsNameNorm);
+      } catch (cnameErr) {
+        const code = cnameErr && typeof cnameErr === "object" && "code" in cnameErr ? String(cnameErr.code) : "";
+        if (code !== "ENODATA" && code !== "ENOTFOUND") {
+          throw cnameErr;
+        }
+      }
+      pass = cnames.some((c) => cnameMatches(c, expected));
+      publicRecords = cnames;
+    }
+  } catch (e) {
+    error = e instanceof Error ? e.message : String(e);
+    pass = false;
+  }
+  let siblingRecords = [];
+  let siblingMatch = false;
+  if (!pass && sibling && input.method === "txt") {
+    try {
+      siblingRecords = await resolveTxtRecords(sibling);
+      siblingMatch = siblingRecords.some((txt) => tokenMatches(txt, expected));
+    } catch {
+      siblingRecords = [];
+    }
+  }
+  const diagnostic = buildDomainDiagnostic({
+    pass,
+    verificationHost: hostNorm,
+    expectedToken: expected,
+    publicRecords: input.method === "txt" ? publicRecords : cnames,
+    authoritativeRecords,
+    nameservers,
+    siblingHost: sibling,
+    siblingRecords,
+    siblingMatch,
+    checkedAt,
+    error
+  });
+  const evidence = {
+    method: input.method,
+    host: hostNorm,
+    host_queried: hostNorm,
+    expected_record: expected,
+    per_record: input.method === "txt" ? publicRecords : void 0,
+    records: input.method === "txt" ? publicRecords.join(" ") : void 0,
+    txt_match: input.method === "txt" ? pass : void 0,
+    cnames: input.method === "cname" ? cnames : void 0,
+    nameservers,
+    authoritative_txt: authoritativeRecords,
+    public_txt: publicRecords,
+    sibling_host: sibling,
+    sibling_txt: siblingRecords,
+    diagnostic_status: diagnostic.status,
+    error
+  };
+  return {
+    pass,
+    host: hostNorm,
+    expected,
+    method: input.method,
+    evidence,
+    diagnostic
+  };
+}
+function buildDomainDiagnostic(input) {
+  const base = {
+    queried_host: input.verificationHost,
+    expected_token: input.expectedToken,
+    found_records: input.publicRecords,
+    nameservers: input.nameservers,
+    checked_at: input.checkedAt,
+    authoritative_found_records: input.authoritativeRecords,
+    public_found_records: input.publicRecords,
+    sibling_host: input.siblingHost
+  };
+  if (input.pass) {
+    return {
+      ...base,
+      status: "DOMAIN_VERIFIED",
+      severity: "info",
+      title: "Domain verified",
+      description: "DNS shows the correct verification TXT at this hostname.",
+      next_action: "No action needed."
+    };
+  }
+  if (input.siblingMatch && input.siblingHost) {
+    return {
+      ...base,
+      status: "DOMAIN_FOUND_ON_DIFFERENT_HOST",
+      severity: "warning",
+      title: "TXT found on a different hostname",
+      description: `We found your verification TXT on ${input.siblingHost}, but you are verifying ${input.verificationHost}.`,
+      next_action: `Either add the same TXT on ${input.verificationHost}, or change your verification target to ${input.siblingHost} (coming soon: one-click switch).`,
+      sibling_host: input.siblingHost,
+      found_records: input.siblingRecords
+    };
+  }
+  const authHasToken = extractOwnerrTokens(input.authoritativeRecords);
+  const pubHasToken = extractOwnerrTokens(input.publicRecords);
+  const staleOnAuth = authHasToken.some(
+    (t) => !tokenMatches(t, input.expectedToken)
+  );
+  const staleOnPub = pubHasToken.some(
+    (t) => !tokenMatches(t, input.expectedToken)
+  );
+  if (staleOnAuth || staleOnPub) {
+    return {
+      ...base,
+      status: "DOMAIN_TOKEN_MISMATCH",
+      severity: "error",
+      title: "Verification token does not match",
+      description: "We found an Ownerr verification TXT, but the value does not match this listing. You may have an old token from a previous attempt.",
+      next_action: `Replace the TXT value with exactly: ${input.expectedToken}`,
+      found_records: [...authHasToken, ...pubHasToken]
+    };
+  }
+  const authMatch = input.authoritativeRecords.some(
+    (t) => tokenMatches(t, input.expectedToken)
+  );
+  const pubEmpty = input.publicRecords.length === 0;
+  if (input.authoritativeRecords.length > 0 && authMatch && pubEmpty) {
+    return {
+      ...base,
+      status: "DOMAIN_PROPAGATING",
+      severity: "info",
+      title: "DNS is propagating",
+      description: "Authoritative DNS already has your TXT record, but public resolvers have not picked it up yet.",
+      next_action: "Wait a few minutes and check again \u2014 no need to change the record.",
+      found_records: input.authoritativeRecords
+    };
+  }
+  const authOwnerr = extractOwnerrTokens(input.authoritativeRecords);
+  const hasOtherTxtOnly = (input.authoritativeRecords.length > 0 || input.publicRecords.length > 0) && authOwnerr.length === 0 && extractOwnerrTokens(input.publicRecords).length === 0 && !authMatch;
+  if (hasOtherTxtOnly) {
+    const records = input.authoritativeRecords.length > 0 ? input.authoritativeRecords : input.publicRecords;
+    const hasSpf = records.some(isSpfTxtRecord);
+    return {
+      ...base,
+      status: "DOMAIN_TXT_NOT_FOUND",
+      severity: "error",
+      title: hasSpf ? "Verification TXT missing (other TXT records present)" : "TXT record not found",
+      description: input.error ? `DNS lookup error: ${input.error}` : hasSpf ? `We see existing TXT at ${input.verificationHost} (including email/SPF records), but not your Ownerr verification token. Add a separate TXT row \u2014 do not replace existing records.` : `We see other TXT records at ${input.verificationHost}, but not your verification token.`,
+      next_action: verificationFailureNextAction(
+        `Add a TXT record with value exactly: ${input.expectedToken}. Keep existing TXT records.`,
+        input.verificationHost,
+        input.nameservers
+      ),
+      found_records: records
+    };
+  }
+  return {
+    ...base,
+    status: "DOMAIN_TXT_NOT_FOUND",
+    severity: "error",
+    title: "TXT record not found",
+    description: input.error ? `DNS lookup error: ${input.error}` : "No matching TXT record was found at this hostname.",
+    next_action: verificationFailureNextAction(
+      "Confirm the TXT value, then wait for DNS propagation and check again.",
+      input.verificationHost,
+      input.nameservers
+    )
+  };
+}
+
 // ../../lib/integrations-core/src/providers/domain.ts
-import dns from "node:dns/promises";
 function domainDnsLog(message, data) {
   if (process.env.NODE_ENV === "production" && process.env.SYNC_WORKER_VERIFICATION_DEBUG !== "1") {
     return;
@@ -512,15 +960,6 @@ function domainDnsLog(message, data) {
   const tag = "[verification:domain-dns]";
   if (data) console.info(tag, message, data);
   else console.info(tag, message);
-}
-function dnsNameNorm(name) {
-  return name.trim().replace(/\.$/, "").toLowerCase();
-}
-function cnameMatches(actual, expected) {
-  const a = dnsNameNorm(actual);
-  const e = dnsNameNorm(expected);
-  if (!e) return false;
-  return a === e || a.endsWith(`.${e}`) || a.includes(e);
 }
 var domainAdapter = {
   slug: "domain",
@@ -544,59 +983,37 @@ var domainAdapter = {
         lastError: "domain job missing challenge fields"
       };
     }
-    let pass = false;
-    const evidence = { method, host };
-    const hostNorm = dnsNameNorm(host);
-    evidence.host_queried = hostNorm;
-    evidence.expected_record = expected;
-    domainDnsLog("DNS lookup starting", { method, host: hostNorm, expected });
-    try {
-      if (method === "txt") {
-        const records = await dns.resolveTxt(hostNorm);
-        const perRecord = records.map((r) => r.join("").trim());
-        const flat = perRecord.join(" ");
-        const expectedNorm = expected.trim();
-        pass = perRecord.some(
-          (txt) => txt === expectedNorm || txt.includes(expectedNorm) || txt.replace(/\s+/g, "") === expectedNorm.replace(/\s+/g, "")
-        );
-        evidence.records = flat;
-        evidence.per_record = perRecord;
-        evidence.txt_match = pass;
-      } else {
-        let cnames = [];
-        try {
-          cnames = await dns.resolveCname(hostNorm);
-        } catch (cnameErr) {
-          const code = cnameErr && typeof cnameErr === "object" && "code" in cnameErr ? String(cnameErr.code) : "";
-          if (code === "ENODATA" || code === "ENOTFOUND") {
-            evidence.cnames = [];
-          } else {
-            throw cnameErr;
-          }
-        }
-        pass = cnames.some((c) => cnameMatches(c, expected));
-        evidence.cnames = cnames;
-        evidence.expected = dnsNameNorm(expected);
-        evidence.cname_match = pass;
-      }
-    } catch (e) {
-      evidence.error = e instanceof Error ? e.message : String(e);
-      pass = false;
-    }
-    domainDnsLog(pass ? "DNS lookup passed" : "DNS lookup failed", {
+    domainDnsLog("DNS lookup starting", { method, host, expected });
+    const probe = await probeDomainVerification({
+      host,
+      expected,
+      method
+    });
+    domainDnsLog(probe.pass ? "DNS lookup passed" : "DNS lookup failed", {
       method,
-      host: hostNorm,
-      pass,
-      evidence
+      host: probe.host,
+      pass: probe.pass,
+      diagnostic: probe.diagnostic.status,
+      evidence: probe.evidence
     });
     return {
       recordsWritten: 1,
       verificationDimension: "domain",
-      verificationStatus: pass ? "pass" : "fail",
-      verificationSummary: { host, pass },
+      verificationStatus: probe.pass ? "pass" : "fail",
+      verificationSummary: {
+        host: probe.host,
+        pass: probe.pass,
+        diagnostic_status: probe.diagnostic.status
+      },
       connectionStatus: "connected",
-      healthStatus: pass ? "healthy" : "degraded",
-      syncCursor: { challenge_id: challengeId, pass, evidence }
+      healthStatus: probe.pass ? "healthy" : "degraded",
+      syncCursor: {
+        challenge_id: challengeId,
+        pass: probe.pass,
+        evidence: probe.evidence,
+        diagnostic: probe.diagnostic,
+        entered_domain: ctx.jobPayload.domain
+      }
     };
   }
 };
@@ -1725,9 +2142,9 @@ async function processIntegrationSyncJob(supabase, job) {
       challenge_id: jobPayload.challenge_id
     });
     if (jobPayload.challenge_id) {
-      const { data: ch } = await supabase.from(SchemaTables.trust.domainChallenges).select("host, expected_record, method").eq("id", jobPayload.challenge_id).single();
+      const { data: ch } = await supabase.from(SchemaTables.trust.domainChallenges).select("host, expected_record, method, domain").eq("id", jobPayload.challenge_id).single();
       if (ch) {
-        jobPayload = { ...jobPayload, ...ch };
+        jobPayload = { ...jobPayload, ...ch, domain: ch.domain };
         verificationWorkerLog("domain", "Loaded challenge by id", {
           host: ch.host,
           method: ch.method,
@@ -1735,7 +2152,7 @@ async function processIntegrationSyncJob(supabase, job) {
         });
       }
     } else {
-      const { data: ch } = await supabase.from(SchemaTables.trust.domainChallenges).select("id, host, expected_record, method").eq("startup_id", conn.startup_id).eq("status", "pending").gt("expires_at", (/* @__PURE__ */ new Date()).toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle();
+      const { data: ch } = await supabase.from(SchemaTables.trust.domainChallenges).select("id, host, expected_record, method, domain").eq("startup_id", conn.startup_id).eq("status", "pending").gt("expires_at", (/* @__PURE__ */ new Date()).toISOString()).order("created_at", { ascending: false }).limit(1).maybeSingle();
       if (ch) {
         jobPayload = {
           ...jobPayload,
@@ -1743,6 +2160,7 @@ async function processIntegrationSyncJob(supabase, job) {
           host: ch.host,
           expected_record: ch.expected_record,
           method: ch.method,
+          domain: ch.domain,
           sync_type: "domain_check"
         };
         verificationWorkerLog("domain", "Using latest pending challenge", {
@@ -1807,6 +2225,31 @@ async function processIntegrationSyncJob(supabase, job) {
         p_pass: pass,
         p_evidence: result.syncCursor ?? {}
       });
+      const diagnostic = result.syncCursor?.diagnostic;
+      if (diagnostic) {
+        try {
+          let workerHealth = null;
+          try {
+            const { count } = await supabase.from(SchemaTables.trust.integrationJobs).select("id", { count: "exact", head: true }).eq("status", "pending");
+            workerHealth = { queue_pending: count ?? 0 };
+          } catch {
+            workerHealth = null;
+          }
+          await persistDomainDnsDiagnostic(supabase, {
+            startupId: conn.startup_id,
+            challengeId: jobPayload.challenge_id,
+            enteredDomain: jobPayload.domain ?? jobPayload.host,
+            verificationHost: String(jobPayload.host),
+            diagnostic,
+            resolverObservations: result.syncCursor?.evidence ?? {},
+            workerHealth
+          });
+        } catch (persistErr) {
+          verificationWorkerWarn("domain", "Diagnostics persist skipped", {
+            error: persistErr instanceof Error ? persistErr.message : String(persistErr)
+          });
+        }
+      }
     } else {
       const { data: provider } = await supabase.from(SchemaTables.trust.providers).select("id").eq("slug", providerSlug).single();
       await supabase.from(SchemaTables.trust.verificationResults).insert({
@@ -1870,18 +2313,281 @@ async function claimAndProcessOneJob(supabase, workerId) {
   return true;
 }
 async function runIntegrationSyncBatch(supabase, options) {
+  const batchStartedAt = Date.now();
   verificationWorkerLog("batch", "Starting sync batch", {
     worker_id: options.workerId,
     max_jobs: options.maxJobs
   });
   let processed = 0;
+  let batchOk = true;
   for (let i = 0; i < options.maxJobs; i++) {
-    const got = await claimAndProcessOneJob(supabase, options.workerId);
-    if (!got) break;
-    processed += 1;
+    try {
+      const got = await claimAndProcessOneJob(supabase, options.workerId);
+      if (!got) break;
+      processed += 1;
+    } catch {
+      batchOk = false;
+      break;
+    }
   }
   verificationWorkerLog("batch", "Batch finished", { processed });
+  try {
+    await captureSyncWorkerHealthSnapshot(supabase, {
+      batchStartedAt,
+      processed,
+      batchOk
+    });
+  } catch {
+  }
   return { processed };
+}
+
+// ../../lib/integrations-sync/src/systemTasks.ts
+var TASK_ID_UUID = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
+function parseClaimedSysTaskRow(data) {
+  if (data == null) return null;
+  const row = Array.isArray(data) ? data[0] : data;
+  if (!row || typeof row !== "object") return null;
+  const idRaw = row.id;
+  if (idRaw == null || idRaw === "") return null;
+  const id = String(idRaw);
+  if (!TASK_ID_UUID.test(id)) return null;
+  const taskTypeRaw = row.task_type;
+  if (typeof taskTypeRaw !== "string" || !taskTypeRaw.trim()) return null;
+  return {
+    id,
+    task_type: taskTypeRaw,
+    payload: row.payload ?? {},
+    attempts: typeof row.attempts === "number" ? row.attempts : 0,
+    max_attempts: typeof row.max_attempts === "number" ? row.max_attempts : 5
+  };
+}
+async function claimOneTask(supabase, workerId) {
+  const { data, error } = await supabase.rpc("claim_sys_worker_task", {
+    p_worker_id: workerId
+  });
+  if (error) throw new Error(error.message);
+  return parseClaimedSysTaskRow(data);
+}
+async function completeTask(supabase, taskId, ok, errorMessage) {
+  await supabase.rpc("complete_sys_worker_task", {
+    p_task_id: taskId,
+    p_success: ok,
+    p_error: ok ? null : errorMessage ?? "task failed"
+  });
+}
+async function upsertAlert(supabase, input) {
+  try {
+    await supabase.from(SchemaTables.system.platformAlerts).insert({
+      severity: input.severity,
+      category: input.category,
+      message: input.message,
+      details: input.details ?? {}
+    });
+  } catch {
+  }
+}
+async function runMvRefresh(supabase) {
+  await supabase.rpc("run_marketplace_materialized_view_refresh");
+}
+async function runDomainRevalidation(supabase, input) {
+  const graceDays = typeof input.graceDays === "number" && input.graceDays > 0 ? input.graceDays : 7;
+  const { data: ch, error } = await supabase.from(SchemaTables.trust.domainChallenges).select("id,startup_id,host,expected_record,method,domain,verified_at,last_revalidated_at,revalidation_fail_count").eq("id", input.challengeId).maybeSingle();
+  if (error || !ch) {
+    throw new Error(error?.message ?? "domain challenge not found");
+  }
+  const host = String(ch.host);
+  const expected = String(ch.expected_record);
+  const method = String(ch.method);
+  const verifiedAt = ch.verified_at;
+  const probe = await probeDomainVerification({
+    host,
+    expected,
+    method
+  });
+  const passed = probe.pass === true;
+  const reason = passed ? null : probe.diagnostic.status;
+  await supabase.from(SchemaTables.trust.domainRevalidationRuns).insert({
+    startup_id: input.startupId,
+    challenge_id: input.challengeId,
+    host,
+    expected_token: expected,
+    passed,
+    reason,
+    evidence: probe.evidence ?? {}
+  });
+  const failCountPrev = typeof ch.revalidation_fail_count === "number" ? ch.revalidation_fail_count : 0;
+  const next = new Date(Date.now() + 24 * 60 * 60 * 1e3).toISOString();
+  await supabase.from(SchemaTables.trust.domainChallenges).update({
+    last_revalidated_at: (/* @__PURE__ */ new Date()).toISOString(),
+    revalidate_after: next,
+    last_revalidation_status: passed ? "pass" : "fail",
+    revalidation_fail_count: passed ? 0 : failCountPrev + 1
+  }).eq("id", input.challengeId);
+  if (!passed) {
+    if (verifiedAt) {
+      const verifiedMs = Date.parse(verifiedAt);
+      const ageDays = (Date.now() - verifiedMs) / 864e5;
+      if (ageDays > graceDays) {
+        await supabase.from(SchemaTables.trust.domainChallenges).update({ status: "expired" }).eq("id", input.challengeId).eq("status", "verified");
+        await upsertAlert(supabase, {
+          severity: "warning",
+          category: "domain_revalidation",
+          message: `Domain verification expired after repeated failures (startup ${input.startupId})`,
+          details: { challenge_id: input.challengeId, diagnostic: probe.diagnostic }
+        });
+      } else {
+        await upsertAlert(supabase, {
+          severity: "warning",
+          category: "domain_revalidation",
+          message: `Domain revalidation failed (within grace period; not revoked yet)`,
+          details: { challenge_id: input.challengeId, diagnostic: probe.diagnostic }
+        });
+      }
+    }
+  }
+}
+async function runSystemTasksBatch(supabase, options) {
+  let processed = 0;
+  for (let i = 0; i < options.maxTasks; i++) {
+    const task = await claimOneTask(supabase, options.workerId);
+    if (!task) break;
+    try {
+      verificationWorkerLog("sys-task", "Processing task", {
+        task_id: task.id,
+        task_type: task.task_type
+      });
+      if (task.task_type === "marketplace_materialized_view_refresh") {
+        await runMvRefresh(supabase);
+      } else if (task.task_type === "domain_revalidation") {
+        const payload = task.payload ?? {};
+        const challengeId = String(payload.challenge_id ?? "");
+        const startupId = String(payload.startup_id ?? "");
+        if (!challengeId || !startupId) {
+          throw new Error("missing challenge_id/startup_id");
+        }
+        await runDomainRevalidation(supabase, { challengeId, startupId });
+      } else {
+        verificationWorkerWarn("sys-task", "Unknown task type", {
+          task_type: task.task_type
+        });
+      }
+      await completeTask(supabase, task.id, true);
+      processed += 1;
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : String(e);
+      verificationWorkerError("sys-task", "Task failed", {
+        task_id: task.id,
+        task_type: task.task_type,
+        error: msg
+      });
+      await completeTask(supabase, task.id, false, msg);
+      await upsertAlert(supabase, {
+        severity: "error",
+        category: "worker_task_failed",
+        message: `System task failed: ${task.task_type}`,
+        details: { task_id: task.id, error: msg }
+      });
+    }
+  }
+  return { processedTasks: processed };
+}
+
+// ../../lib/integrations-sync/src/syncWorkerHttpGuard.ts
+var windows = /* @__PURE__ */ new Map();
+function envInt(name, fallback) {
+  const raw = process.env[name]?.trim();
+  if (!raw) return fallback;
+  const n = Number.parseInt(raw, 10);
+  return Number.isFinite(n) && n > 0 ? n : fallback;
+}
+var STARTUP_LIMIT = envInt("SYNC_WORKER_MAX_INVOKES_PER_STARTUP_PER_MIN", 12);
+var IP_LIMIT = envInt("SYNC_WORKER_MAX_INVOKES_PER_IP_PER_MIN", 40);
+var CRON_IP_LIMIT = envInt("SYNC_WORKER_MAX_CRON_INVOKES_PER_IP_PER_MIN", 120);
+function bump(key, limit, windowMs) {
+  const now = Date.now();
+  let row = windows.get(key);
+  if (!row || now >= row.resetAt) {
+    row = { count: 0, resetAt: now + windowMs };
+    windows.set(key, row);
+  }
+  row.count += 1;
+  if (row.count > limit) {
+    const retryAfterSec = Math.max(1, Math.ceil((row.resetAt - now) / 1e3));
+    return { ok: false, retryAfterSec };
+  }
+  return { ok: true, retryAfterSec: 0 };
+}
+function checkSyncWorkerProcessJobsRateLimit(input) {
+  const windowMs = 6e4;
+  const ipKey = `ip:${input.clientIp || "unknown"}`;
+  const ipLimit = input.isCronAuth ? CRON_IP_LIMIT : IP_LIMIT;
+  const ip = bump(ipKey, ipLimit, windowMs);
+  if (!ip.ok) return { ok: false, retryAfterSec: ip.retryAfterSec };
+  if (!input.isCronAuth && input.startupId) {
+    const startup = bump(
+      `startup:${input.startupId}`,
+      STARTUP_LIMIT,
+      windowMs
+    );
+    if (!startup.ok) return { ok: false, retryAfterSec: startup.retryAfterSec };
+  }
+  return { ok: true };
+}
+function resolveClientIpFromHeaders(headers) {
+  const forwarded = headers["x-forwarded-for"];
+  if (typeof forwarded === "string" && forwarded.trim()) {
+    return forwarded.split(",")[0]?.trim() ?? "unknown";
+  }
+  if (Array.isArray(forwarded) && forwarded[0]) {
+    return String(forwarded[0]).split(",")[0]?.trim() ?? "unknown";
+  }
+  const realIp = headers["x-real-ip"];
+  if (typeof realIp === "string" && realIp.trim()) return realIp.trim();
+  return "unknown";
+}
+function isSyncWorkerCronAuthorized(authorization, cronSecret) {
+  return Boolean(cronSecret && authorization === `Bearer ${cronSecret}`);
+}
+
+// ../../lib/integrations-sync/src/syncWorkerCors.ts
+function parseAllowedOrigins() {
+  const fromList = process.env.SYNC_WORKER_CORS_ORIGINS?.split(",").map((s) => s.trim()).filter(Boolean);
+  if (fromList?.length) return fromList;
+  const singles = [
+    process.env.MARKETPLACE_PUBLIC_URL?.trim(),
+    process.env.VITE_PUBLIC_SITE_URL?.trim(),
+    process.env.PUBLIC_SITE_URL?.trim()
+  ].filter((s) => Boolean(s));
+  return [...new Set(singles)];
+}
+function isDevLocalOrigin(origin) {
+  if (process.env.NODE_ENV === "production") return false;
+  try {
+    const u = new URL(origin);
+    return u.hostname === "localhost" || u.hostname === "127.0.0.1";
+  } catch {
+    return false;
+  }
+}
+function resolveSyncWorkerCorsOrigin(requestOrigin) {
+  if (!requestOrigin) return null;
+  const allowed = parseAllowedOrigins();
+  if (allowed.includes(requestOrigin)) return requestOrigin;
+  if (isDevLocalOrigin(requestOrigin)) return requestOrigin;
+  return null;
+}
+function syncWorkerCorsHeaders(requestOrigin) {
+  const allowOrigin = resolveSyncWorkerCorsOrigin(requestOrigin);
+  const headers = {
+    Vary: "Origin",
+    "Access-Control-Allow-Methods": "POST, OPTIONS",
+    "Access-Control-Allow-Headers": "Authorization, Content-Type"
+  };
+  if (allowOrigin) {
+    headers["Access-Control-Allow-Origin"] = allowOrigin;
+  }
+  return headers;
 }
 
 // ../../lib/verification-automation/src/ocr/googleDocumentAi.ts
@@ -2250,15 +2956,39 @@ async function consumeBusinessEmailLaunchToken(supabase, launchToken, verificati
 
 // api/_lib/supabaseService.ts
 import { createClient } from "@supabase/supabase-js";
-function getSupabaseServiceClient() {
-  const url = process.env.SUPABASE_URL?.trim() ?? process.env.VITE_SUPABASE_URL?.trim();
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  if (!url || !key) {
-    throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
+
+// api/_lib/serverRuntimeGuard.ts
+function assertServerRuntime(caller) {
+  if (typeof process === "undefined" || !process.versions?.node) {
+    throw new Error(`${caller} must not run in the browser`);
   }
-  return createClient(url, key, {
+}
+function assertApiSecretsConfigured() {
+  assertServerRuntime("assertApiSecretsConfigured");
+  const url = process.env.SUPABASE_URL?.trim();
+  const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
+  if (!url || !serviceKey) {
+    throw new Error(
+      "Missing SUPABASE_URL or SUPABASE_SERVICE_ROLE_KEY (server env only \u2014 never VITE_*)"
+    );
+  }
+  if (serviceKey.length < 32) {
+    throw new Error("SUPABASE_SERVICE_ROLE_KEY appears invalid");
+  }
+}
+
+// api/_lib/supabaseService.ts
+var cached = null;
+function getSupabaseServiceClient() {
+  assertServerRuntime("getSupabaseServiceClient");
+  assertApiSecretsConfigured();
+  if (cached) return cached;
+  const url = process.env.SUPABASE_URL.trim();
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY.trim();
+  cached = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false }
   });
+  return cached;
 }
 
 // api/_lib/syncWorkerHandlers.ts
@@ -2273,12 +3003,7 @@ function json(status, payload, opts) {
   };
 }
 function corsHeaders(origin) {
-  return {
-    "Access-Control-Allow-Origin": origin ?? "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    Vary: "Origin"
-  };
+  return syncWorkerCorsHeaders(origin);
 }
 async function authorizeProcessJobs(supabase, authorization, cronSecret, bodyJson) {
   const auth = authorization ?? "";
@@ -2301,7 +3026,11 @@ async function handleSyncWorkerHttpRequest(input) {
   const method = input.method.toUpperCase();
   const cronSecret = process.env.SYNC_WORKER_CRON_SECRET?.trim();
   if (method === "OPTIONS") {
-    return { status: 204, headers: corsHeaders(input.origin), body: "" };
+    const headers = corsHeaders(input.origin);
+    if (!headers["Access-Control-Allow-Origin"]) {
+      return { status: 403, headers: { Vary: "Origin" }, body: "" };
+    }
+    return { status: 204, headers, body: "" };
   }
   if (path === "/health" && method === "GET") {
     return json(200, { ok: true }, { origin: input.origin });
@@ -2320,6 +3049,9 @@ async function handleSyncWorkerHttpRequest(input) {
     );
   }
   if (path === "/v1/process-jobs" && method === "POST") {
+    if (input.body.length > 32768) {
+      return json(413, { error: "payload too large" }, { origin: input.origin });
+    }
     let maxJobs = 10;
     let bodyJson = {};
     try {
@@ -2330,6 +3062,13 @@ async function handleSyncWorkerHttpRequest(input) {
         }
       }
     } catch {
+    }
+    const isCronAuth = isSyncWorkerCronAuthorized(
+      input.authorization,
+      cronSecret
+    );
+    if (!isCronAuth) {
+      maxJobs = Math.min(maxJobs, 12);
     }
     const authorized = await authorizeProcessJobs(
       supabase,
@@ -2346,11 +3085,54 @@ async function handleSyncWorkerHttpRequest(input) {
         { origin: input.origin }
       );
     }
+    const clientIp = input.clientIp ?? (input.requestHeaders ? resolveClientIpFromHeaders(input.requestHeaders) : "unknown");
+    const rate = checkSyncWorkerProcessJobsRateLimit({
+      clientIp,
+      startupId: bodyJson.startup_id,
+      isCronAuth
+    });
+    if (!rate.ok) {
+      return {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(rate.retryAfterSec),
+          ...corsHeaders(input.origin)
+        },
+        body: JSON.stringify({
+          error: "rate_limited",
+          retry_after_seconds: rate.retryAfterSec
+        })
+      };
+    }
     try {
       const result = await runIntegrationSyncBatch(supabase, {
         workerId: process.env.SYNC_WORKER_ID ?? "inline-api",
         maxJobs
       });
+      if (isCronAuth) {
+        try {
+          await supabase.rpc("enqueue_domain_revalidation_tasks", { p_max: 50 });
+        } catch {
+        }
+        try {
+          const { data: mvHealth } = await supabase.rpc(
+            "admin_materialized_view_health"
+          );
+          const last = mvHealth && typeof mvHealth === "object" ? mvHealth.last_refresh_at : null;
+          const lastMs = typeof last === "string" ? Date.parse(last) : 0;
+          if (!lastMs || Date.now() - lastMs > 15 * 60 * 1e3) {
+            await supabase.from("sys_worker_tasks").insert({
+              task_type: "marketplace_materialized_view_refresh"
+            });
+          }
+        } catch {
+        }
+      }
+      const sysTasks = isCronAuth ? await runSystemTasksBatch(supabase, {
+        workerId: process.env.SYNC_WORKER_ID ?? "inline-api",
+        maxTasks: 10
+      }) : { processedTasks: 0 };
       let identityPollUpdated = 0;
       if (bodyJson.startup_id) {
         identityPollUpdated = await syncStripeIdentitySessionsForStartup(
@@ -2365,7 +3147,7 @@ async function handleSyncWorkerHttpRequest(input) {
       }
       return json(
         200,
-        { ok: true, ...result, identity_poll_updated: identityPollUpdated },
+        { ok: true, ...result, ...sysTasks, identity_poll_updated: identityPollUpdated },
         { origin: input.origin }
       );
     } catch (e) {

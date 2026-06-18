@@ -26,6 +26,10 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
   }
 
   const rawBody = await readRawBody(req);
+  if (rawBody.length > 512_000) {
+    res.status(413).json({ error: "payload too large" });
+    return;
+  }
   const sig = req.headers["stripe-signature"];
   const stripeSignatureHeader = typeof sig === "string" ? sig : sig?.[0];
 

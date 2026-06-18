@@ -369,7 +369,19 @@ AS $$
 DECLARE
   v_session public.identity_verification_sessions%ROWTYPE;
   v_inserted uuid;
+  v_reg uuid;
+  v_hash text;
 BEGIN
+  -- Replay protection registry (additive). If already processed, no-op.
+  v_hash := encode(digest(coalesce(p_payload,'{}'::jsonb)::text, 'sha256'), 'hex');
+  INSERT INTO public.webhook_event_registry (provider, event_id, payload_hash)
+  VALUES (p_provider, p_external_event_id, v_hash)
+  ON CONFLICT (provider, event_id) DO NOTHING
+  RETURNING id INTO v_reg;
+  IF v_reg IS NULL THEN
+    RETURN;
+  END IF;
+
   INSERT INTO public.verification_webhook_events (provider, external_event_id, payload)
   VALUES (p_provider, p_external_event_id, p_payload)
   ON CONFLICT (provider, external_event_id) DO NOTHING

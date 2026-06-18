@@ -23,7 +23,13 @@ type HandlerModule = {
     authorization?: string;
     body: string;
     origin?: string;
-  }) => Promise<{ status: number; headers: Record<string, string>; body: string }>;
+    clientIp?: string;
+    requestHeaders?: Record<string, string | string[] | undefined>;
+  }) => Promise<{
+    status: number;
+    headers: Record<string, string>;
+    body: string;
+  }>;
 };
 
 let handlerModule: HandlerModule | undefined;
@@ -31,14 +37,14 @@ let handlerModule: HandlerModule | undefined;
 async function loadHandlers(): Promise<HandlerModule> {
   if (handlerModule) return handlerModule;
   try {
-    handlerModule = (await import(pathToFileURL(bundleFile).href)) as HandlerModule;
+    handlerModule = (await import(
+      pathToFileURL(bundleFile).href
+    )) as HandlerModule;
     return handlerModule;
   } catch (e) {
     const hint =
       "Run: npm run bundle:api --workspace=@workspace/ownerr-web-app (or npm run dev from ownerr-web-app which bundles first)";
-    throw new Error(
-      `${hint}. ${e instanceof Error ? e.message : String(e)}`,
-    );
+    throw new Error(`${hint}. ${e instanceof Error ? e.message : String(e)}`);
   }
 }
 
@@ -60,7 +66,8 @@ export function viteSyncWorkerDevPlugin(): Plugin {
           return;
         }
 
-        const pathPart = url.replace(/^\/api\/sync-worker/, "").split("?")[0] || "/";
+        const pathPart =
+          url.replace(/^\/api\/sync-worker/, "").split("?")[0] || "/";
         const body =
           req.method !== "GET" && req.method !== "HEAD"
             ? await readBody(req)
@@ -80,6 +87,10 @@ export function viteSyncWorkerDevPlugin(): Plugin {
               typeof req.headers.origin === "string"
                 ? req.headers.origin
                 : undefined,
+            requestHeaders: req.headers as Record<
+              string,
+              string | string[] | undefined
+            >,
           });
 
           for (const [key, value] of Object.entries(result.headers)) {

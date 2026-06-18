@@ -32,7 +32,8 @@
     "lint:fix": "npm run lint:fix --workspace=@workspace/ownerr-web-app",
     "sync-worker": "npm run start --workspace=@workspace/sync-worker",
     "sync-worker:http": "npm run start:http --workspace=@workspace/sync-worker",
-    "check": "npm run typecheck && npm run format:check && npm run lint",
+    "check": "npm run typecheck && npm run format:check && npm run lint && npm run security:check-client",
+    "security:check-client": "node scripts/security/check-client-imports.mjs",
     "test:verification": "npm run test --workspace=@workspace/verification-automation && node --env-file=.env.local --test scripts/verification-platform.integration.test.mjs scripts/verification-flows.smoke.mjs && npm run seed:marketplace-qa && node --env-file=.env.local --test scripts/marketplace-desk.smoke.mjs",
     "test:revenue-providers": "node --env-file=.env.local --import tsx/esm --test scripts/revenue-providers.smoke.mjs",
     "seed:marketplace-qa": "node --env-file=.env.local scripts/seed-marketplace-qa-company.mjs"
@@ -45,6 +46,7 @@
   ],
   "devDependencies": {
     "concurrently": "^9.2.1",
+    "esbuild": "0.27.3",
     "prettier": "^3.8.1",
     "tsx": "^4.21.0",
     "typescript": "~5.9.2"

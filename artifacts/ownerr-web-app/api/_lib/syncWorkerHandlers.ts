@@ -1,5 +1,12 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
-import { runIntegrationSyncBatch } from "@workspace/integrations-sync";
+import {
+  runIntegrationSyncBatch,
+  runSystemTasksBatch,
+  checkSyncWorkerProcessJobsRateLimit,
+  isSyncWorkerCronAuthorized,
+  resolveClientIpFromHeaders,
+  syncWorkerCorsHeaders,
+} from "@workspace/integrations-sync";
 import { syncStripeIdentitySessionsForStartup } from "@workspace/verification-automation";
 import {
   consumeBusinessEmailLaunchToken,
@@ -33,12 +40,7 @@ function json(
 }
 
 function corsHeaders(origin?: string): Record<string, string> {
-  return {
-    "Access-Control-Allow-Origin": origin ?? "*",
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    Vary: "Origin",
-  };
+  return syncWorkerCorsHeaders(origin);
 }
 
 async function authorizeProcessJobs(
@@ -56,10 +58,13 @@ async function authorizeProcessJobs(
   if (!launchToken || !startupId) {
     return false;
   }
-  const { data, error } = await supabase.rpc("consume_sync_worker_launch_token", {
-    p_token: launchToken,
-    p_startup_id: startupId,
-  });
+  const { data, error } = await supabase.rpc(
+    "consume_sync_worker_launch_token",
+    {
+      p_token: launchToken,
+      p_startup_id: startupId,
+    },
+  );
   return !error && data === true;
 }
 
@@ -74,13 +79,19 @@ export async function handleSyncWorkerHttpRequest(input: {
   authorization?: string;
   body: string;
   origin?: string;
+  clientIp?: string;
+  requestHeaders?: Record<string, string | string[] | undefined>;
 }): Promise<SyncWorkerHttpResult> {
   const path = input.path.split("?")[0] ?? input.path;
   const method = input.method.toUpperCase();
   const cronSecret = process.env.SYNC_WORKER_CRON_SECRET?.trim();
 
   if (method === "OPTIONS") {
-    return { status: 204, headers: corsHeaders(input.origin), body: "" };
+    const headers = corsHeaders(input.origin);
+    if (!headers["Access-Control-Allow-Origin"]) {
+      return { status: 403, headers: { Vary: "Origin" }, body: "" };
+    }
+    return { status: 204, headers, body: "" };
   }
 
   if (path === "/health" && method === "GET") {
@@ -103,6 +114,14 @@ export async function handleSyncWorkerHttpRequest(input: {
   }
 
   if (path === "/v1/process-jobs" && method === "POST") {
+    if (input.body.length > 32_768) {
+      return json(
+        413,
+        { error: "payload too large" },
+        { origin: input.origin },
+      );
+    }
+
     let maxJobs = 10;
     let bodyJson: { max_jobs?: number; startup_id?: string } = {};
     try {
@@ -117,6 +136,14 @@ export async function handleSyncWorkerHttpRequest(input: {
       }
     } catch {
       /* default maxJobs */
+    }
+
+    const isCronAuth = isSyncWorkerCronAuthorized(
+      input.authorization,
+      cronSecret,
+    );
+    if (!isCronAuth) {
+      maxJobs = Math.min(maxJobs, 12);
     }
 
     const authorized = await authorizeProcessJobs(
@@ -137,11 +164,68 @@ export async function handleSyncWorkerHttpRequest(input: {
       );
     }
 
+    const clientIp =
+      input.clientIp ??
+      (input.requestHeaders
+        ? resolveClientIpFromHeaders(input.requestHeaders)
+        : "unknown");
+    const rate = checkSyncWorkerProcessJobsRateLimit({
+      clientIp,
+      startupId: bodyJson.startup_id,
+      isCronAuth,
+    });
+    if (!rate.ok) {
+      return {
+        status: 429,
+        headers: {
+          "Content-Type": "application/json",
+          "Retry-After": String(rate.retryAfterSec),
+          ...corsHeaders(input.origin),
+        },
+        body: JSON.stringify({
+          error: "rate_limited",
+          retry_after_seconds: rate.retryAfterSec,
+        }),
+      };
+    }
+
     try {
       const result = await runIntegrationSyncBatch(supabase, {
         workerId: process.env.SYNC_WORKER_ID ?? "inline-api",
         maxJobs,
       });
+      if (isCronAuth) {
+        try {
+          await supabase.rpc("enqueue_domain_revalidation_tasks", {
+            p_max: 50,
+          });
+        } catch {
+          /* optional until migration applied */
+        }
+        try {
+          const { data: mvHealth } = await supabase.rpc(
+            "admin_materialized_view_health",
+          );
+          const last =
+            mvHealth && typeof mvHealth === "object"
+              ? (mvHealth as { last_refresh_at?: string }).last_refresh_at
+              : null;
+          const lastMs = typeof last === "string" ? Date.parse(last) : 0;
+          if (!lastMs || Date.now() - lastMs > 15 * 60 * 1000) {
+            await supabase.from("sys_worker_tasks").insert({
+              task_type: "marketplace_materialized_view_refresh",
+            });
+          }
+        } catch {
+          /* optional */
+        }
+      }
+      const sysTasks = isCronAuth
+        ? await runSystemTasksBatch(supabase, {
+            workerId: process.env.SYNC_WORKER_ID ?? "inline-api",
+            maxTasks: 10,
+          })
+        : { processedTasks: 0 };
       let identityPollUpdated = 0;
       if (bodyJson.startup_id) {
         identityPollUpdated = await syncStripeIdentitySessionsForStartup(
@@ -156,7 +240,12 @@ export async function handleSyncWorkerHttpRequest(input: {
       }
       return json(
         200,
-        { ok: true, ...result, identity_poll_updated: identityPollUpdated },
+        {
+          ok: true,
+          ...result,
+          ...sysTasks,
+          identity_poll_updated: identityPollUpdated,
+        },
         { origin: input.origin },
       );
     } catch (e) {
@@ -182,7 +271,9 @@ export async function handleSyncWorkerHttpRequest(input: {
     const auth = input.authorization ?? "";
     let emailAuthorized = cronSecret && auth === `Bearer ${cronSecret}`;
     if (!emailAuthorized && body.verification_id) {
-      const launchToken = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+      const launchToken = auth.startsWith("Bearer ")
+        ? auth.slice(7).trim()
+        : "";
       if (launchToken) {
         const consumed = await consumeBusinessEmailLaunchToken(
           supabase,
@@ -242,12 +333,17 @@ export async function handleSyncWorkerHttpRequest(input: {
     const auth = input.authorization ?? "";
     let authorized = cronSecret && auth === `Bearer ${cronSecret}`;
     if (!authorized && body.session_id) {
-      const launchToken = auth.startsWith("Bearer ") ? auth.slice(7).trim() : "";
+      const launchToken = auth.startsWith("Bearer ")
+        ? auth.slice(7).trim()
+        : "";
       if (launchToken) {
-        const { data, error } = await supabase.rpc("consume_identity_launch_token", {
-          p_token: launchToken,
-          p_session_id: body.session_id,
-        });
+        const { data, error } = await supabase.rpc(
+          "consume_identity_launch_token",
+          {
+            p_token: launchToken,
+            p_session_id: body.session_id,
+          },
+        );
         authorized = !error && data === true;
       }
     }
@@ -255,7 +351,11 @@ export async function handleSyncWorkerHttpRequest(input: {
       return json(401, { error: "unauthorized" }, { origin: input.origin });
     }
     if (!body.session_id) {
-      return json(400, { error: "session_id required" }, { origin: input.origin });
+      return json(
+        400,
+        { error: "session_id required" },
+        { origin: input.origin },
+      );
     }
 
     const { data: idSession } = await supabase
@@ -315,7 +415,11 @@ export async function handleSyncWorkerHttpRequest(input: {
       return json(400, { error: "invalid json" }, { origin: input.origin });
     }
     if (!body.document_id) {
-      return json(400, { error: "document_id required" }, { origin: input.origin });
+      return json(
+        400,
+        { error: "document_id required" },
+        { origin: input.origin },
+      );
     }
     try {
       await processRegistrationDocument(supabase, body.document_id);

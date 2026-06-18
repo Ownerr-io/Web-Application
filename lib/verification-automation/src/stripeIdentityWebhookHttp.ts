@@ -81,16 +81,6 @@ export async function handleStripeIdentityWebhookHttp(
   const json = { "Content-Type": "application/json" };
   const { rawBody, stripeSignatureHeader, webhookSecret, isProduction } = opts;
 
-  if (isProduction && !webhookSecret) {
-    return {
-      status: 503,
-      body: JSON.stringify({
-        error: "STRIPE_IDENTITY_WEBHOOK_SECRET required in production",
-      }),
-      contentType: json["Content-Type"],
-    };
-  }
-
   if (webhookSecret) {
     if (
       typeof stripeSignatureHeader !== "string" ||
@@ -106,6 +96,14 @@ export async function handleStripeIdentityWebhookHttp(
         contentType: json["Content-Type"],
       };
     }
+  } else if (isProduction) {
+    return {
+      status: 503,
+      body: JSON.stringify({
+        error: "STRIPE_IDENTITY_WEBHOOK_SECRET required in production",
+      }),
+      contentType: json["Content-Type"],
+    };
   }
 
   let event: Parameters<typeof applyStripeIdentityWebhook>[1];

@@ -76,6 +76,8 @@ export const SchemaTables = {
     webhookEvents: "trust_webhook_events",
     personProfiles: "trust_person_profiles",
     verifiedRevenueMetrics: "trust_verified_revenue_metrics",
+    domainDnsDiagnostics: "trust_domain_dns_diagnostics",
+    domainRevalidationRuns: "trust_domain_revalidation_runs",
   },
   system: {
     platformConfig: "sys_platform_config",
@@ -83,6 +85,14 @@ export const SchemaTables = {
     identityLaunchTokens: "sys_identity_launch_tokens",
     syncWorkerLaunchTokens: "sys_sync_worker_launch_tokens",
     businessEmailLaunchTokens: "sys_business_email_launch_tokens",
+    syncWorkerHealthSnapshots: "sys_sync_worker_health_snapshots",
+    mvRefreshRuns: "sys_mv_refresh_runs",
+    workerTasks: "sys_worker_tasks",
+    webhookEventRegistry: "webhook_event_registry",
+    platformAlerts: "platform_alerts",
+    platformBackupHealth: "platform_backup_health",
+    securityAbuseEvents: "security_abuse_events",
+    offerIdempotencyKeys: "offer_idempotency_keys",
     appliedMigrations: "ownerr_applied_migrations",
   },
 } as const;

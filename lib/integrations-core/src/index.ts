@@ -37,6 +37,9 @@ export * from "./types.js";
 export * from "./verifiedRevenueMetrics.js";
 export * from "./revenueProviderCatalog.js";
 export * from "./revenueSyncHelpers.js";
+export * from "./domainDnsSsrfGuard.js";
+export * from "./domainDnsHostUtils.js";
+export * from "./domainDnsIntelligence.js";
 
 const adapters: ProviderAdapter[] = [
   stripeAdapter,

@@ -1,5 +1,11 @@
 import http from "node:http";
 import { supabase, workerId, runIntegrationSyncBatch } from "./client.js";
+import {
+  checkSyncWorkerProcessJobsRateLimit,
+  isSyncWorkerCronAuthorized,
+  resolveClientIpFromHeaders,
+  syncWorkerCorsHeaders,
+} from "@workspace/integrations-sync";
 import { handleVerificationHttp } from "./verificationHttp.js";
 import { verificationWorkerLog } from "@workspace/integrations-sync";
 import { syncStripeIdentitySessionsForStartup } from "@workspace/verification-automation";
@@ -14,13 +20,9 @@ async function readBody(req: http.IncomingMessage): Promise<string> {
 }
 
 function corsHeaders(req: http.IncomingMessage): Record<string, string> {
-  const origin = req.headers.origin ?? "*";
-  return {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    Vary: "Origin",
-  };
+  const origin =
+    typeof req.headers.origin === "string" ? req.headers.origin : undefined;
+  return syncWorkerCorsHeaders(origin);
 }
 
 async function authorizeProcessJobs(
@@ -114,6 +116,36 @@ export function startHttpServer() {
               error: cronSecret
                 ? "unauthorized"
                 : "unauthorized — set SYNC_WORKER_CRON_SECRET or use a valid launch token with startup_id",
+            }),
+          );
+          return;
+        }
+
+        const isCronAuth = isSyncWorkerCronAuthorized(
+          req.headers.authorization,
+          cronSecret,
+        );
+        if (!isCronAuth) {
+          maxJobs = Math.min(maxJobs, 12);
+        }
+
+        const rate = checkSyncWorkerProcessJobsRateLimit({
+          clientIp: resolveClientIpFromHeaders(
+            req.headers as Record<string, string | string[] | undefined>,
+          ),
+          startupId: bodyJson.startup_id,
+          isCronAuth,
+        });
+        if (!rate.ok) {
+          res.writeHead(429, {
+            ...corsHeaders(req),
+            "Content-Type": "application/json",
+            "Retry-After": String(rate.retryAfterSec),
+          });
+          res.end(
+            JSON.stringify({
+              error: "rate_limited",
+              retry_after_seconds: rate.retryAfterSec,
             }),
           );
           return;

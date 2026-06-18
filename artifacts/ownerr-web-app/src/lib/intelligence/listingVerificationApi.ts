@@ -16,10 +16,21 @@ const ASYNC_VERIFICATION_NOT_CONFIGURED =
 
 function formatRpcError(error: PostgrestError, fallback: string): string {
   if (error.code === "PGRST202") {
-    return `${fallback} (API parameter mismatch — refresh and try again.)`;
+    return `${fallback} Apply latest database migrations and hard-refresh the app.`;
+  }
+  if (error.code === "P0001" && error.message?.includes("RATE_LIMITED")) {
+    return "Too many verification requests. Wait a minute and try again.";
   }
   if (error.message) return error.message;
   return fallback;
+}
+
+function isRpcSchemaMismatch(error: PostgrestError): boolean {
+  return (
+    error.code === "PGRST202" ||
+    (typeof error.message === "string" &&
+      error.message.includes("Could not find the function"))
+  );
 }
 
 function parseRpcJsonRecord(data: unknown): Record<string, unknown> {
@@ -326,32 +337,68 @@ export type SyncWorkerInvokeResult =
     }
   | { ok: false; message: string };
 
-/** Drain queued integration jobs via sync worker (required for DNS checks in local dev). */
-export async function invokeSyncWorkerProcessJobs(
-  startupId: string,
-): Promise<SyncWorkerInvokeResult> {
-  const trimmedId = startupId?.trim();
-  if (!trimmedId) {
-    verificationDebugLog("worker", "invoke skipped (empty startup id)");
-    return { ok: true, skipped: true };
-  }
+type CachedWorkerLaunch = {
+  endpoint: string;
+  launchToken: string;
+  startupId: string;
+  expiresAtMs: number;
+};
 
-  verificationDebugLog("worker", "founder_invoke_sync_worker", {
-    startup_id: trimmedId,
-  });
+const workerLaunchCache = new Map<string, CachedWorkerLaunch>();
+const workerInvokeInflight = new Map<string, Promise<SyncWorkerInvokeResult>>();
+
+const CLIENT_MAX_JOBS = 12;
+
+function parseRateLimitMessage(error: PostgrestError): string | null {
+  if (error.message?.includes("RATE_LIMITED") || error.code === "P0001") {
+    return "Too many verification requests. Wait a minute and try again.";
+  }
+  return null;
+}
+
+async function resolveWorkerLaunch(
+  startupId: string,
+): Promise<
+  | { ok: true; endpoint: string; launchToken: string }
+  | { ok: false; message: string }
+  | { ok: true; skipped: true }
+> {
+  const cached = workerLaunchCache.get(startupId);
+  if (cached && cached.expiresAtMs > Date.now()) {
+    return {
+      ok: true,
+      endpoint: cached.endpoint,
+      launchToken: cached.launchToken,
+    };
+  }
 
   const { data, error } = await getSupabase().rpc(
     "founder_invoke_sync_worker",
     {
-      p_startup_id: trimmedId,
+      p_startup_id: startupId,
     },
   );
   if (error) {
-    const message = formatRpcError(
-      error,
-      "Could not queue worker. Run npm run platform:set-integration-secrets.",
-    );
-    verificationDebugLog("worker", "RPC failed", { message }, "error");
+    if (isRpcSchemaMismatch(error)) {
+      verificationDebugLog(
+        "worker",
+        "RPC not in API schema",
+        { code: error.code },
+        "warn",
+      );
+      return {
+        ok: false,
+        message:
+          "Verification worker API is out of date. Run npm run db:migrate, then reload this page.",
+      };
+    }
+    const rateMsg = parseRateLimitMessage(error);
+    const message =
+      rateMsg ??
+      formatRpcError(
+        error,
+        "Could not queue worker. Run npm run platform:set-integration-secrets.",
+      );
     return { ok: false, message };
   }
 
@@ -361,12 +408,6 @@ export async function invokeSyncWorkerProcessJobs(
       typeof row.message === "string" && row.message.trim()
         ? row.message.trim()
         : ASYNC_VERIFICATION_NOT_CONFIGURED;
-    verificationDebugLog(
-      "worker",
-      "Async verification not configured",
-      { message },
-      "warn",
-    );
     return { ok: false, message };
   }
 
@@ -379,45 +420,58 @@ export async function invokeSyncWorkerProcessJobs(
     typeof clientLaunch.endpoint !== "string" ||
     typeof clientLaunch.launch_token !== "string"
   ) {
-    verificationDebugLog(
-      "worker",
-      "No client_launch in RPC response (server-side worker only?)",
-      { keys: Object.keys(row) },
-      "warn",
-    );
     return { ok: true, skipped: true };
   }
 
   const endpoint = resolveSyncWorkerProcessJobsUrl(clientLaunch.endpoint);
-  const startup_id =
-    typeof clientLaunch.startup_id === "string"
-      ? clientLaunch.startup_id
-      : trimmedId;
-
-  verificationDebugLog("worker", "POST /v1/process-jobs", {
+  workerLaunchCache.set(startupId, {
     endpoint,
-    startup_id,
-    max_jobs: 24,
-    launch_token: clientLaunch.launch_token,
+    launchToken: clientLaunch.launch_token,
+    startupId,
+    expiresAtMs: Date.now() + 9 * 60 * 1000,
+  });
+
+  return {
+    ok: true,
+    endpoint,
+    launchToken: clientLaunch.launch_token,
+  };
+}
+
+async function postProcessJobs(input: {
+  endpoint: string;
+  launchToken: string;
+  startupId: string;
+}): Promise<SyncWorkerInvokeResult> {
+  verificationDebugLog("worker", "POST /v1/process-jobs", {
+    endpoint: input.endpoint,
+    startup_id: input.startupId,
+    max_jobs: CLIENT_MAX_JOBS,
   });
 
   let res: Response;
   try {
-    res = await fetch(endpoint, {
+    res = await fetch(input.endpoint, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${clientLaunch.launch_token}`,
+        Authorization: `Bearer ${input.launchToken}`,
       },
-      body: JSON.stringify({ max_jobs: 24, startup_id }),
+      body: JSON.stringify({
+        max_jobs: CLIENT_MAX_JOBS,
+        startup_id: input.startupId,
+      }),
     });
   } catch (e) {
     const message =
-      "Could not reach the verification endpoint. Ensure SUPABASE_SERVICE_ROLE_KEY is set on the host and /api/sync-worker is deployed.";
+      "Could not reach the verification endpoint. Check your network and try again.";
     verificationDebugLog(
       "worker",
       "Fetch failed",
-      { endpoint, error: e instanceof Error ? e.message : String(e) },
+      {
+        endpoint: input.endpoint,
+        error: e instanceof Error ? e.message : String(e),
+      },
       "error",
     );
     return { ok: false, message };
@@ -425,9 +479,19 @@ export async function invokeSyncWorkerProcessJobs(
 
   const json = (await res.json().catch(() => ({}))) as {
     error?: string;
+    retry_after_seconds?: number;
     processed?: number;
     ok?: boolean;
   };
+
+  if (res.status === 429) {
+    const wait = json.retry_after_seconds ?? 60;
+    return {
+      ok: false,
+      message: `Verification engine is busy. Try again in ${wait} seconds.`,
+    };
+  }
+
   if (!res.ok) {
     const message = json.error ?? `Sync worker returned ${res.status}`;
     verificationDebugLog(
@@ -449,6 +513,62 @@ export async function invokeSyncWorkerProcessJobs(
     processed: typeof json.processed === "number" ? json.processed : undefined,
     workerBody: json as Record<string, unknown>,
   };
+}
+
+/** Drain queued integration jobs via sync worker (required for DNS checks in local dev). */
+export async function invokeSyncWorkerProcessJobs(
+  startupId: string,
+): Promise<SyncWorkerInvokeResult> {
+  const trimmedId = startupId?.trim();
+  if (!trimmedId) {
+    verificationDebugLog("worker", "invoke skipped (empty startup id)");
+    return { ok: true, skipped: true };
+  }
+
+  const inflight = workerInvokeInflight.get(trimmedId);
+  if (inflight) {
+    verificationDebugLog("worker", "coalesced duplicate invoke", {
+      startup_id: trimmedId,
+    });
+    return inflight;
+  }
+
+  const run = (async (): Promise<SyncWorkerInvokeResult> => {
+    verificationDebugLog("worker", "founder_invoke_sync_worker", {
+      startup_id: trimmedId,
+    });
+
+    const launch = await resolveWorkerLaunch(trimmedId);
+    if (!launch.ok) {
+      verificationDebugLog(
+        "worker",
+        "RPC failed",
+        { message: launch.message },
+        "error",
+      );
+      return { ok: false, message: launch.message };
+    }
+    if ("skipped" in launch) {
+      verificationDebugLog(
+        "worker",
+        "No client_launch in RPC response (server-side worker only?)",
+        {},
+        "warn",
+      );
+      return { ok: true, skipped: true };
+    }
+
+    return postProcessJobs({
+      endpoint: launch.endpoint,
+      launchToken: launch.launchToken,
+      startupId: trimmedId,
+    });
+  })().finally(() => {
+    workerInvokeInflight.delete(trimmedId);
+  });
+
+  workerInvokeInflight.set(trimmedId, run);
+  return run;
 }
 
 export async function confirmBusinessEmailVerification(

@@ -4,8 +4,8 @@ import { Link } from "wouter";
 import {
   CheckCircle2,
   ChevronDown,
-  ExternalLink,
   Loader2,
+  Pencil,
   RefreshCw,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -26,25 +26,19 @@ import { useToast } from "@/hooks/use-toast";
 import {
   beginDomainVerification,
   connectProviderApiKey,
+  fetchDomainDnsDiagnosticsLatest,
   fetchDomainVerificationPending,
   fetchLatestDomainDnsCheck,
   fetchStartupIdBySlug,
+  fetchSupportDomainDiagnosticsExport,
+  fetchSyncWorkerHealthLatest,
   listStartupIntegrationConnections,
   listVerificationProviders,
   requestIntegrationSync,
 } from "@/lib/intelligence/integrationApi";
 import { normalizeVerificationDomain } from "@/lib/marketplace/normalizeVerificationDomain";
-import {
-  clearDomainVerifyReturn,
-  dnsHostFieldHint,
-  DOMAIN_DNS_PROVIDERS,
-  getDomainDnsProvider,
-  loadPreferredDnsProvider,
-  markDomainVerifyInProgress,
-  readDomainVerifyReturn,
-  savePreferredDnsProvider,
-  type DomainDnsProviderId,
-} from "@/lib/marketplace/domainDnsProviders";
+import { DomainDnsInstructionsCard } from "@/components/marketplace/DomainDnsInstructionsCard";
+import { hostNameFieldOptionsForUi } from "@/lib/marketplace/domainVerificationDiagnostics";
 import {
   fetchLatestAiInsights,
   fetchLatestValuationReport,
@@ -90,6 +84,28 @@ function VerifiedBanner({ children }: { children: ReactNode }) {
     <div className="flex gap-2 rounded-md border border-emerald-500/25 bg-emerald-500/[0.06] px-3 py-2 text-xs text-emerald-800 dark:text-emerald-300">
       <CheckCircle2 className="h-4 w-4 shrink-0 mt-0.5" aria-hidden />
       <div>{children}</div>
+    </div>
+  );
+}
+
+function FailedGateEditHint({
+  title,
+  detail,
+}: {
+  title: string;
+  detail?: string;
+}) {
+  return (
+    <div className="rounded-md border border-destructive/35 bg-destructive/[0.05] px-3 py-2 text-xs space-y-1">
+      <p className="font-medium text-destructive">{title}</p>
+      {detail ? (
+        <p className="text-muted-foreground">{detail}</p>
+      ) : (
+        <p className="text-muted-foreground">
+          Edit the value below, then run the step again or use Validate all
+          checks.
+        </p>
+      )}
     </div>
   );
 }
@@ -142,11 +158,17 @@ export function ListingVerificationHub({ startupSlug }: Props) {
   const [apiKey, setApiKey] = useState("");
   const [externalId, setExternalId] = useState("");
   const [domain, setDomain] = useState("");
-  const [dnsProviderId, setDnsProviderId] = useState<DomainDnsProviderId>(() =>
-    loadPreferredDnsProvider(),
-  );
-  const [domainGuidedActive, setDomainGuidedActive] = useState(false);
+  const [autoRecheckActive, setAutoRecheckActive] = useState(false);
+  const [autoRecheckAttempt, setAutoRecheckAttempt] = useState(0);
+  const autoRecheckAbortRef = useRef(false);
+  const AUTO_RECHECK_MAX = 5;
+  const AUTO_RECHECK_GAPS_MS = [
+    30_000, 60_000, 90_000, 120_000, 180_000,
+  ] as const;
   const [advancedOpen, setAdvancedOpen] = useState(false);
+  const [domainEditOpen, setDomainEditOpen] = useState(false);
+  const [emailEditOpen, setEmailEditOpen] = useState(false);
+  const [revenueEditOpen, setRevenueEditOpen] = useState(false);
   const [dnsHint, setDnsHint] = useState<{
     host: string;
     expectedRecord: string;
@@ -228,6 +250,42 @@ export function ListingVerificationHub({ startupSlug }: Props) {
     retry: false,
   });
 
+  const { data: domainDiagnostic, refetch: refetchDomainDiagnostic } = useQuery(
+    {
+      queryKey: ["domain-dns-diagnostics", startupId],
+      queryFn: () =>
+        startupId
+          ? fetchDomainDnsDiagnosticsLatest(startupId)
+          : Promise.resolve(null),
+      enabled: !!startupId && snapshot?.gates.domain_status !== "verified",
+      retry: false,
+    },
+  );
+
+  const { data: workerHealth, refetch: refetchWorkerHealth } = useQuery({
+    queryKey: ["sync-worker-health"],
+    queryFn: () => fetchSyncWorkerHealthLatest(),
+    refetchInterval: autoRecheckActive ? 15_000 : 60_000,
+  });
+
+  useEffect(() => {
+    if (snapshot?.gates.domain_status === "verified") {
+      setDomainEditOpen(false);
+    }
+  }, [snapshot?.gates.domain_status]);
+
+  useEffect(() => {
+    if (snapshot?.gates.revenue_status === "verified") {
+      setRevenueEditOpen(false);
+    }
+  }, [snapshot?.gates.revenue_status]);
+
+  useEffect(() => {
+    if (snapshot?.gates.business_email_status === "verified") {
+      setEmailEditOpen(false);
+    }
+  }, [snapshot?.gates.business_email_status]);
+
   useEffect(() => {
     const vd = snapshot?.gates.verified_domain;
     if (vd && !domain) setDomain(vd);
@@ -236,11 +294,7 @@ export function ListingVerificationHub({ startupSlug }: Props) {
   useEffect(() => {
     const declared = sellerIntake?.declared_domain?.trim();
     if (declared && !domain) setDomain(declared);
-    const provider = sellerIntake?.dns_provider;
-    if (provider && provider !== "other") {
-      setDnsProviderId(provider as DomainDnsProviderId);
-    }
-  }, [sellerIntake?.declared_domain, sellerIntake?.dns_provider, domain]);
+  }, [sellerIntake?.declared_domain, domain]);
 
   useEffect(() => {
     if (!pendingDomainChallenge || snapshot?.gates.domain_status === "verified")
@@ -278,6 +332,10 @@ export function ListingVerificationHub({ startupSlug }: Props) {
     void qc.invalidateQueries({
       queryKey: ["domain-dns-check-latest", startupId],
     });
+    void qc.invalidateQueries({
+      queryKey: ["domain-dns-diagnostics", startupId],
+    });
+    void qc.invalidateQueries({ queryKey: ["sync-worker-health"] });
   }
 
   function afterChange() {
@@ -353,6 +411,7 @@ export function ListingVerificationHub({ startupSlug }: Props) {
     onSuccess: () => {
       toast({ title: "Provider connected", description: "Sync queued." });
       setApiKey("");
+      setRevenueEditOpen(false);
       afterChange();
     },
     onError: (e: Error) =>
@@ -385,7 +444,7 @@ export function ListingVerificationHub({ startupSlug }: Props) {
       toast({
         title: "DNS record ready",
         description:
-          "Add it at your DNS host, wait for propagation, then Validate all checks.",
+          "Add the TXT at your DNS host, then click “I added the TXT record”.",
       });
       afterChange();
       if (startupId) {
@@ -403,141 +462,6 @@ export function ListingVerificationHub({ startupSlug }: Props) {
         variant: "destructive",
       }),
   });
-
-  const domainGuidedMut = useMutation({
-    mutationFn: async () => {
-      if (!startupId) throw new Error("Startup not found");
-      const normalized = normalizeVerificationDomain(domain);
-      if (normalized.length < 4 || !normalized.includes(".")) {
-        throw new Error(
-          "Enter a valid domain (e.g. clykur.com or www.clykur.com)",
-        );
-      }
-      savePreferredDnsProvider(dnsProviderId);
-      let hint = dnsHint;
-      if (!hint || hint.domain !== normalized) {
-        const res = await beginDomainVerification({
-          startupId,
-          domain: normalized,
-          method: "txt",
-        });
-        hint = {
-          host: res.host,
-          expectedRecord: res.expectedRecord,
-          method: res.method,
-          domain: res.domain ?? normalized,
-        };
-        setDnsHint(hint);
-        setDomain(hint.domain);
-      }
-      const provider = getDomainDnsProvider(dnsProviderId);
-      const consoleUrl = provider.consoleUrl(normalized);
-      markDomainVerifyInProgress(startupSlug);
-      setDomainGuidedActive(true);
-      return { hint, consoleUrl, providerLabel: provider.label };
-    },
-    onSuccess: async ({ hint, consoleUrl, providerLabel }) => {
-      toast({
-        title: "Add TXT at " + providerLabel,
-        description: consoleUrl
-          ? "We opened your DNS console in a new tab. Add the TXT record, save, then return here — we will re-check automatically."
-          : "Add the TXT record at your DNS host, then click Validate all checks.",
-      });
-      if (consoleUrl) {
-        const opened = window.open(consoleUrl, "_blank", "noopener,noreferrer");
-        if (!opened && dnsProviderId === "godaddy") {
-          toast({
-            title: "Open GoDaddy manually",
-            description:
-              "Sign in at account.godaddy.com → your domain → DNS, then add the TXT record.",
-            variant: "destructive",
-          });
-        }
-      }
-      if (dnsProviderId === "godaddy") {
-        toast({
-          title: "GoDaddy tip",
-          description:
-            "If you see an Akamai error page, use account.godaddy.com → Domains → DNS instead of the old dcc link.",
-        });
-      }
-      try {
-        await navigator.clipboard.writeText(hint.expectedRecord);
-        toast({
-          title: "TXT copied",
-          description: "Paste this as the TXT record value.",
-        });
-      } catch {
-        /* clipboard optional */
-      }
-      afterChange();
-      if (startupId) {
-        try {
-          await invokeSyncWorkerProcessJobs(startupId);
-        } catch {
-          /* optional */
-        }
-      }
-    },
-    onError: (e: Error) =>
-      toast({
-        title: "Domain guide failed",
-        description: e.message,
-        variant: "destructive",
-      }),
-  });
-
-  const domainReturnCheckedRef = useRef(false);
-  const lastAutoValidateRef = useRef(0);
-  useEffect(() => {
-    if (typeof window === "undefined" || !startupId) return;
-    if (snapshot?.gates.domain_status === "verified") return;
-    const pending = readDomainVerifyReturn();
-    if (!pending || pending.startupSlug !== startupSlug) return;
-    setDomainGuidedActive(true);
-
-    const onFocus = () => {
-      if (validateAllMut.isPending) return;
-      const now = Date.now();
-      if (now - lastAutoValidateRef.current < 45_000) return;
-      lastAutoValidateRef.current = now;
-      void validateAllMut.mutateAsync().then((result) => {
-        if (result?.after?.gates?.domain_status === "verified") {
-          clearDomainVerifyReturn();
-          setDomainGuidedActive(false);
-        }
-      });
-    };
-
-    window.addEventListener("focus", onFocus);
-    return () => window.removeEventListener("focus", onFocus);
-  }, [startupId, startupSlug, snapshot?.gates.domain_status, validateAllMut]);
-
-  useEffect(() => {
-    if (
-      typeof window === "undefined" ||
-      !startupId ||
-      domainReturnCheckedRef.current
-    )
-      return;
-    const params = new URLSearchParams(window.location.search);
-    const from = params.get("from");
-    if (from !== "domain") return;
-    domainReturnCheckedRef.current = true;
-    params.delete("from");
-    const qs = params.toString();
-    window.history.replaceState(
-      null,
-      "",
-      `${window.location.pathname}${qs ? `?${qs}` : ""}`,
-    );
-    clearDomainVerifyReturn();
-    void validateAllMut.mutateAsync();
-    toast({
-      title: "Checking DNS",
-      description: "Running validate-all after your DNS provider visit.",
-    });
-  }, [startupId, validateAllMut, toast]);
 
   const valuationMut = useMutation({
     mutationFn: async () => {
@@ -558,6 +482,133 @@ export function ListingVerificationHub({ startupSlug }: Props) {
       void qc.invalidateQueries({ queryKey: ["ai-insights", startupId] }),
   });
 
+  const domainConn = connectionRows.find((c) => c.providerSlug === "domain");
+
+  async function runDomainDnsWorkerCheck(options?: {
+    enqueueJob?: boolean;
+  }): Promise<{
+    workerOk: boolean;
+    workerMessage?: string;
+  }> {
+    if (!startupId) return { workerOk: false, workerMessage: "No startup" };
+    if (options?.enqueueJob !== false && domainConn) {
+      await requestIntegrationSync(domainConn.id);
+    }
+    const workerResult = await invokeSyncWorkerProcessJobs(startupId);
+    await refreshListingGatesFromEvidence(startupId);
+    void refetchDomainDiagnostic();
+    void refetchWorkerHealth();
+    invalidateAll();
+    return {
+      workerOk: workerResult.ok,
+      workerMessage: workerResult.ok ? undefined : workerResult.message,
+    };
+  }
+
+  const copyDiagnosticMut = useMutation({
+    mutationFn: async () => {
+      if (!startupId) throw new Error("Startup not found");
+      return fetchSupportDomainDiagnosticsExport(startupId);
+    },
+    onSuccess: async (text) => {
+      await navigator.clipboard.writeText(text);
+      toast({
+        title: "Diagnostic copied",
+        description: "Paste into support chat.",
+      });
+    },
+    onError: (e: Error) =>
+      toast({
+        title: "Could not copy diagnostic",
+        description: e.message,
+        variant: "destructive",
+      }),
+  });
+
+  const domainTxtAddedMut = useMutation({
+    mutationFn: async () => {
+      if (!startupId) throw new Error("Startup not found");
+      const normalized = normalizeVerificationDomain(domain);
+      if (normalized.length < 4 || !normalized.includes(".")) {
+        throw new Error(
+          "Enter a valid domain (e.g. example.com or www.example.com)",
+        );
+      }
+      autoRecheckAbortRef.current = false;
+      setAutoRecheckActive(true);
+      setAutoRecheckAttempt(0);
+
+      if (!dnsHint || dnsHint.domain !== normalized) {
+        const res = await beginDomainVerification({
+          startupId,
+          domain: normalized,
+          method: "txt",
+        });
+        setDnsHint({
+          host: res.host,
+          expectedRecord: res.expectedRecord,
+          method: res.method,
+          domain: res.domain ?? normalized,
+        });
+        setDomain(res.domain ?? normalized);
+      }
+
+      let workerWarned = false;
+      if (domainConn) {
+        await requestIntegrationSync(domainConn.id);
+      }
+      for (let i = 0; i < AUTO_RECHECK_MAX; i++) {
+        if (autoRecheckAbortRef.current) break;
+        setAutoRecheckAttempt(i + 1);
+        const { workerOk, workerMessage } = await runDomainDnsWorkerCheck({
+          enqueueJob: false,
+        });
+        const fresh = await fetchListingVerificationSnapshotBySlug(startupSlug);
+        if (fresh?.gates.domain_status === "verified") {
+          setAutoRecheckActive(false);
+          return { verified: true as const };
+        }
+        if (!workerOk && workerMessage && !workerWarned) {
+          workerWarned = true;
+          toast({
+            title: "Verification engine unavailable",
+            description:
+              "Your DNS may already be correct. We will keep checking when possible.",
+            variant: "destructive",
+          });
+        }
+        if (i < AUTO_RECHECK_MAX - 1 && !autoRecheckAbortRef.current) {
+          await new Promise((r) => setTimeout(r, AUTO_RECHECK_GAPS_MS[i]));
+        }
+      }
+      setAutoRecheckActive(false);
+      return { verified: false as const };
+    },
+    onSuccess: (result) => {
+      if (result?.verified) {
+        toast({
+          title: "Domain verified",
+          description: "DNS ownership confirmed.",
+        });
+      } else {
+        toast({
+          title: "Still checking DNS",
+          description:
+            "Review the diagnostic below or try again in a few minutes.",
+        });
+      }
+      afterChange();
+    },
+    onError: (e: Error) => {
+      setAutoRecheckActive(false);
+      toast({
+        title: "DNS check failed",
+        description: e.message,
+        variant: "destructive",
+      });
+    },
+  });
+
   const revenueProviderGroups = groupRevenueProvidersForConnect(providers);
   const connectableRevenueProviders = revenueProviderGroups.flatMap((g) =>
     g.items.filter((i) => i.authType === "api_key"),
@@ -571,7 +622,6 @@ export function ListingVerificationHub({ startupSlug }: Props) {
   const gates = snapshot?.gates;
   const verifiedCount = gates ? countVerifiedGates(gates) : 0;
   const total = gatesTotal();
-  const domainConn = connectionRows.find((c) => c.providerSlug === "domain");
   const revenueConnections = connectionRows.filter(
     (c) =>
       c.providerSlug !== "domain" &&
@@ -684,6 +734,12 @@ export function ListingVerificationHub({ startupSlug }: Props) {
           </VerifiedBanner>
         ) : (
           <>
+            {gates.identity_status === "failed" ? (
+              <FailedGateEditHint
+                title="Founder verification did not pass"
+                detail="Update your details in the Verification desk, then run Validate all checks."
+              />
+            ) : null}
             <p className="text-xs text-muted-foreground">
               Complete one-time founder verification (name, country, LinkedIn)
               under Verification in the sidebar — no government ID required.
@@ -698,40 +754,53 @@ export function ListingVerificationHub({ startupSlug }: Props) {
       </GateShell>
 
       <GateShell step={2} title="Domain ownership" status={gates.domain_status}>
-        {gates.domain_status === "verified" ? (
-          <VerifiedBanner>
-            Domain verified:{" "}
-            <span className="font-mono">{gates.verified_domain ?? domain}</span>
-          </VerifiedBanner>
+        {gates.domain_status === "verified" && !domainEditOpen ? (
+          <div className="space-y-2">
+            <VerifiedBanner>
+              Domain verified:{" "}
+              <span className="font-mono">
+                {gates.verified_domain ?? domain}
+              </span>
+            </VerifiedBanner>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setDomainEditOpen(true);
+                setDomain(gates.verified_domain ?? domain);
+                setDnsHint(null);
+              }}
+            >
+              <Pencil className="mr-2 h-3.5 w-3.5" aria-hidden />
+              Change domain
+            </Button>
+          </div>
         ) : (
           <>
-            <p className="text-xs text-muted-foreground">
-              Choose where you manage DNS, enter your site domain, then we open
-              that console and copy the TXT token. When you return to this tab
-              we run <strong>Validate all</strong> automatically. (You still add
-              the TXT record once — DNS hosts do not allow us to do that without
-              their API.)
-            </p>
-            <div className="flex flex-col gap-3 max-w-md">
-              <Select
-                value={dnsProviderId}
-                onValueChange={(v) =>
-                  setDnsProviderId(v as DomainDnsProviderId)
+            {gates.domain_status === "failed" ? (
+              <FailedGateEditHint
+                title="Domain verification failed"
+                detail={
+                  domainConn?.last_error ??
+                  "DNS TXT record missing or incorrect for the hostname below."
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Where is DNS managed?" />
-                </SelectTrigger>
-                <SelectContent>
-                  {DOMAIN_DNS_PROVIDERS.map((p) => (
-                    <SelectItem key={p.id} value={p.id}>
-                      {p.label}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
+              />
+            ) : domainEditOpen ? (
+              <p className="text-xs text-muted-foreground max-w-lg">
+                Enter the domain you want to verify instead. You will need a new
+                TXT record after saving.
+              </p>
+            ) : null}
+            <p className="text-xs text-muted-foreground max-w-lg">
+              Enter the exact hostname you want verified (apex or www). Add one
+              TXT record at whichever DNS panel controls your domain&apos;s
+              nameservers — we detect DNS from the public internet, not your
+              registrar label.
+            </p>
+            <div className="flex flex-col gap-2 max-w-md">
               <Input
-                placeholder="clykur.com or www.clykur.com"
+                placeholder="example.com or www.example.com"
                 className="font-mono"
                 value={domain}
                 onChange={(e) => {
@@ -739,20 +808,25 @@ export function ListingVerificationHub({ startupSlug }: Props) {
                   setDnsHint(null);
                 }}
               />
+              <p className="text-[11px] text-muted-foreground">
+                Do not include https://, paths, or query strings. Use www only
+                if that is the hostname your listing uses.
+              </p>
             </div>
             <div className="flex flex-wrap gap-2">
               <Button
                 disabled={
-                  !domain || domainGuidedMut.isPending || domainMut.isPending
+                  !domain ||
+                  domainTxtAddedMut.isPending ||
+                  domainMut.isPending ||
+                  autoRecheckActive
                 }
-                onClick={() => domainGuidedMut.mutate()}
+                onClick={() => domainTxtAddedMut.mutate()}
               >
-                {domainGuidedMut.isPending ? (
+                {domainTxtAddedMut.isPending || autoRecheckActive ? (
                   <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                ) : (
-                  <ExternalLink className="mr-2 h-4 w-4" />
-                )}
-                Open DNS provider & verify
+                ) : null}
+                I added the TXT record
               </Button>
               <Button
                 variant="secondary"
@@ -760,115 +834,67 @@ export function ListingVerificationHub({ startupSlug }: Props) {
                 disabled={!domain || domainMut.isPending}
                 onClick={() => domainMut.mutate("txt")}
               >
-                Get TXT instructions only
+                Show TXT instructions
               </Button>
+              {domainEditOpen ? (
+                <Button
+                  type="button"
+                  variant="ghost"
+                  size="sm"
+                  onClick={() => {
+                    setDomainEditOpen(false);
+                    setDomain(gates.verified_domain ?? "");
+                    setDnsHint(null);
+                  }}
+                >
+                  Cancel
+                </Button>
+              ) : null}
             </div>
-            {domainGuidedActive ? (
-              <p className="text-xs text-emerald-800 dark:text-emerald-300 max-w-lg">
-                Waiting for you to add TXT and return to this tab — we will
-                re-check DNS when you focus this window.
+            <DomainDnsInstructionsCard
+              dnsHint={
+                dnsHint
+                  ? {
+                      host: dnsHint.host,
+                      expectedRecord: dnsHint.expectedRecord,
+                    }
+                  : null
+              }
+              diagnostic={domainDiagnostic ?? null}
+              workerHealth={workerHealth ?? null}
+              autoRecheckActive={autoRecheckActive}
+              autoRecheckAttempt={autoRecheckAttempt}
+              autoRecheckMax={AUTO_RECHECK_MAX}
+              onCopyHost={async () => {
+                const host = dnsHint?.host ?? domainDiagnostic?.queried_host;
+                if (!host) return;
+                const { optionA, optionB } = hostNameFieldOptionsForUi(host);
+                await navigator.clipboard.writeText(
+                  `Option A: ${optionA}\nOption B: ${optionB}`,
+                );
+                toast({ title: "Host hints copied" });
+              }}
+              onCopyValue={async () => {
+                const v =
+                  dnsHint?.expectedRecord ??
+                  domainDiagnostic?.expected_token ??
+                  `ownerr-verification=${startupSlug}`;
+                await navigator.clipboard.writeText(v);
+                toast({ title: "TXT value copied" });
+              }}
+              onCopyDiagnostic={() => copyDiagnosticMut.mutate()}
+              copyDiagnosticPending={copyDiagnosticMut.isPending}
+            />
+            {lastDomainDnsCheck?.status === "fail" &&
+            lastDomainDnsCheck.host?.startsWith("_ownerr.") ? (
+              <p className="text-xs text-amber-800 dark:text-amber-300 max-w-lg">
+                An older CNAME check was used. Use TXT instructions above on{" "}
+                <span className="font-mono">{domain || "your domain"}</span>.
               </p>
             ) : null}
-            {dnsHint ? (
-              <div className="rounded-md border bg-muted/30 p-3 text-xs space-y-2 max-w-lg">
-                <p className="text-muted-foreground">
-                  At{" "}
-                  <strong>{getDomainDnsProvider(dnsProviderId).label}</strong>,
-                  add a <strong>TXT</strong> record for{" "}
-                  <span className="font-mono font-semibold text-foreground">
-                    {dnsHint.host}
-                  </span>
-                  :
-                </p>
-                <div className="font-mono space-y-1 break-all">
-                  <p>Type: TXT</p>
-                  <p>
-                    Host / name: {dnsHint.host}{" "}
-                    <span className="text-muted-foreground font-sans">
-                      ({dnsHostFieldHint(dnsHint.host, dnsProviderId)})
-                    </span>
-                  </p>
-                  <p>Value: {dnsHint.expectedRecord}</p>
-                </div>
-              </div>
-            ) : null}
-            {lastDomainDnsCheck ? (
-              <div className="rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs space-y-1 max-w-lg">
-                <p className="font-semibold text-foreground">
-                  Last DNS check (worker)
-                </p>
-                <p className="text-muted-foreground">
-                  {lastDomainDnsCheck.checkedAt
-                    ? new Date(lastDomainDnsCheck.checkedAt).toLocaleString()
-                    : "—"}{" "}
-                  · status:{" "}
-                  <span className="font-mono">{lastDomainDnsCheck.status}</span>
-                </p>
-                {lastDomainDnsCheck.host ? (
-                  <p className="font-mono break-all">
-                    Queried: {lastDomainDnsCheck.host}
-                  </p>
-                ) : null}
-                {lastDomainDnsCheck.cnames?.length ? (
-                  <p className="font-mono break-all">
-                    CNAME found: {lastDomainDnsCheck.cnames.join(", ")}
-                  </p>
-                ) : null}
-                {lastDomainDnsCheck.txtRecords &&
-                lastDomainDnsCheck.txtRecords.length === 0 ? (
-                  <p className="text-muted-foreground">
-                    No TXT records found at this host yet.
-                  </p>
-                ) : null}
-                {lastDomainDnsCheck.txtRecords?.length ? (
-                  <p className="font-mono break-all">
-                    TXT found: {lastDomainDnsCheck.txtRecords.join(" | ")}
-                  </p>
-                ) : null}
-                {(lastDomainDnsCheck.expected ?? dnsHint?.expectedRecord) ? (
-                  <p className="font-mono break-all text-muted-foreground">
-                    Expected TXT:{" "}
-                    {lastDomainDnsCheck.expected ?? dnsHint?.expectedRecord}
-                  </p>
-                ) : null}
-                {lastDomainDnsCheck.error ? (
-                  <p className="text-destructive">{lastDomainDnsCheck.error}</p>
-                ) : null}
-                {lastDomainDnsCheck.status === "fail" &&
-                lastDomainDnsCheck.host?.startsWith("_ownerr.") ? (
-                  <p className="text-amber-800 dark:text-amber-300">
-                    This check used an old CNAME setup. Click{" "}
-                    <strong>Get TXT instructions</strong>, add the TXT on{" "}
-                    <span className="font-mono">{domain || "your domain"}</span>
-                    , then Validate all checks again.
-                  </p>
-                ) : null}
-                {lastDomainDnsCheck.status === "fail" &&
-                !lastDomainDnsCheck.host?.startsWith("_ownerr.") &&
-                (lastDomainDnsCheck.expected ?? dnsHint?.expectedRecord) ? (
-                  <p className="text-amber-800 dark:text-amber-300">
-                    Add the TXT value exactly at your DNS provider, wait a few
-                    minutes, then Validate all checks again.
-                  </p>
-                ) : null}
-              </div>
-            ) : gates.domain_status === "pending" && dnsHint ? (
-              <p className="text-xs text-muted-foreground max-w-lg">
-                No DNS check recorded yet. Add the record above, then click{" "}
-                <strong>Validate all checks</strong>.
-              </p>
-            ) : null}
-            {gates.domain_status === "failed" ||
-            gates.domain_status === "pending" ? (
-              <p className="text-xs text-muted-foreground">
-                {gates.domain_status === "failed"
-                  ? "Last DNS check did not match. Confirm the TXT/CNAME value exactly matches above (allow a few minutes for DNS), then Validate all checks."
-                  : "After adding DNS, click Validate all checks to refresh verification."}
-                {domainConn?.last_error ? (
-                  <span className="block mt-1 text-destructive">
-                    {domainConn.last_error}
-                  </span>
-                ) : null}
+            {domainConn?.last_error ? (
+              <p className="text-xs text-destructive max-w-lg">
+                {domainConn.last_error}
               </p>
             ) : null}
           </>
@@ -879,6 +905,8 @@ export function ListingVerificationHub({ startupSlug }: Props) {
         step={3}
         startupId={startupId}
         gates={gates}
+        emailEditOpen={emailEditOpen}
+        onEmailEditOpenChange={setEmailEditOpen}
         onSent={() => void validateAllMut.mutateAsync()}
       />
 
@@ -887,33 +915,58 @@ export function ListingVerificationHub({ startupSlug }: Props) {
         title="Revenue (provider sync)"
         status={gates.revenue_status}
       >
-        {gates.revenue_status === "verified" ? (
-          <VerifiedBanner>
-            Revenue verified
-            {gates.verified_revenue_amount != null &&
-            gates.verified_revenue_amount > 0 ? (
-              <>
-                {" "}
-                —{" "}
-                {formatVerifiedRevenueDisplay(
-                  gates.verified_revenue_amount,
-                  gates.revenue_currency,
-                  activeRevenueMeta,
-                )}
-                {gates.revenue_source_provider ? (
-                  <span className="text-muted-foreground">
-                    {" "}
-                    via{" "}
-                    {activeRevenueMeta?.displayName ??
-                      gates.revenue_source_provider}
-                  </span>
-                ) : null}
-              </>
-            ) : null}
-            .
-          </VerifiedBanner>
+        {gates.revenue_status === "verified" && !revenueEditOpen ? (
+          <div className="space-y-2">
+            <VerifiedBanner>
+              Revenue verified
+              {gates.verified_revenue_amount != null &&
+              gates.verified_revenue_amount > 0 ? (
+                <>
+                  {" "}
+                  —{" "}
+                  {formatVerifiedRevenueDisplay(
+                    gates.verified_revenue_amount,
+                    gates.revenue_currency,
+                    activeRevenueMeta,
+                  )}
+                  {gates.revenue_source_provider ? (
+                    <span className="text-muted-foreground">
+                      {" "}
+                      via{" "}
+                      {activeRevenueMeta?.displayName ??
+                        gates.revenue_source_provider}
+                    </span>
+                  ) : null}
+                </>
+              ) : null}
+              .
+            </VerifiedBanner>
+            <Button
+              type="button"
+              variant="outline"
+              size="sm"
+              onClick={() => {
+                setApiKey("");
+                setRevenueEditOpen(true);
+                setProviderSlug(
+                  gates.revenue_source_provider ??
+                    revenueConnections[0]?.providerSlug ??
+                    providerSlug,
+                );
+              }}
+            >
+              <Pencil className="mr-2 h-3.5 w-3.5" aria-hidden />
+              Update connection
+            </Button>
+          </div>
         ) : (
           <>
+            {gates.revenue_status === "failed" ? (
+              <FailedGateEditHint
+                title="Revenue verification failed"
+                detail="Update your API credentials or connect a different revenue source below, then run Validate all checks."
+              />
+            ) : null}
             <p className="text-xs text-muted-foreground">
               {hasRevenueConnection
                 ? `Your ${activeRevenueMeta?.displayName ?? "revenue"} connection is active. Run Validate all checks to refresh ${revenueMetricLabel(activeRevenueMeta)}. Evidence must sync within the last 30 days.`
@@ -956,8 +1009,7 @@ export function ListingVerificationHub({ startupSlug }: Props) {
                   "Provider connected but verified revenue is still $0, or sync is older than 30 days. Re-run Validate all after new activity in your connected account."}
               </p>
             ) : null}
-            {gateNeedsSellerAction(gates.revenue_status) &&
-            (!hasRevenueConnection || gates.revenue_status === "failed") ? (
+            {gateNeedsSellerAction(gates.revenue_status) || revenueEditOpen ? (
               <form
                 className="max-w-md space-y-3"
                 onSubmit={(e) => {
@@ -965,7 +1017,7 @@ export function ListingVerificationHub({ startupSlug }: Props) {
                   if (apiKey && !connectMut.isPending) connectMut.mutate();
                 }}
               >
-                {!hasRevenueConnection ? (
+                {!hasRevenueConnection || revenueEditOpen ? (
                   <>
                     <Select
                       value={providerSlug}
@@ -1018,17 +1070,34 @@ export function ListingVerificationHub({ startupSlug }: Props) {
                         {selectedRevenueMeta.apiKeyHint}
                       </p>
                     ) : null}
-                    <Button
-                      type="submit"
-                      disabled={
-                        !apiKey ||
-                        connectMut.isPending ||
-                        (selectedRevenueMeta?.requiresExternalAccount &&
-                          !externalId.trim())
-                      }
-                    >
-                      Connect & sync
-                    </Button>
+                    <div className="flex flex-wrap gap-2">
+                      <Button
+                        type="submit"
+                        disabled={
+                          !apiKey ||
+                          connectMut.isPending ||
+                          (selectedRevenueMeta?.requiresExternalAccount &&
+                            !externalId.trim())
+                        }
+                      >
+                        {hasRevenueConnection || revenueEditOpen
+                          ? "Update credentials & sync"
+                          : "Connect & sync"}
+                      </Button>
+                      {revenueEditOpen ? (
+                        <Button
+                          type="button"
+                          variant="ghost"
+                          size="sm"
+                          onClick={() => {
+                            setRevenueEditOpen(false);
+                            setApiKey("");
+                          }}
+                        >
+                          Cancel
+                        </Button>
+                      ) : null}
+                    </div>
                     {connectableRevenueProviders.length <
                     revenueProviderGroups.flatMap((g) => g.items).length ? (
                       <p className="text-xs text-muted-foreground">
@@ -1039,10 +1108,69 @@ export function ListingVerificationHub({ startupSlug }: Props) {
                     ) : null}
                   </>
                 ) : (
-                  <p className="text-xs text-muted-foreground">
-                    To switch providers, connect a different revenue source or
-                    contact support to disconnect the current integration.
-                  </p>
+                  <>
+                    <p className="text-xs text-muted-foreground">
+                      Enter a new API key for your connected provider, or pick
+                      another source below.
+                    </p>
+                    <Select
+                      value={providerSlug}
+                      onValueChange={setProviderSlug}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Revenue source" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {revenueProviderGroups.map((group) => (
+                          <div key={group.class}>
+                            <p className="px-2 py-1.5 text-xs font-semibold text-muted-foreground">
+                              {group.label}
+                            </p>
+                            {group.items
+                              .filter((i) => i.authType === "api_key")
+                              .map((i) => (
+                                <SelectItem key={i.slug} value={i.slug}>
+                                  {i.displayName}
+                                </SelectItem>
+                              ))}
+                          </div>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                    {selectedRevenueMeta?.requiresExternalAccount ? (
+                      <Input
+                        placeholder={
+                          selectedRevenueMeta.externalAccountLabel ??
+                          "External account ID"
+                        }
+                        className="font-mono text-sm"
+                        value={externalId}
+                        onChange={(e) => setExternalId(e.target.value)}
+                      />
+                    ) : null}
+                    <Input
+                      type="password"
+                      name="integration_api_key"
+                      autoComplete="off"
+                      placeholder={
+                        selectedRevenueMeta?.apiKeyPlaceholder ??
+                        "New API key (encrypted server-side)"
+                      }
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                    />
+                    <Button
+                      type="submit"
+                      disabled={
+                        !apiKey ||
+                        connectMut.isPending ||
+                        (selectedRevenueMeta?.requiresExternalAccount &&
+                          !externalId.trim())
+                      }
+                    >
+                      Update credentials & sync
+                    </Button>
+                  </>
                 )}
               </form>
             ) : null}
@@ -1113,16 +1241,27 @@ function BusinessEmailGate({
   step,
   startupId,
   gates,
+  emailEditOpen,
+  onEmailEditOpenChange,
   onSent,
 }: {
   step: number;
   startupId: string | null | undefined;
   gates: ListingVerificationGates;
+  emailEditOpen: boolean;
+  onEmailEditOpenChange: (open: boolean) => void;
   onSent: () => void;
 }) {
   const { toast } = useToast();
   const [email, setEmail] = useState(gates.business_email ?? "");
   const [devLink, setDevLink] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (!emailEditOpen) {
+      setEmail(gates.business_email ?? "");
+    }
+  }, [gates.business_email, emailEditOpen]);
+
   const mut = useMutation({
     mutationFn: async () => {
       if (!startupId) throw new Error("Startup not found");
@@ -1167,19 +1306,40 @@ function BusinessEmailGate({
       title="Business email"
       status={gates.business_email_status}
     >
-      {gates.business_email_status === "verified" ? (
-        <VerifiedBanner>
-          Work email verified:{" "}
-          <span className="font-mono">{gates.business_email}</span>
-        </VerifiedBanner>
+      {gates.business_email_status === "verified" && !emailEditOpen ? (
+        <div className="space-y-2">
+          <VerifiedBanner>
+            Work email verified:{" "}
+            <span className="font-mono">{gates.business_email}</span>
+          </VerifiedBanner>
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={() => onEmailEditOpenChange(true)}
+          >
+            <Pencil className="mr-2 h-3.5 w-3.5" aria-hidden />
+            Change email
+          </Button>
+        </div>
       ) : (
         <>
+          {gates.business_email_status === "failed" ? (
+            <FailedGateEditHint
+              title="Business email verification failed"
+              detail="Use a work address on your verified domain and send a new magic link below."
+            />
+          ) : emailEditOpen ? (
+            <p className="text-xs text-muted-foreground">
+              Enter a new work email. We will send a fresh verification link.
+            </p>
+          ) : null}
           <p className="text-xs text-muted-foreground">
             Use an address on your verified domain (e.g.
             founder@yourdomain.com). Consumer domains like Gmail are blocked.
           </p>
           <form
-            className="flex max-w-md flex-col gap-2 sm:flex-row"
+            className="flex max-w-md flex-col gap-2 sm:flex-row sm:items-center"
             onSubmit={(e) => {
               e.preventDefault();
               mut.mutate();
@@ -1197,6 +1357,19 @@ function BusinessEmailGate({
             >
               Send magic link
             </Button>
+            {emailEditOpen ? (
+              <Button
+                type="button"
+                variant="ghost"
+                size="sm"
+                onClick={() => {
+                  onEmailEditOpenChange(false);
+                  setEmail(gates.business_email ?? "");
+                }}
+              >
+                Cancel
+              </Button>
+            ) : null}
           </form>
           {devLink && import.meta.env.DEV ? (
             <div className="mt-3 rounded-md border border-amber-500/30 bg-amber-500/5 p-3 text-xs">

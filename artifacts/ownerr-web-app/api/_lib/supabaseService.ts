@@ -1,14 +1,22 @@
-import { createClient } from "@supabase/supabase-js";
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import {
+  assertApiSecretsConfigured,
+  assertServerRuntime,
+} from "./serverRuntimeGuard.js";
 
-export function getSupabaseServiceClient() {
-  const url =
-    process.env.SUPABASE_URL?.trim() ??
-    process.env.VITE_SUPABASE_URL?.trim();
-  const key = process.env.SUPABASE_SERVICE_ROLE_KEY?.trim();
-  if (!url || !key) {
-    throw new Error("SUPABASE_URL and SUPABASE_SERVICE_ROLE_KEY are required");
-  }
-  return createClient(url, key, {
+let cached: SupabaseClient | null = null;
+
+export function getSupabaseServiceClient(): SupabaseClient {
+  assertServerRuntime("getSupabaseServiceClient");
+  assertApiSecretsConfigured();
+
+  if (cached) return cached;
+
+  const url = process.env.SUPABASE_URL!.trim();
+  const key = process.env.SUPABASE_SERVICE_ROLE_KEY!.trim();
+
+  cached = createClient(url, key, {
     auth: { persistSession: false, autoRefreshToken: false },
   });
+  return cached;
 }
