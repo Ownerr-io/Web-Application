@@ -36,8 +36,8 @@ Sellers enter **their own** provider API keys in the app (e.g. Stripe `sk_live_�
 
 Production requirement for storing seller keys:
 
-| Where                               | What                                                                                                                                                           |
-| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Where                          | What                                                                                                                                                                                |
+| ------------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Supabase `sys_platform_config` | `integration_encryption_key` (+ recommended `integration_encryption_pepper`) and sync worker URLs via `npm run platform:set-integration-secrets` from a machine with `DATABASE_URL` |
 
 That encryption material is **Ownerr’s** key for Postgres ciphertext — not Stripe.

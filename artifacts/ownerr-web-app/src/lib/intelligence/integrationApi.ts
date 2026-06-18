@@ -288,6 +288,60 @@ export async function fetchLatestDomainDnsCheck(startupId: string): Promise<{
   return result;
 }
 
+export async function fetchDomainDnsDiagnosticsLatest(
+  startupId: string,
+): Promise<
+  | import("@/lib/marketplace/domainVerificationDiagnostics").DomainDnsDiagnosticView
+  | null
+> {
+  const { parseDomainDnsDiagnosticRpc } =
+    await import("@/lib/marketplace/domainVerificationDiagnostics");
+  const { data, error } = await getSupabase().rpc(
+    "domain_dns_diagnostics_latest",
+    { p_startup_id: startupId },
+  );
+  if (error) {
+    verificationDebugLog(
+      "domain",
+      "domain_dns_diagnostics_latest failed",
+      { message: error.message },
+      "warn",
+    );
+    return null;
+  }
+  return parseDomainDnsDiagnosticRpc(data);
+}
+
+export async function fetchSyncWorkerHealthLatest(): Promise<
+  | import("@/lib/marketplace/domainVerificationDiagnostics").SyncWorkerHealthView
+  | null
+> {
+  const { parseSyncWorkerHealthRpc } =
+    await import("@/lib/marketplace/domainVerificationDiagnostics");
+  const { data, error } = await getSupabase().rpc("sync_worker_health_latest");
+  if (error) {
+    verificationDebugLog(
+      "worker",
+      "sync_worker_health_latest failed",
+      { message: error.message },
+      "warn",
+    );
+    return null;
+  }
+  return parseSyncWorkerHealthRpc(data);
+}
+
+export async function fetchSupportDomainDiagnosticsExport(
+  startupId: string,
+): Promise<string> {
+  const { data, error } = await getSupabase().rpc(
+    "support_export_domain_diagnostics",
+    { p_startup_id: startupId },
+  );
+  if (error) throw new Error(error.message);
+  return typeof data === "string" ? data : String(data ?? "");
+}
+
 export async function listVerificationProviders(): Promise<
   {
     id: string;

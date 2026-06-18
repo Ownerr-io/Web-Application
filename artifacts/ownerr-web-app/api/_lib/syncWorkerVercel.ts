@@ -75,9 +75,7 @@ export async function serveSyncWorkerRoute(
   }
 
   const body =
-    req.method !== "GET" && req.method !== "HEAD"
-      ? await readRawBody(req)
-      : "";
+    req.method !== "GET" && req.method !== "HEAD" ? await readRawBody(req) : "";
 
   const result = await handleBundledSyncWorkerRequest({
     path: logicalPath.startsWith("/") ? logicalPath : `/${logicalPath}`,
@@ -87,7 +85,12 @@ export async function serveSyncWorkerRoute(
         ? req.headers.authorization
         : undefined,
     body,
-    origin: typeof req.headers.origin === "string" ? req.headers.origin : undefined,
+    origin:
+      typeof req.headers.origin === "string" ? req.headers.origin : undefined,
+    requestHeaders: req.headers as Record<
+      string,
+      string | string[] | undefined
+    >,
   });
 
   for (const [key, value] of Object.entries(result.headers)) {

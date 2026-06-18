@@ -11,6 +11,7 @@ import {
   sendBusinessEmailVerification,
   consumeBusinessEmailLaunchToken,
 } from "@workspace/verification-automation";
+import { syncWorkerCorsHeaders } from "@workspace/integrations-sync";
 
 export async function handleVerificationHttp(
   req: http.IncomingMessage,
@@ -309,11 +310,7 @@ export async function handleVerificationHttp(
 }
 
 function corsHeaders(req: http.IncomingMessage): Record<string, string> {
-  const origin = req.headers.origin ?? "*";
-  return {
-    "Access-Control-Allow-Origin": origin,
-    "Access-Control-Allow-Methods": "POST, OPTIONS",
-    "Access-Control-Allow-Headers": "Authorization, Content-Type",
-    Vary: "Origin",
-  };
+  const origin =
+    typeof req.headers.origin === "string" ? req.headers.origin : undefined;
+  return syncWorkerCorsHeaders(origin);
 }

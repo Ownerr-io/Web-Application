@@ -1,5 +1,10 @@
 import type { SupabaseClient } from "@supabase/supabase-js";
 import { SchemaTables as T } from "@workspace/db-schema";
+import {
+  captureSyncWorkerHealthSnapshot,
+  persistDomainDnsDiagnostic,
+} from "./domainDiagnosticsPersist.js";
+import type { DomainDnsDiagnostic } from "@workspace/integrations-core";
 import { getProviderAdapter } from "@workspace/integrations-core";
 import {
   verificationWorkerError,
@@ -184,11 +189,11 @@ export async function processIntegrationSyncJob(
     if (jobPayload.challenge_id) {
       const { data: ch } = await supabase
         .from(T.trust.domainChallenges)
-        .select("host, expected_record, method")
+        .select("host, expected_record, method, domain")
         .eq("id", jobPayload.challenge_id)
         .single();
       if (ch) {
-        jobPayload = { ...jobPayload, ...ch };
+        jobPayload = { ...jobPayload, ...ch, domain: ch.domain };
         verificationWorkerLog("domain", "Loaded challenge by id", {
           host: ch.host,
           method: ch.method,
@@ -198,7 +203,7 @@ export async function processIntegrationSyncJob(
     } else {
       const { data: ch } = await supabase
         .from(T.trust.domainChallenges)
-        .select("id, host, expected_record, method")
+        .select("id, host, expected_record, method, domain")
         .eq("startup_id", conn.startup_id)
         .eq("status", "pending")
         .gt("expires_at", new Date().toISOString())
@@ -212,6 +217,7 @@ export async function processIntegrationSyncJob(
           host: ch.host,
           expected_record: ch.expected_record,
           method: ch.method,
+          domain: ch.domain,
           sync_type: "domain_check",
         };
         verificationWorkerLog("domain", "Using latest pending challenge", {
@@ -291,6 +297,43 @@ export async function processIntegrationSyncJob(
         p_pass: pass,
         p_evidence: result.syncCursor ?? {},
       });
+
+      const diagnostic = (
+        result.syncCursor as { diagnostic?: DomainDnsDiagnostic }
+      )?.diagnostic;
+      if (diagnostic) {
+        try {
+          let workerHealth: Record<string, unknown> | null = null;
+          try {
+            const { count } = await supabase
+              .from(T.trust.integrationJobs)
+              .select("id", { count: "exact", head: true })
+              .eq("status", "pending");
+            workerHealth = { queue_pending: count ?? 0 };
+          } catch {
+            workerHealth = null;
+          }
+          await persistDomainDnsDiagnostic(supabase, {
+            startupId: conn.startup_id,
+            challengeId: jobPayload.challenge_id as string,
+            enteredDomain:
+              (jobPayload.domain as string | undefined) ??
+              (jobPayload.host as string),
+            verificationHost: String(jobPayload.host),
+            diagnostic,
+            resolverObservations:
+              (result.syncCursor?.evidence as Record<string, unknown>) ?? {},
+            workerHealth,
+          });
+        } catch (persistErr) {
+          verificationWorkerWarn("domain", "Diagnostics persist skipped", {
+            error:
+              persistErr instanceof Error
+                ? persistErr.message
+                : String(persistErr),
+          });
+        }
+      }
     } else {
       const { data: provider } = await supabase
         .from(T.trust.providers)
@@ -386,16 +429,32 @@ export async function runIntegrationSyncBatch(
   supabase: SupabaseClient,
   options: { workerId: string; maxJobs: number },
 ): Promise<{ processed: number }> {
+  const batchStartedAt = Date.now();
   verificationWorkerLog("batch", "Starting sync batch", {
     worker_id: options.workerId,
     max_jobs: options.maxJobs,
   });
   let processed = 0;
+  let batchOk = true;
   for (let i = 0; i < options.maxJobs; i++) {
-    const got = await claimAndProcessOneJob(supabase, options.workerId);
-    if (!got) break;
-    processed += 1;
+    try {
+      const got = await claimAndProcessOneJob(supabase, options.workerId);
+      if (!got) break;
+      processed += 1;
+    } catch {
+      batchOk = false;
+      break;
+    }
   }
   verificationWorkerLog("batch", "Batch finished", { processed });
+  try {
+    await captureSyncWorkerHealthSnapshot(supabase, {
+      batchStartedAt,
+      processed,
+      batchOk,
+    });
+  } catch {
+    /* health snapshot optional until migration applied */
+  }
   return { processed };
 }

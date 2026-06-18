@@ -76,7 +76,9 @@ var SchemaTables = {
     identitySessions: "trust_identity_sessions",
     webhookEvents: "trust_webhook_events",
     personProfiles: "trust_person_profiles",
-    verifiedRevenueMetrics: "trust_verified_revenue_metrics"
+    verifiedRevenueMetrics: "trust_verified_revenue_metrics",
+    domainDnsDiagnostics: "trust_domain_dns_diagnostics",
+    domainRevalidationRuns: "trust_domain_revalidation_runs"
   },
   system: {
     platformConfig: "sys_platform_config",
@@ -84,6 +86,14 @@ var SchemaTables = {
     identityLaunchTokens: "sys_identity_launch_tokens",
     syncWorkerLaunchTokens: "sys_sync_worker_launch_tokens",
     businessEmailLaunchTokens: "sys_business_email_launch_tokens",
+    syncWorkerHealthSnapshots: "sys_sync_worker_health_snapshots",
+    mvRefreshRuns: "sys_mv_refresh_runs",
+    workerTasks: "sys_worker_tasks",
+    webhookEventRegistry: "webhook_event_registry",
+    platformAlerts: "platform_alerts",
+    platformBackupHealth: "platform_backup_health",
+    securityAbuseEvents: "security_abuse_events",
+    offerIdempotencyKeys: "offer_idempotency_keys",
     appliedMigrations: "ownerr_applied_migrations"
   }
 };
@@ -214,15 +224,6 @@ async function handleStripeIdentityWebhookHttp(supabase, opts) {
   const started = Date.now();
   const json = { "Content-Type": "application/json" };
   const { rawBody, stripeSignatureHeader, webhookSecret, isProduction } = opts;
-  if (isProduction && !webhookSecret) {
-    return {
-      status: 503,
-      body: JSON.stringify({
-        error: "STRIPE_IDENTITY_WEBHOOK_SECRET required in production"
-      }),
-      contentType: json["Content-Type"]
-    };
-  }
   if (webhookSecret) {
     if (typeof stripeSignatureHeader !== "string" || !verifyStripeWebhookSignature(
       rawBody,
@@ -235,6 +236,14 @@ async function handleStripeIdentityWebhookHttp(supabase, opts) {
         contentType: json["Content-Type"]
       };
     }
+  } else if (isProduction) {
+    return {
+      status: 503,
+      body: JSON.stringify({
+        error: "STRIPE_IDENTITY_WEBHOOK_SECRET required in production"
+      }),
+      contentType: json["Content-Type"]
+    };
   }
   let event;
   try {
