@@ -330,8 +330,9 @@ function QuestionField({
       value={value}
       onChange={(e) => onChange(e.target.value)}
       onFocus={(e) => {
+        const target = e.currentTarget;
         requestAnimationFrame(() => {
-          e.currentTarget.scrollIntoView({
+          target?.scrollIntoView({
             block: "center",
             behavior: "smooth",
           });
